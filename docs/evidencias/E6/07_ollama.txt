@@ -1,0 +1,60 @@
+## 6.5 streaming + fontes com qwen2.5:3b (config.py padrão)
+Modelo: qwen2.5:3b
+Pergunta: Como o Self-RAG decide quando buscar documentos?
+
+O Self-RAG decide quando buscar documentos baseado na probabilidade de geração de termos. Quando essa probabilidade cai abaixo de um certo limiar, o sistema de busca é ativado para coletar informações relevantes, o que melhora a ciclo de busca.
+
+Fontes:
+[1] asai2023_selfrag.pdf, p. 1
+[2] gao2023_survey.pdf, p. 12
+[3] lewis2020_rag.pdf, p. 3
+[4] lewis2020_rag.pdf, p. 5
+
+[primeiro token em 0.4s, resposta completa em 8.3s]
+exit=0
+
+## 6.5 pergunta fora da base (sem bloco de fontes)
+Modelo: qwen2.5:3b
+Pergunta: Qual é a receita de pão de queijo mineiro?
+
+Não encontrei essa informação nos documentos.
+
+[primeiro token em 0.2s, resposta completa em 1.4s]
+exit=0
+
+## 6.6 plano B: MODELO_CHAT=qwen2.5:1.5b lido por config.py, nenhuma outra alteração
+Modelo: qwen2.5:1.5b
+Pergunta: Como o Self-RAG decide quando buscar documentos?
+
+De acordo com o trecho [2], o Self-RAG decide quando buscar documentos de duas maneiras principais:
+
+1. Autonomamente: O modelo decide quando buscar documentos de acordo com a sua própria decisão.
+
+2. Predefinido: Também pode ser ativado por um threshold pré-definido, o que pode ser configurado pelo usuário.
+
+Essas duas maneiras permitem que o Self-RAG seja flexível em relação à decisão de quando buscar documentos, otimizando a interação entre a geração e a busca de informações.
+
+Fontes:
+[1] asai2023_selfrag.pdf, p. 1
+[2] gao2023_survey.pdf, p. 12
+[3] lewis2020_rag.pdf, p. 3
+[4] lewis2020_rag.pdf, p. 5
+
+[primeiro token em 72.2s, resposta completa em 88.5s]
+exit=0
+
+## busca em dois estágios
+Caminho: dois estágios
+Modelo: qwen2.5:3b
+Pergunta: Como o Self-RAG decide quando buscar documentos?
+
+O Self-RAG decide quando buscar documentos de acordo com o trecho [1] da documentação. Este trecho menciona que a primeira etapa do Self-RAG envolve a determinação de se aumentar a geração de geração com passagens recuperadas seriam úteis. Se for, ele então gera um token de busca que chama um modelo de busca quando necessário (Etapa 1). Subseqüentemente, o Self-RAG processa simultaneamente múltiplas passagens recuperadas, avaliando sua relevância e gerando correspondentes saídas de tarefas (Etapa 2). Em seguida, ele gera tokens de críticas para criticar sua própria saída e escolher a melhor em termos de fidedignidade e qualidade geral.
+
+Fontes:
+[1] asai2023_selfrag.pdf, p. 1
+[2] lewis2020_rag.pdf, p. 3
+[3] lewis2020_rag.pdf, p. 5
+[4] lewis2020_rag.pdf, p. 8
+
+[primeiro token em 105.0s, resposta completa em 159.4s]
+exit=0

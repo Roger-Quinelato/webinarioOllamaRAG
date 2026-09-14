@@ -1,0 +1,17 @@
+# Ambiente Python
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+
+# Modelos do Ollama (vários GB) e índice vetorial regenerável
+Ollama/models/
+chroma_db/
+
+# PDFs: cursos do CIIA e artigos não são versionados (links no README)
+arquivosPDF/**/*.pdf
+
+# Estado local do harness
+.tlc/harness/state/
+
+.cursor/hooks.json
+.claude/settings.json

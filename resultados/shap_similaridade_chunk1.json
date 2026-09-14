@@ -1,0 +1,35 @@
+{
+  "pergunta": "Quais métricas o Ragas usa para avaliar fidelidade e relevância das respostas?",
+  "chunk_id": "es2023_ragas-p005-c03",
+  "tokens": [
+    "Quais ",
+    "métricas ",
+    "o ",
+    "Ragas ",
+    "usa ",
+    "para ",
+    "avaliar ",
+    "fidelidade ",
+    "e ",
+    "relevância ",
+    "das ",
+    "respostas"
+  ],
+  "valores": [
+    -0.003239814323111323,
+    0.024296328474776925,
+    -0.011230704169735612,
+    0.08926712118395098,
+    -0.004077970836360384,
+    -0.001762539816147081,
+    0.029218112557092373,
+    0.0612027340381294,
+    -0.010719960039273092,
+    0.060593841087523186,
+    0.009514096676617366,
+    0.057006767844086835
+  ],
+  "base": 0.34792298212407025,
+  "similaridade_real": 0.6456401323359752,
+  "segundos": 81.63660610001534
+}

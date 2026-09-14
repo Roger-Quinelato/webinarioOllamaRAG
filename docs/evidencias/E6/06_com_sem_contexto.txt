@@ -1,0 +1,99 @@
+====================================================================================================
+Pergunta: Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?
+
+--- Prompt enriquecido (4651 caracteres), início:
+=== SYSTEM ===
+Você é um assistente que responde em português do Brasil usando SOMENTE os trechos fornecidos pelo usuário. Os trechos podem estar em inglês: traduza e explique em português. Se a resposta não estiver nos trechos, responda exatamente: "Não encontrei essa informação nos documentos." Cite a fonte de cada informação com o número do trecho entre colchetes, por exemplo [1].
+
+=== USER ===
+Trechos:
+[1] (liu2023_lost_middle.pdf, p. 1)
+Lost in the Middle: How Language Models Use Long Contexts Nelson F . Liu1∗ Kevin Lin2 John Hewitt1 Ashwin Paranjape3 Michele Bevilacqua3 Fabio Petroni3 Percy Liang1 1Stanford University 2University of California, Berkeley 3Samaya AI nfliu@cs.stanford.edu Abstract While recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when 
+[…]
+ontext, and the model returns a generated text completion. These input contexts can contain thousands of tokens, especially when language
+
+Pergunta: Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?
+
+--- SEM contexto (9.8s):
+Segundo o artigo "Lost in the Middle", os modelos de linguagem usam melhor a informação nas posições do contexto ao meio, ou seja, nas posições que estão entre o início e o final do contexto fornecido. Essa é uma das descobertas principais do artigo.
+
+--- COM contexto (11.4s):
+Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre nas posições de início ou fim do contexto. O artigo menciona que a performance é mais alta quando a informação relevante está no início ou no final do contexto, e a performance deixa degradar significativamente quando os modelos precisam acessar e usar a informação no meio do contexto.
+
+Fontes:
+[1] liu2023_lost_middle.pdf, p. 1
+[2] liu2023_lost_middle.pdf, p. 2
+[3] liu2023_lost_middle.pdf, p. 11
+[4] liu2023_lost_middle.pdf, p. 1
+====================================================================================================
+Pergunta: Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?
+
+--- Prompt enriquecido (4595 caracteres), início:
+=== SYSTEM ===
+Você é um assistente que responde em português do Brasil usando SOMENTE os trechos fornecidos pelo usuário. Os trechos podem estar em inglês: traduza e explique em português. Se a resposta não estiver nos trechos, responda exatamente: "Não encontrei essa informação nos documentos." Cite a fonte de cada informação com o número do trecho entre colchetes, por exemplo [1].
+
+=== USER ===
+Trechos:
+[1] (asai2023_selfrag.pdf, p. 10)
+higher S&P scores on short-form PopQA, which is consistent with Menick et al. (2022). Human annotators also find ISREL and ISSUP reflection token predictions are mostly aligned with their assessments. Appendix Table 6 shows several annotated examples and explanations on assessments. 6 C ONCLUSION This work introduces SELF -RAG, a new framework to enhance the quality and factuality of LLMs through retrieval on demand and self-reflection. SELF -R AG trains an LM to learn to retrieve, generate, and critique text passages and its own generation by predicting the next tokens from its original vocabulary as well as newly added special tokens, called refl
+[…]
+fying them as next token predictions from the expanded model vocabulary (i.e., the original vocabulary plus reflection tokens). Specifically, we train the generator
+
+Pergunta: Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?
+
+--- SEM contexto (8.4s):
+Desculpe, mas não tenho informações específicas sobre tokens de reflexão propostos no Self-RAG. Este é um tópico específico que pode estar relacionado a um projeto ou pesquisa particular. Sem mais contexto, não posso fornecer detalhes precisos sobre esses tokens.
+
+--- COM contexto (50.8s):
+O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): "retrieve" e "critic". Estes tokens permitem que o modelo introspecte suas próprias saídas. Quando o modelo autodetermina ou quando um limiar pré-definido é atingido, esses tokens são ativados para realizar a coleta de informações relevantes, otimizando o ciclo de coleta.
+
+Fontes:
+[1] asai2023_selfrag.pdf, p. 10
+[2] asai2023_selfrag.pdf, p. 1
+[3] gao2023_survey.pdf, p. 12
+[4] asai2023_selfrag.pdf, p. 4
+====================================================================================================
+Pergunta: Qual é a receita de pão de queijo mineiro?
+
+--- Prompt enriquecido (3855 caracteres), início:
+=== SYSTEM ===
+Você é um assistente que responde em português do Brasil usando SOMENTE os trechos fornecidos pelo usuário. Os trechos podem estar em inglês: traduza e explique em português. Se a resposta não estiver nos trechos, responda exatamente: "Não encontrei essa informação nos documentos." Cite a fonte de cada informação com o número do trecho entre colchetes, por exemplo [1].
+
+=== USER ===
+Trechos:
+[1] (lewis2020_rag.pdf, p. 2)
+The Divine Comedy (x) q Query Encoder q(x) MIPS pθ Generator pθ (Parametric) Marginalize This 14th century work is divided into 3 sections: "Inferno", "Purgatorio" & "Paradiso" (y) End-to-End Backprop through q and pθ Barack Obama was born in Hawaii.(x) Fact Verification: Fact Query supports (y) Question Generation Fact Verification: Label Generation Document Index Define "middle ear"(x) Question Answering: Question Query The middle ear includes the tympanic cavity and the three ossicles. (y) Question Answering: Answer GenerationRetriever pη (Non-Parametric) z4 z3 z2 z1 d(z) Jeopardy Question Generation: Answer Query Figure 1: Overview of our approach.
+[…]
+which we can plug different retriever systems directly. Besides the retriever, our QA system consists of a neural reader that outputs the answer to the question. Given the top k retrieved passages
+
+Pergunta: Qual é a receita de pão de queijo mineiro?
+
+--- SEM contexto (37.0s):
+Aqui está uma receita básica de pão de queijo mineiro:
+
+Ingredientes:
+
+- 500g de queijo muçarela ralado
+- 2 ovos grandes
+- 1/2 xícara de leite
+- 1/2 xícara de farinha de trigo
+- 1 colher de sopa de açúcar
+- 1 colher de sopa de óleo de coco
+- Sal a gosto
+
+Modo de preparo:
+
+1. Em uma panela, derreta o óleo de coco em fogo médio.
+2. Adicione o queijo ralado e misture bem até que o queijo esteja quase derretido.
+3. Adicione os ovos, o leite e o açúcar. Misture bem até obter uma massa homogênea.
+4. Adicione a farinha de trigo aos poucos, mexendo sempre para evitar grumos.
+5. Adicione sal a gosto.
+6. Deixe a massa descansar por 10 minutos.
+7. Forme bolinhas com a massa e asse em forno pré-aquecido a 180°C por cerca de 20 minutos ou até dourar.
+
+Lembre-se de que a receita pode variar dependendo da preferência pessoal. Experimente e ajuste conforme necessário.
+
+--- COM contexto (1.6s):
+Não encontrei essa informação nos documentos.
+
+Salvo em resultados\com_sem_contexto.json

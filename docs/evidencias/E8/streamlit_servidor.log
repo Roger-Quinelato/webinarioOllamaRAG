@@ -1,0 +1,9 @@
+# Log do servidor Streamlit (preview_logs), sessão de 2026-09-14
+2026-09-14 02:09:55.322 Uvicorn server started on :::8501
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+
+Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+ConnectionResetError: [WinError 10054] (conexão do navegador fechada ao recarregar a página; ruído do asyncio no Windows, o app continuou respondendo)

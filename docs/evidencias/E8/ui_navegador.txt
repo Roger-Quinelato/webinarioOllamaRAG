@@ -1,0 +1,44 @@
+# E8 — verificação no navegador (painel Browser do Claude, http://localhost:8501), 2026-09-14 ~02:58 (hora local)
+
+Servidor: `streamlit run app.py --server.headless true --server.port 8501` via `.claude/launch.json`.
+Log do servidor: "Uvicorn server started on :::8501 / You can now view your Streamlit app in your browser." (8.1)
+
+Limitação: as capturas de tela do painel foram inspecionadas durante a sessão, mas a ferramenta não grava
+imagens em disco. Por isso a evidência abaixo é o texto e o DOM extraídos do navegador. Os demais critérios
+estão cobertos pelo teste automatizado em `apptest.txt` (streamlit.testing.v1.AppTest).
+
+## 8.2 — streaming no navegador
+Pergunta: "O que o artigo Lost in the Middle descobriu sobre contextos longos?" (busca simples, k = 4, qwen2.5:3b)
+Amostragem a cada 0,5 s do tamanho do texto da última mensagem do chat (hora UTC, caracteres).
+O crescimento gradual comprova o streaming:
+05:59:09.508 67 (só a legenda "Caminho usado…")
+05:59:19.007 72
+05:59:19.517 86
+05:59:20.040 100
+05:59:20.502 109
+05:59:21.559 127
+05:59:22.509 151
+05:59:24.004 184
+05:59:26.011 250
+05:59:28.509 312
+05:59:30.498 374
+05:59:32.518 427
+05:59:34.510 493
+(amostragem interrompida aos 20 s; a resposta seguiu crescendo até o fim)
+
+## 8.7 — expander de fontes aberto (texto da mensagem após clicar em "Fontes (4) — busca simples")
+Caminho usado: busca simples · k = 4 · modelo qwen2.5:3b
+
+[1] O artigo Lost in the Middle descobriu que o desempenho de modelos de linguagem pode degradar significativamente quando a posição da informação relevante no contexto de entrada é alterada. Observou-se que o desempenho é geralmente mais alto quando a informação relevante ocorre no início ou no final do contexto de entrada, e que o desempenho se deteriora significativamente quando os modelos precisam acessar informações que estão em posições interiores do contexto.
+
+Fontes (4) — busca simples
+[1] Lost in the Middle: How Language Models Use Long Contexts — liu2023_lost_middle.pdf, p. 1 · distância 0.3150 · 2023 · limitacoes · en
+Resumo do artigo: The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of the context. […]
+Lost in the Middle: How Language Models Use Long Contexts Nelson F . Liu1∗ Kevin Lin2 John Hewitt1 […] We find that performance can degrade significantly when changing the position of relevant information,
+[2] Ragas: Automated Evaluation of Retrieval Augmented Generation — es2023_ragas.pdf, p. 6 · distância 0.3717 · 2023 · avaliacao · en
+Resumo do artigo: Ragas is a framework for evaluating Retrieval Augmented Generation (RAG) systems, […]
+[3] Lost in the Middle: How Language Models Use Long Contexts — liu2023_lost_middle.pdf, p. 10 · distância 0.4080 · 2023 · limitacoes · en
+[4] Retrieval-Augmented Generation for Large Language Models: A Survey — gao2023_survey.pdf, p. 19 · distância 0.4230 · 2023 · survey · en
+
+## 8.8 — Ollama indisponível
+Ver `ui_ollama_desligado.txt`.

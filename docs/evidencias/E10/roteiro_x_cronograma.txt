@@ -1,0 +1,25 @@
+# 10.2 — blocos do roteiro × cronograma (CLAUDE.md)
+## Antes da live (T-30 min)
+## Bloco 1 — Recapitulando o pipeline RAG (10 min)
+## Bloco 2 — Indexação (18 min)
+## Bloco 3 — Retrieval top-k na prática (15 min)
+## Bloco 3b — Busca em dois estágios (7 min)
+## Bloco 4 — SHAP (12 min)
+## Bloco 5 — Prompt augmentation: com e sem contexto (12 min)
+## Bloco 6 — Integração com Ollama (12 min)
+## Bloco 7 — Chatbot com Streamlit (15 min)
+## Bloco 8 — Avaliação, reranking e próximos passos (8 min)
+## Folga (5 min)
+
+Cronograma (~1h54): recap 10 · indexação 18 · retrieval top-k 15 · dois estágios 7 · SHAP 12 · com/sem contexto 12 · Ollama 12 · Streamlit 15 · RAGAS/reranking/encerramento 8 · folga 5.
+
+# Cada bloco tem fala/demo/checkpoint/plano B?
+## Bloco 1 — Recapitulando o pipeline RAG (10 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 2 — Indexação (18 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 3 — Retrieval top-k na prática (15 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 3b — Busca em dois estágios (7 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 4 — SHAP (12 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 5 — Prompt augmentation: com e sem contexto (12 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 6 — Integração com Ollama (12 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 7 — Chatbot com Streamlit (15 min) | fala 1 demo 1 checkpoint 1 planoB 1
+## Bloco 8 — Avaliação, reranking e próximos passos (8 min) | fala 1 demo 1 checkpoint 1 planoB 1

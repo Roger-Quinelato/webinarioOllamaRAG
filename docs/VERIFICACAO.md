@@ -1,0 +1,240 @@
+# Documento de verificação da implementação
+
+Este documento é **consultado no início e no fim de toda tarefa** neste repositório. Uma etapa só muda para ✅ quando todos os seus critérios têm evidência registrada: saída de comando, arquivo ou captura de tela. Afirmação sem evidência não conta.
+
+## Protocolo por tarefa
+
+**Antes de começar**
+1. Identificar a etapa (E0–E10) a que a tarefa pertence e ler os critérios dela.
+2. Conferir se os **pré-requisitos** da etapa estão ✅. Se não estiverem, a tarefa é fazer a etapa anterior primeiro.
+3. Anotar no [Registro de execuções](#registro-de-execuções) o que será feito.
+
+**Ao terminar**
+1. Rodar cada verificação da etapa e salvar a saída em `docs/evidencias/EN/` (ex.: `docs/evidencias/E2/indexacao.txt`).
+2. Marcar cada critério como ✅ (passou, com evidência), ❌ (falhou) ou ⏸️ (bloqueado, com o motivo).
+3. Se uma mudança tocar código de uma etapa já ✅ (ex.: `rag.py`), **reverificar as etapas afetadas** listadas em [Dependências entre etapas](#dependências-entre-etapas).
+4. Atualizar o status na tabela de resumo e fechar a linha no registro.
+
+**Nunca**: marcar ✅ sem evidência, apagar ou afrouxar um critério para fazê-lo passar, ou copiar números de outra máquina ou de estimativa. Todo número vem de medição nesta máquina.
+
+## Resumo
+
+| Etapa | Nome | Status | Evidência |
+|---|---|---|---|
+| E0 | Ambiente | ✅ | `docs/evidencias/E0/ambiente.txt` |
+| E1 | Corpus e metadados | ✅ (1.8 ⏸️) | `docs/evidencias/E1/` |
+| E2 | Indexação | ✅ | `docs/evidencias/E2/` |
+| E3 | Retrieval top-k e filtros | ✅ | `docs/evidencias/E3/` |
+| E4 | Busca em dois estágios | ✅ | `docs/evidencias/E4/` |
+| E5 | SHAP | ✅ | `docs/evidencias/E5/` |
+| E6 | Prompt augmentation e Ollama | ✅ | `docs/evidencias/E6/` |
+| E7 | Notebook e scripts | ✅ | `docs/evidencias/E7/` |
+| E8 | Streamlit | ✅ | `docs/evidencias/E8/` |
+| E9 | Medições de desempenho | ✅ (9.3 ⏸️) | `docs/medicoes.md`, `docs/evidencias/E9/` |
+| E10 | Documentação e plano v1.1 | ✅ (10.1 ⏸️ macOS/Linux) | `docs/evidencias/E10/` |
+
+Legenda: ⬜ não iniciada · 🔄 em andamento · ✅ verificada · ❌ falhou · ⏸️ bloqueada
+
+## Dependências entre etapas
+
+| Se mudar… | Reverificar |
+|---|---|
+| `config.py` (modelos, caminhos, k) | E2–E9 |
+| `metadados.csv` ou PDFs do corpus | E1–E8 |
+| `rag.py` → indexação/chunking | E2–E8 |
+| `rag.py` → busca | E3, E4, E5, E6, E7, E8 |
+| `rag.py` → `responder()` | E6, E7, E8 |
+| `requirements.txt` | E0 e todas as que importam o pacote alterado |
+| Modelo trocado para o plano B | E2 (reindexar, se for o embedding), E6, E9 |
+
+---
+
+## E0 — Ambiente
+
+**Pré-requisitos:** nenhum.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 0.1 | Ollama instalado e servidor respondendo | `ollama --version` e `GET http://localhost:11434/api/tags` sem erro | ✅ |
+| 0.2 | `OLLAMA_MODELS` aponta para `D:\webinarioOllamaRAG\Ollama\models` (ou C:, se o plano B foi acionado, com o motivo registrado) | variável de usuário lida e modelos aparecendo nessa pasta após o `pull` | ✅ |
+| 0.3 | Modelos baixados: `bge-m3`, `qwen2.5:3b`, `qwen2.5:1.5b` | `ollama list` contém os três | ✅ |
+| 0.4 | `.venv` criado no projeto; Python global intocado | `.venv\Scripts\python -c "import sys; print(sys.prefix)"` aponta para `.venv` | ✅ |
+| 0.5 | Dependências com **versão fixada** (`==`) em `requirements.txt` e instaladas | `pip install -r requirements.txt` sem erro; `pip check` sem conflito | ✅ |
+| 0.6 | Imports funcionam | `python -c "import ollama, chromadb, streamlit, pypdf, shap"` | ✅ |
+| 0.7 | Kernel do Jupyter registrado para o `.venv` | `jupyter kernelspec list` mostra o kernel do projeto | ✅ |
+| 0.8 | `scripts/00_checar_ambiente.py` cobre 0.1–0.6 e sai com código 0 | execução do script | ✅ |
+
+**Evidência:** `docs/evidencias/E0/`.
+
+## E1 — Corpus e metadados
+
+**Pré-requisitos:** E0.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 1.1 | Os 6 artigos do arXiv estão em `arquivosPDF/artigos/` e abrem com `pypdf` | contagem de arquivos; páginas e caracteres extraídos por arquivo | ✅ |
+| 1.2 | Nenhum artigo tem página sem texto (PDF escaneado) | páginas com menos de 30 caracteres = 0, ou listadas e justificadas | ✅ |
+| 1.3 | `metadados.csv` tem exatamente as colunas `arquivo, titulo, autores, ano, veiculo, tema, idioma, resumo` | leitura do cabeçalho | ✅ |
+| 1.4 | Toda linha do CSV aponta para um PDF existente e todo PDF do corpus tem linha | cruzamento arquivo ↔ CSV sem sobras | ✅ |
+| 1.5 | `tema` só usa `fundamentos`, `retrieval`, `avaliacao`, `survey`, `limitacoes`; `ano` é inteiro; `idioma` ∈ {`en`, `pt`} | validação por script | ✅ |
+| 1.6 | `resumo` preenchido, **no idioma original** do artigo, gerado pelo LLM a partir do abstract | conferência manual de cada linha, registrada | ✅ |
+| 1.7 | Os PDFs não entram no git; o README e o notebook trazem os links | `git status` sem PDFs; links presentes | ✅ |
+| 1.8 | Artigos em português (1–2) | ⏸️ pendente com o autor; placeholder marcado `TODO` | ⏸️ |
+
+**Evidência:** `docs/evidencias/E1/`.
+
+## E2 — Indexação
+
+**Pré-requisitos:** E0, E1.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 2.1 | Chunking por página, com páginas longas subdivididas com sobreposição | inspecionar os chunks de uma página longa: tamanhos e trecho sobreposto visível | ✅ |
+| 2.2 | Todo chunk tem os metadados do CSV + `pagina` + `chunk_id` + `tipo_chunk` | amostra de chunks via `collection.get(include=["metadatas"])` | ✅ |
+| 2.3 | Os resumos estão indexados como chunks próprios (`tipo_chunk="resumo"`), um por artigo | contagem por `tipo_chunk` | ✅ |
+| 2.4 | Embeddings gerados com o modelo de `config.py` e dimensão consistente | dimensão do vetor registrada; um único modelo na coleção | ✅ |
+| 2.5 | Reindexar é idempotente (rodar 2× não duplica) | contagem igual após a 2ª execução | ✅ |
+| 2.6 | Coleção persistida em `chroma_db/` e reaberta em um processo novo | contagem igual após reabrir | ✅ |
+| 2.7 | Demo de extração de metadados por LLM roda e é comparada campo a campo com o CSV | tabela da comparação salva | ✅ |
+| 2.8 | Tempo total de indexação medido | valor registrado em E9 | ✅ |
+
+**Evidência:** `docs/evidencias/E2/` (contagens, amostras, tempo).
+
+## E3 — Retrieval top-k e filtros
+
+**Pré-requisitos:** E2.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 3.1 | `buscar(pergunta, k)` devolve exatamente k resultados, ordenados por distância | saída para k = 1, 4, 8 | ✅ |
+| 3.2 | Cada resultado traz texto, distância, arquivo e página | inspeção da saída | ✅ |
+| 3.3 | Pergunta sobre um artigo conhecido traz esse artigo no top-k | caso registrado: pergunta, artigo esperado, posição obtida | ✅ |
+| 3.4 | Filtros `where` funcionam: `ano >= 2023`, `tema`, `idioma` | todos os resultados filtrados obedecem ao filtro | ✅ |
+| 3.5 | Cross-lingual: pergunta em português recupera chunk em inglês relevante | caso registrado | ✅ |
+| 3.6 | Filtro que não casa com nada devolve vazio sem erro | execução | ✅ |
+
+**Evidência:** `docs/evidencias/E3/`.
+
+## E4 — Busca em dois estágios
+
+**Pré-requisitos:** E3.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 4.1 | 1º estágio busca só em `tipo_chunk="resumo"` e escolhe os top-3 artigos | saída do estágio 1 | ✅ |
+| 4.2 | 2º estágio busca chunks só dentro dos artigos escolhidos (`arquivo $in [...]`) | todo resultado pertence aos artigos do estágio 1 | ✅ |
+| 4.3 | Comparação simples × dois estágios para a mesma pergunta, lado a lado | tabela salva com pelo menos um caso em que o resultado muda | ✅ |
+| 4.4 | Se o estágio 1 não achar nada, a função cai para a busca simples ou avisa, sem quebrar | execução com pergunta fora da base | ✅ |
+
+**Evidência:** `docs/evidencias/E4/`.
+
+## E5 — SHAP
+
+**Pré-requisitos:** E3 (5a), E6 (5b).
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 5a.1 | SHAP sobre a similaridade pergunta × chunk roda no notebook e gera o gráfico de texto | célula executada com gráfico salvo na saída | ✅ |
+| 5a.2 | Os valores somam aproximadamente à diferença entre a similaridade real e a base | checagem numérica registrada | ✅ |
+| 5a.3 | Tempo de execução ao vivo medido e compatível com o bloco (12 min) | valor em E9 | ✅ |
+| 5b.1 | Shapley dos chunks do top-k sobre a resposta calculado e **salvo** (não roda ao vivo) | arquivo de resultado + célula que só carrega | ✅ |
+| 5b.2 | Notebook deixa explícito que é explicabilidade do retrieval, não do raciocínio do LLM | texto presente na célula markdown | ✅ |
+
+**Evidência:** `docs/evidencias/E5/`.
+
+## E6 — Prompt augmentation e Ollama
+
+**Pré-requisitos:** E3 (E4 para a variante de dois estágios).
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 6.1 | Prompt montado mostra instruções + chunks numerados com fonte + pergunta | prompt impresso e salvo | ✅ |
+| 6.2 | Mesma pergunta respondida **sem** e **com** contexto, lado a lado | saída salva | ✅ |
+| 6.3 | Caso em que a resposta sem contexto inventa e a com contexto acerta | caso registrado (perguntas definitivas pendentes com o autor) | ✅ |
+| 6.4 | Pergunta fora da base: com contexto, o modelo diz que não encontrou nos documentos | caso registrado | ✅ |
+| 6.5 | `responder()` faz streaming e cita as fontes (arquivo, página) usadas | execução | ✅ |
+| 6.6 | Trocar `MODELO_CHAT` para `qwen2.5:1.5b` em `config.py` funciona sem outra alteração | execução com o plano B | ✅ |
+| 6.7 | Ollama desligado gera mensagem de erro clara, não um traceback cru | execução com o servidor parado | ✅ |
+
+**Evidência:** `docs/evidencias/E6/`.
+
+## E7 — Notebook e scripts
+
+**Pré-requisitos:** E2–E6.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 7.1 | `webinario_rag.ipynb` executa **de ponta a ponta** em kernel limpo, sem erro | execução não interativa (`nbclient`/`nbconvert --execute`) com log salvo | ✅ |
+| 7.2 | Saídas ficam salvas no notebook, incluindo as pré-computadas | abrir o `.ipynb` sem kernel e ver as saídas | ✅ |
+| 7.3 | Blocos do notebook seguem a ordem e os nomes do cronograma | conferência com o cronograma do CLAUDE.md | ✅ |
+| 7.4 | Notebook e scripts usam as funções de `rag.py`, sem cópias divergentes | busca por definições duplicadas | ✅ |
+| 7.5 | Cada `scripts/NN_*.py` roda sozinho, em ordem, com código de saída 0 | execução em sequência com log | ✅ |
+| 7.6 | Toda etapa lenta tem saída pré-computada salva como rede de segurança | lista das células pré-computadas | ✅ |
+
+**Evidência:** `docs/evidencias/E7/`.
+
+## E8 — Streamlit
+
+**Pré-requisitos:** E6.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 8.1 | `streamlit run app.py` sobe sem erro | log do servidor | ✅ |
+| 8.2 | Pergunta enviada gera resposta em streaming | teste no navegador com captura de tela | ✅ |
+| 8.3 | Histórico do chat persiste entre perguntas na mesma sessão | 2 perguntas seguidas | ✅ |
+| 8.4 | Slider de k altera a quantidade de fontes exibidas | captura com k diferentes | ✅ |
+| 8.5 | Filtros de metadados restringem as fontes | captura | ✅ |
+| 8.6 | Alternância busca simples × dois estágios muda o caminho usado | captura + indicação na UI | ✅ |
+| 8.7 | Expander de fontes mostra arquivo, página, trecho e resumo do artigo | captura | ✅ |
+| 8.8 | Ollama indisponível gera aviso na UI, sem quebrar o app | captura | ✅ |
+
+**Evidência:** `docs/evidencias/E8/` (capturas + log).
+
+## E9 — Medições de desempenho
+
+**Pré-requisitos:** E2, E5, E6, E8.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 9.1 | Tempos medidos nesta máquina: indexação, busca, SHAP (5a), resposta com `qwen2.5:3b` e com `qwen2.5:1.5b` | `docs/medicoes.md` com data, comando e valores | ✅ |
+| 9.2 | Medição repetida com o Ollama rodando junto de um navegador aberto (simulando a live) | valores registrados | ✅ |
+| 9.3 | Decisão registrada: `qwen2.5:3b` ao vivo ou plano B, e `Ollama/models` no D: ou no C: | decisão + números que a sustentam | ⏸️ |
+| 9.4 | Cada bloco cabe no tempo do cronograma, ou há proposta de ajuste | comparação tempo medido × minutos do bloco | ✅ |
+
+**Evidência:** `docs/medicoes.md`.
+
+## E10 — Documentação e plano v1.1
+
+**Pré-requisitos:** E0–E9.
+
+| # | Critério | Como verificar | Status |
+|---|---|---|---|
+| 10.1 | README com passo a passo completo (instalação → Streamlit) para Windows, macOS e Linux | seguir o README do zero em um `.venv` novo, sem conhecimento prévio | ⏸️ |
+| 10.2 | `docs/roteiro_facilitador.md`: fala, demo, checkpoint e plano B por bloco | conferência bloco a bloco com o cronograma | ✅ |
+| 10.3 | `docs/troubleshooting.md` cobre os erros realmente encontrados em E0–E9 | cada erro registrado no log tem entrada | ✅ |
+| 10.4 | `.docx` v1.1: cronograma novo, sem Colab, anexos 1–3 preenchidos, datas 21/09 e 28/09 | abrir e conferir | ✅ |
+| 10.5 | Nenhum PDF, modelo, `.venv` ou `chroma_db` versionado | `git status` / `git ls-files` | ✅ |
+
+**Evidência:** `docs/evidencias/E10/`.
+
+---
+
+## Registro de execuções
+
+Uma linha por tarefa. É o histórico que mostra o que foi verificado, quando e com qual resultado.
+
+| Data | Tarefa | Etapa(s) | Critérios verificados | Resultado | Evidência |
+|---|---|---|---|---|---|
+| 2026-09-13 | Criação deste documento | — | — | — | `docs/VERIFICACAO.md` |
+| 2026-09-14 | Ambiente: `OLLAMA_MODELS` no D:, pull dos 3 modelos, `.venv`, dependências fixadas + lock, kernel | E0 | 0.1–0.8 | ✅ | `docs/evidencias/E0/ambiente.txt` |
+| 2026-09-14 | Corpus: 6 artigos do arXiv, `metadados.csv`, resumos gerados pelo LLM | E1 | 1.1–1.7 (1.8 ⏸️ artigos PT com o autor) | ✅ | `docs/evidencias/E1/` |
+| 2026-09-14 | Indexação (556 chunks, 2× para idempotência), demo de metadados por LLM | E2 | 2.1–2.8 | ✅ | `docs/evidencias/E2/` |
+| 2026-09-14 | Busca top-k, filtros, cross-lingual; dois estágios com casos em que ajuda e em que atrapalha | E3, E4 | 3.1–3.6, 4.1–4.4 | ✅ | `docs/evidencias/E3/`, `docs/evidencias/E4/` |
+| 2026-09-14 | Prompt com/sem contexto e `responder()`; prompt refeito com mensagem system (reverificado) | E6 | 6.1–6.7 | ✅ | `docs/evidencias/E6/` |
+| 2026-09-14 | Streamlit: navegador + AppTest; reverificado após mudança do prompt | E8 | 8.1–8.8 | ✅ | `docs/evidencias/E8/` |
+| 2026-09-14 | SHAP ao vivo e Shapley dos chunks pré-computado (621 s) | E5 | 5a.1–5a.3, 5b.1–5b.2 | ✅ | `docs/evidencias/E5/` |
+| 2026-09-14 | Notebook gerado e executado (ao vivo 959 s na última execução, offline 61 s); scripts 00–07 em sequência | E7 | 7.1–7.6 | ✅ | `docs/evidencias/E7/` |
+| 2026-09-14 | Medições em 2 cenários; decisões e ajuste do cronograma | E9 | 9.1, 9.2, 9.4 ✅; 9.3 ⏸️ (modelo ao vivo: decisão do autor) | ✅ parcial | `docs/medicoes.md`, `docs/evidencias/E9/` |
+| 2026-09-14 | README, roteiro, troubleshooting, plano v1.1, versionamento | E10 | 10.2–10.5 ✅; 10.1 ✅ no Windows (README seguido do zero em cópia limpa: todos os passos com exit 0, Streamlit HTTP 200), ⏸️ macOS/Linux sem máquina para testar | ✅ parcial | `docs/evidencias/E10/` |
+| 2026-09-14 | Avaliação no estilo RAGAS (opcional, fora dos critérios) | — | script executado, resultado salvo | ✅ | `docs/evidencias/opcional/avaliacao_estilo_ragas.txt` |
+| 2026-09-14 | Fechamento da sessão: sintaxe dos 19 `.py`, reverificação de E3, duplicação (7.4) e versionamento de PDFs (10.5) | E3, E7, E10 | 3.1–3.6, 7.4, 10.5 | ✅ (pendências: 1.8, 9.3, 10.1 macOS/Linux) | `docs/evidencias/E10/fechamento_sessao.txt` |

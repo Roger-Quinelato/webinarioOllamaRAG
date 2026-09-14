@@ -1,0 +1,88 @@
+[
+  {
+    "pergunta": "Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?",
+    "resposta": "O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): \"retrieve\" e \"critic\". Estes tokens permitem que o modelo introspecte suas próprias saídas. Durante a busca, o gerador realiza uma busca de fragmentos de corte em múltiplas parágrafos para derivar a sequência mais coerente. Os scores de críticas são usados para atualizar os scores de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.",
+    "fidelidade": 1.0,
+    "relevancia_resposta": 0.5486333643374709,
+    "precisao_contexto": 0.75,
+    "afirmacoes": [
+      [
+        "O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): \"retrieve\" e \"critic\".",
+        true
+      ],
+      [
+        "Estes tokens permitem que o modelo introspecte suas próprias saídas.",
+        true
+      ],
+      [
+        "Durante a busca, o gerador realiza uma busca de fragmentos de corte em múltiplas parágrafos para derivar a sequência mais coerente.",
+        true
+      ],
+      [
+        "Os scores de críticas são usados para atualizar os scores de divisão.",
+        true
+      ],
+      [
+        "Há flexibilidade de ajustar esses pesos durante a inferência.",
+        true
+      ],
+      [
+        "Esses ajustes podem ser feitos para ajustar o comportamento do modelo.",
+        true
+      ]
+    ],
+    "perguntas_geradas": [
+      "",
+      "Qual são os dois tipos de tokens de reflexão (reflection tokens) mencionados no Self-RAG?",
+      ""
+    ],
+    "trechos_relevantes": [
+      false,
+      true,
+      true,
+      true
+    ],
+    "segundos": 402.1589164999896
+  },
+  {
+    "pergunta": "Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?",
+    "resposta": "Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre na posição inicial ou final do contexto. O artigo menciona que a performance dos modelos de linguagem tende a ser mais alta quando a informação relevante está no início ou no final do contexto, e a performance tende a se deteriorar quando os modelos precisam acessar ou usar a informação no meio do contexto.",
+    "fidelidade": 0.6,
+    "relevancia_resposta": 0.4684683024077294,
+    "precisao_contexto": 0.75,
+    "afirmacoes": [
+      [
+        "Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre na posição inicial ou final do contexto.",
+        true
+      ],
+      [
+        "O artigo menciona que a performance dos modelos de linguagem tende a ser mais alta quando a informação relevante está no início ou no final do contexto.",
+        true
+      ],
+      [
+        "A performance dos modelos de linguagem tende a se deteriorar quando os modelos precisam acessar ou usar a informação no meio do contexto.",
+        true
+      ],
+      [
+        "O artigo não menciona que a performance dos modelos de linguagem é mais alta quando a informação relevante está no meio do contexto.",
+        false
+      ],
+      [
+        "O artigo não menciona que a performance dos modelos de linguagem se deteriora quando a informação relevante está no meio do contexto.",
+        false
+      ]
+    ],
+    "perguntas_geradas": [
+      "",
+      "Número: 1",
+      "Pergunta: De acordo com o artigo, como a performance dos modelos de linguagem é afetada pela localização da informação relevante no contexto? Responda com base nas informações fornecidas."
+    ],
+    "trechos_relevantes": [
+      true,
+      true,
+      false,
+      true
+    ],
+    "segundos": 202.5380226999987
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "cenario": "com_streamlit_e_navegador",
+  "inicio": "2026-09-14T04:27:33",
+  "maquina": {
+    "cpu": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
+    "ram_gb": 7.9
+  },
+  "etapas": [
+    {
+      "etapa": "embedding da pergunta (rodada 1)",
+      "segundos": 4.56,
+      "ram_livre_gb": 0.4
+    },
+    {
+      "etapa": "embedding da pergunta (rodada 2)",
+      "segundos": 0.53,
+      "ram_livre_gb": 0.4
+    },
+    {
+      "etapa": "busca top-4 completa (rodada 1)",
+      "segundos": 3.91,
+      "ram_livre_gb": 0.43
+    },
+    {
+      "etapa": "busca top-4 completa (rodada 2)",
+      "segundos": 0.22,
+      "ram_livre_gb": 0.36
+    },
+    {
+      "etapa": "busca em dois estágios",
+      "segundos": 0.24,
+      "ram_livre_gb": 0.42
+    },
+    {
+      "etapa": "SHAP da similaridade (1 chunk, max_evals=200)",
+      "segundos": 89.29,
+      "ram_livre_gb": 0.22
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 1: Como o Self-RAG decide quando buscar documentos?)",
+      "segundos": 89.96,
+      "ram_livre_gb": 0.46,
+      "carga_modelo_s": 0.02,
+      "tokens_prompt": 1041,
+      "prompt_tokens_por_s": 13.5,
+      "tokens_gerados": 58,
+      "geracao_tokens_por_s": 5.6
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 2: Quais métricas o Ragas propõe para avaliar RAG?)",
+      "segundos": 18.06,
+      "ram_livre_gb": 0.38,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 1017,
+      "prompt_tokens_por_s": 8424.3,
+      "tokens_gerados": 121,
+      "geracao_tokens_por_s": 7.4
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:1.5b (rodada 1: Como o DPR treina o retriever denso?)",
+      "segundos": 71.77,
+      "ram_livre_gb": 0.33,
+      "carga_modelo_s": 40.96,
+      "tokens_prompt": 1368,
+      "prompt_tokens_por_s": 51.8,
+      "tokens_gerados": 56,
+      "geracao_tokens_por_s": 13.4
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:1.5b (rodada 2: O que o survey chama de Naive RAG, Advanced RAG e Modular RAG?)",
+      "segundos": 20.15,
+      "ram_livre_gb": 0.24,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 884,
+      "prompt_tokens_por_s": 58.6,
+      "tokens_gerados": 71,
+      "geracao_tokens_por_s": 14.5
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 1: O que acontece quando a informação relevante está no meio do contexto?)",
+      "segundos": 55.12,
+      "ram_livre_gb": 0.33,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 1016,
+      "prompt_tokens_por_s": 116.7,
+      "tokens_gerados": 187,
+      "geracao_tokens_por_s": 4.1
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 2: Qual a diferença entre RAG-Sequence e RAG-Token?)",
+      "segundos": 28.74,
+      "ram_livre_gb": 0.39,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 1208,
+      "prompt_tokens_por_s": 7774.3,
+      "tokens_gerados": 55,
+      "geracao_tokens_por_s": 7.0
+    }
+  ],
+  "fim": "2026-09-14T04:34:03"
+}

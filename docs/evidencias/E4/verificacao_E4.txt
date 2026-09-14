@@ -1,0 +1,4 @@
+4.1 estágio 1: 3 artigos | tipos: ['resumo', 'resumo', 'resumo'] | ['karpukhin2020_dpr.pdf', 'lewis2020_rag.pdf', 'asai2023_selfrag.pdf']
+4.2 estágio 2: todos os resultados dentro dos artigos escolhidos = True | tipos: ['pagina']
+4.4 estágio 1 vazio (idioma=pt): caminho = 'busca simples (o estágio 1 não encontrou resumos com esse filtro)', 0 resultados
+[e4 em 4.5s]

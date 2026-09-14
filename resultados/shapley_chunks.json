@@ -1,0 +1,51 @@
+{
+  "pergunta": "Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?",
+  "modelo": "qwen2.5:3b",
+  "valor_sem_chunks": 0.3270134082896867,
+  "valor_com_todos": 1.0000000000000002,
+  "contribuicoes": [
+    {
+      "chunk": 1,
+      "arquivo": "asai2023_selfrag.pdf",
+      "pagina": 10,
+      "shapley": 0.20337341892469715
+    },
+    {
+      "chunk": 2,
+      "arquivo": "asai2023_selfrag.pdf",
+      "pagina": 1,
+      "shapley": 0.011322455048240814
+    },
+    {
+      "chunk": 3,
+      "arquivo": "gao2023_survey.pdf",
+      "pagina": 12,
+      "shapley": 0.25640251660573854
+    },
+    {
+      "chunk": 4,
+      "arquivo": "asai2023_selfrag.pdf",
+      "pagina": 4,
+      "shapley": 0.20188820113163694
+    }
+  ],
+  "respostas": {
+    "0,1,2,3": "O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): \"retrieve\" e \"critic\". Estes tokens permitem que o modelo introspecte suas próprias saídas. Durante a busca, o gerador realiza uma busca de fragmentos de corte em múltiplas parágrafos para derivar a sequência mais coerente. Os scores de críticas são usados para atualizar os scores de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.",
+    "nenhum": "Não encontrei essa informação nos documentos.",
+    "0": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são tokens adicionados à vocabulário original da LM, que são usados para prever os próximos tokens tanto da sua própria geração quanto de textos passados. Esses tokens auxiliam no treinamento da LM para criticar sua própria geração.",
+    "1": "Não encontrei essa informação nos documentos. [1]",
+    "2": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são denominados \"retrieve\" e \"critic\". Esses tokens permitem que o modelo introspecte suas próprias saídas. Quando o modelo autônomamente decide ativar a busca, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a busca, o gerador realiza uma pesquisa de fragmento de busca em múltiplas parágrafos para derivar a sequência mais coerente. As pontuações de crítico são usadas para atualizar as pontuações de subdivisão, com a flexibilidade de ajustar esses pesos durante a inferência, moldando o comportamento do modelo.",
+    "3": "Os tokens de reflexão propostos no Self-RAG são usados para gerar textos com reflexões. Esses tokens são incorporados como previsões de token para o próximo token de um modelo de vocabulário expandido (original + reflexão). Isso é feito para garantir que o texto gerado atenda a restrições suaves (soft constraints) ou restrições duras (hard control) definidas em anteriores etapas.",
+    "0,1": "No Self-RAG, os tokens de reflexão (reflection tokens) são tokens especiais utilizados para permitir que o modelo de linguagem (LM) reflita sobre as passagens recuperadas e suas próprias gerações, usando a previsão de próximos tokens a partir da sua própria vocabulário original e dos novos tokens especiais.",
+    "0,2": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são dois tipos: \"retrieve\" e \"critic\". O modelo decidi quando ativar a recuperação, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a recuperação, o gerador realiza uma busca de fragmentos de múltiplas parágrafos para derivar a sequência mais coerente. As pontuações de crítico são usadas para atualizar os pontuações de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, personalizando o comportamento do modelo.",
+    "0,3": "O Self-RAG propõe três tipos de tokens de reflexão:\n\n1. Um token de crítica para avaliar a relevância da passagem recuperada, a próxima segmentação de resposta e se a informação na segmentação de resposta é apoiada pela passagem. \n\n2. Um novo token de crítica para avaliar a utilidade geral da resposta.\n\nEstes tokens são usados para gerar cada segmento, onde o Self-RAG processa múltiplas passagens em paralelo e usa seus próprios tokens de reflexão gerados para estabelecer restrições de controle suave (seção 3.3) ou controle duro (Algoritmo 1) sobre a saída gerada para o output do output do trabalho.",
+    "1,2": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são chamados de \"retrieve\" e \"critic\". O modelo autônomamente decide quando ativar a busca, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a busca, o gerador realiza uma pesquisa de fragmento de corte em múltiplas parágrafos para derivar a sequência mais coerente. Os pontuações de crítico são usadas para atualizar as pontuações de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, adaptando o comportamento do modelo.",
+    "1,3": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são usados para gerar e avaliar reflexões sobre as passagens recuperadas e as próprias gerações. Além disso, eles permitem que o modelo seja controlado durante o processo de inferência, permitindo que ele personalize seu comportamento para as demandas de diferentes tarefas.",
+    "2,3": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são classificados em duas variedades: \"retrieve\" e \"critic\". O modelo autônomamente decide quando ativar a recuperação, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a recuperação, o gerador realiza uma busca de fragmento em várias parágrafos para derivar a sequência mais coerente. Critic scores são usados para atualizar os scores de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, moldando o comportamento do modelo.",
+    "0,1,2": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são chamados de \"retrieve\" e \"critic\". O modelo decide quando ativar a busca, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a busca, o gerador realiza um corte de fragmentos de busca em múltiplas parágrafos para derivar a sequência mais coerente. As pontuações de crítico são usadas para atualizar os pesos de divisão, com a flexibilidade para ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.",
+    "0,1,3": "O Self-RAG propõe três tipos de tokens de reflexão (reflection tokens):\n\n1. Um token de crítica (critique token) para avaliar a relevância da passagem recuperada, a segmentação de resposta subsequente e se a informação na segmentação de resposta está suportada pela passagem.\n\n2. Um novo token de crítica para avaliar a utilidade geral da resposta.\n\nEstes tokens são usados para gerar cada segmento no Self-RAG. O Self-RAG processa múltiplas passagens em paralelo e usa seus próprios tokens de reflexão gerados para estabelecer restrições suaves (constrangimentos) ou controle duro (Algoritmo 1) sobre a saída gerada para o output do output de tarefa específico.",
+    "0,2,3": "O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): \"retrieve\" e \"critic\". Esses tokens permitem que o modelo se auto-reflexivo, permitindo que ele decida quando realizar a coleta de informações (retrieval) ou quando usar uma pontuação pré-definida para iniciar esse processo. Durante a coleta de informações, o gerador realiza uma pesquisa de fragmentos de múltiplas parágrafos para derivar a sequência mais coerente. Os scores de crítico são usados para atualizar os scores de divisão, com a flexibilidade de ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.",
+    "1,2,3": "Os tokens de reflexão (reflection tokens) propostos no Self-RAG são de dois tipos: \"retrieve\" e \"critic\". O \"retrieve\" é usado para acionar o sistema de busca, enquanto o \"critic\" é usado para avaliar a relevância do trecho de resposta e se a informação contida nesse trecho está de acordo com o texto de busca. Além disso, existe um token de avaliação (critique token) que avalia a utilidade geral da resposta."
+  },
+  "segundos": 620.5510454000323
+}

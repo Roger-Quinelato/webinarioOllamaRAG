@@ -1,0 +1,20 @@
+
+ERRO: Não consegui falar com o Ollama em http://localhost:11434. Abra o aplicativo Ollama (ou rode `ollama serve`) e tente de novo. Detalhe: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+exit=0 
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[OK ] import ollama — sem __version__
+[OK ] import chromadb — 1.5.9
+[OK ] import streamlit — 1.63.0
+[OK ] import pypdf — 6.18.1
+[OK ] import shap — 0.52.0
+[OK ] import numpy — 2.5.3
+[FALHOU] Servidor Ollama respondendo — [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente. Abra o aplicativo Ollama ou rode `ollama serve`.
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+1 verificação(ões) falharam: Servidor Ollama respondendo
+exit=0 
+6.7 gerar_embeddings: OllamaIndisponivel → Não consegui falar com o Ollama em http://localhost:11999. Abra o aplicativo Ollama (ou rode `ollama serve`) e tente de novo. Detalhe: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+6.7 responder: OllamaIndisponivel → Não consegui falar com o Ollama em http://localhost:11999. Abra o aplicativo Ollama (ou rode `ollama serve`) e tente de novo. Detalhe: [WinError 10061] Nenhuma conexão pôde ser feita porque a máquina de destino as recusou ativamente
+[e6_ollama_desligado em 9.5s]

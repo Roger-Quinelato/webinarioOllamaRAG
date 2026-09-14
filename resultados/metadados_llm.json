@@ -1,0 +1,50 @@
+{
+  "artigo": "es2023_ragas.pdf",
+  "modelo": "qwen2.5:3b",
+  "extraido": {
+    "titulo": "Ragas: Automated Evaluation of Retrieval Augmented Generation",
+    "autores": "Ragas; Shahul Es†; Jithin James†; Luis Espinosa-Anke∗; Steven Schockaert∗",
+    "ano": 2023,
+    "veiculo": "N/A (Texto não menciona veículo específico)",
+    "tema": "retrieval",
+    "idioma": "en"
+  },
+  "comparacao": [
+    {
+      "campo": "titulo",
+      "csv": "Ragas: Automated Evaluation of Retrieval Augmented Generation",
+      "llm": "Ragas: Automated Evaluation of Retrieval Augmented Generation",
+      "igual": true
+    },
+    {
+      "campo": "autores",
+      "csv": "Shahul Es; Jithin James; Luis Espinosa-Anke; Steven Schockaert",
+      "llm": "Ragas; Shahul Es†; Jithin James†; Luis Espinosa-Anke∗; Steven Schockaert∗",
+      "igual": false
+    },
+    {
+      "campo": "ano",
+      "csv": 2023,
+      "llm": 2023,
+      "igual": true
+    },
+    {
+      "campo": "veiculo",
+      "csv": "EACL 2024 (System Demonstrations)",
+      "llm": "N/A (Texto não menciona veículo específico)",
+      "igual": false
+    },
+    {
+      "campo": "tema",
+      "csv": "avaliacao",
+      "llm": "retrieval",
+      "igual": false
+    },
+    {
+      "campo": "idioma",
+      "csv": "en",
+      "llm": "en",
+      "igual": true
+    }
+  ]
+}

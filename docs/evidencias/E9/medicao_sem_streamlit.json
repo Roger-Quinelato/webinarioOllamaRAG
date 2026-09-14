@@ -1,0 +1,101 @@
+{
+  "cenario": "sem_streamlit",
+  "inicio": "2026-09-14T04:15:16",
+  "maquina": {
+    "cpu": "Intel64 Family 6 Model 142 Stepping 10, GenuineIntel",
+    "ram_gb": 7.9
+  },
+  "etapas": [
+    {
+      "etapa": "embedding da pergunta (rodada 1)",
+      "segundos": 58.84,
+      "ram_livre_gb": 0.45
+    },
+    {
+      "etapa": "embedding da pergunta (rodada 2)",
+      "segundos": 0.54,
+      "ram_livre_gb": 0.42
+    },
+    {
+      "etapa": "busca top-4 completa (rodada 1)",
+      "segundos": 8.52,
+      "ram_livre_gb": 0.39
+    },
+    {
+      "etapa": "busca top-4 completa (rodada 2)",
+      "segundos": 3.84,
+      "ram_livre_gb": 0.42
+    },
+    {
+      "etapa": "busca em dois estágios",
+      "segundos": 1.16,
+      "ram_livre_gb": 0.43
+    },
+    {
+      "etapa": "SHAP da similaridade (1 chunk, max_evals=200)",
+      "segundos": 73.97,
+      "ram_livre_gb": 0.51
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 1: Como o Self-RAG decide quando buscar documentos?)",
+      "segundos": 42.4,
+      "ram_livre_gb": 0.68,
+      "carga_modelo_s": 0.55,
+      "tokens_prompt": 1041,
+      "prompt_tokens_por_s": 41.4,
+      "tokens_gerados": 58,
+      "geracao_tokens_por_s": 7.3
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 2: Quais métricas o Ragas propõe para avaliar RAG?)",
+      "segundos": 117.79,
+      "ram_livre_gb": 0.48,
+      "carga_modelo_s": 0.2,
+      "tokens_prompt": 1017,
+      "prompt_tokens_por_s": 27.2,
+      "tokens_gerados": 175,
+      "geracao_tokens_por_s": 7.3
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:1.5b (rodada 1: Como o DPR treina o retriever denso?)",
+      "segundos": 72.53,
+      "ram_livre_gb": 0.3,
+      "carga_modelo_s": 42.13,
+      "tokens_prompt": 1368,
+      "prompt_tokens_por_s": 52.8,
+      "tokens_gerados": 56,
+      "geracao_tokens_por_s": 13.1
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:1.5b (rodada 2: O que o survey chama de Naive RAG, Advanced RAG e Modular RAG?)",
+      "segundos": 20.4,
+      "ram_livre_gb": 0.25,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 884,
+      "prompt_tokens_por_s": 57.7,
+      "tokens_gerados": 71,
+      "geracao_tokens_por_s": 14.2
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 1: O que acontece quando a informação relevante está no meio do contexto?)",
+      "segundos": 156.82,
+      "ram_livre_gb": 0.52,
+      "carga_modelo_s": 0.01,
+      "tokens_prompt": 1016,
+      "prompt_tokens_por_s": 9.8,
+      "tokens_gerados": 154,
+      "geracao_tokens_por_s": 3.0
+    },
+    {
+      "etapa": "resposta RAG k=4 com qwen2.5:3b (rodada 2: Qual a diferença entre RAG-Sequence e RAG-Token?)",
+      "segundos": 97.09,
+      "ram_livre_gb": 0.51,
+      "carga_modelo_s": 0.03,
+      "tokens_prompt": 1208,
+      "prompt_tokens_por_s": 24.8,
+      "tokens_gerados": 54,
+      "geracao_tokens_por_s": 7.2
+    }
+  ],
+  "fim": "2026-09-14T04:26:29"
+}

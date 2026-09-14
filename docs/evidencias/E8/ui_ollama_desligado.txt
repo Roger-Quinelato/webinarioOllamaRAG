@@ -1,0 +1,13 @@
+# 8.8 — Ollama parado (processos "ollama" e "ollama app" encerrados), app aberto em http://localhost:8501
+# Texto da página extraído do navegador (get_page_text) após enviar "O que é RAG?" em 2026-09-14 ~02:10.
+# Resultado observado: aviso amarelo no topo (st.warning) + erro vermelho na resposta (st.error); o app continuou
+# respondendo (sidebar e chat utilizáveis), sem traceback.
+
+📚 Assistente RAG sobre artigos de RAG
+Webinário CIIA — Encontro 2 · Ollama + ChromaDB + Streamlit
+
+⚠️ Não consegui falar com o Ollama em http://localhost:11434. Abra o aplicativo Ollama (ou rode ollama serve) e tente de novo. Detalhe: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download
+
+face  O que é RAG?
+
+smart_toy ⚠️ Não consegui falar com o Ollama em http://localhost:11434. Abra o aplicativo Ollama (ou rode ollama serve) e tente de novo. Detalhe: Failed to connect to Ollama. Please check that Ollama is downloaded, running and accessible. https://ollama.com/download

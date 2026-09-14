@@ -1,0 +1,20 @@
+1) Artigos
+   asai2023_selfrag.pdf          30 páginas  105700 caracteres  páginas sem texto: 0
+   es2023_ragas.pdf               8 páginas   31937 caracteres  páginas sem texto: 0
+   gao2023_survey.pdf            21 páginas  109939 caracteres  páginas sem texto: 0
+   karpukhin2020_dpr.pdf         13 páginas   55921 caracteres  páginas sem texto: 0
+   lewis2020_rag.pdf             19 páginas   69058 caracteres  páginas sem texto: 0
+   liu2023_lost_middle.pdf       18 páginas   65436 caracteres  páginas sem texto: 0
+   total: 109 páginas
+
+2) metadados.csv
+   cabeçalho: ['arquivo', 'titulo', 'autores', 'ano', 'veiculo', 'tema', 'idioma', 'resumo']
+   6 linhas válidas (arquivo ↔ PDF, tema, idioma, ano)
+
+3) Resumos gerados pelo LLM a partir do abstract (no idioma do artigo)
+   lewis2020_rag.pdf: já preenchido
+   karpukhin2020_dpr.pdf: já preenchido
+   gao2023_survey.pdf: já preenchido
+   es2023_ragas.pdf: já preenchido
+   asai2023_selfrag.pdf: já preenchido
+   liu2023_lost_middle.pdf: já preenchido

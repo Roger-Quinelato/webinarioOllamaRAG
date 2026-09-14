@@ -1,0 +1,16 @@
+2.2 total de chunks: 556
+2.2 chunks sem algum metadado obrigatório: 0 []
+2.2 amostra: {'arquivo': 'lewis2020_rag.pdf', 'chunk_id': 'lewis2020_rag-p001-c00', 'veiculo': 'NeurIPS 2020', 'titulo': 'Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks', 'ano': 2020, 'pagina': 1, 'tema': 'fundamentos', 'tipo_chunk': 'pagina', 'autores': 'Patrick Lewis; Ethan Perez; Aleksandra Piktus; Fabio Petroni; Vladimir Karpukhin; Naman Goyal; Heinrich Küttler; Mike Lewis; Wen-tau Yih; Tim Rocktäschel; Sebastian Riedel; Douwe Kiela', 'resumo': 'The abstract discusses the exploration of retrieval-augmented generation (RAG) models, which combine pre-trained parametric and non-parametric memory for language generation. These models use a pre-trained seq2seq model for the parametric memory and a dense vector index of Wikipedia for the non-parametric memory, accessed via a pre-trained neural retriever. The study compares two RAG formulations and demonstrates that these models outperform both parametric seq2seq models and task-specific retrieve-and-extract architectures on knowledge-intensive NLP tasks, generating more specific, diverse, and factual language.', 'idioma': 'en'}
+2.3 por tipo_chunk: {'pagina': 550, 'resumo': 6} | resumos por artigo: {'lewis2020_rag.pdf': 1, 'karpukhin2020_dpr.pdf': 1, 'gao2023_survey.pdf': 1, 'es2023_ragas.pdf': 1, 'asai2023_selfrag.pdf': 1, 'liu2023_lost_middle.pdf': 1}
+2.4 metadata da coleção: {'modelo_embedding': 'bge-m3', 'hnsw:space': 'cosine'}
+2.4 dimensões distintas em 50 vetores: [1024]
+2.6 contagem neste processo novo (reabrindo chroma_db/): 556
+[e2 em 3.2s]
+2.6 contagem em outro processo: 556 
+[e2_reabrir em 4.4s]
+2.1 página 3 de lewis2020_rag.pdf: 3659 caracteres → 5 chunks de tamanhos [999, 998, 991, 997, 246] (limite 1000)
+2.1 início do chunk 1 aparece no fim do chunk 0: True (sobreposição de 144 caracteres) → 'document as a single latent variable that is marginalized to get the seq2seq pro'
+2.1 início do chunk 2 aparece no fim do chunk 1: True (sobreposição de 143 caracteres) → 'output token, Formally, we define: pRAG-Token(y|x) ≈ N∏ i ∑ z∈top-k(p(·|x)) pη(z'
+2.1 início do chunk 3 aparece no fim do chunk 2: True (sobreposição de 146 caracteres) → '[23]. We use a pre-trained bi-encoder from DPR to initialize our retriever and t'
+2.1 início do chunk 4 aparece no fim do chunk 3: True (sobreposição de 139 caracteres) → 'as the parametric memory henceforth. 2.4 Training We jointly train the retriever'
+[e2_sobreposicao em 1.0s]

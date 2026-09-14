@@ -1,0 +1,10 @@
+03:38:56 scripts/00_checar_ambiente.py → exit 0 em 51s
+03:39:21 scripts/01_preparar_corpus.py → exit 0 em 25s
+04:00:21 scripts/02_indexar.py → exit 0 em 1260s
+04:01:14 scripts/03_buscar.py → exit 0 em 53s
+04:01:48 scripts/04_dois_estagios.py → exit 0 em 34s
+04:03:42 scripts/05_shap.py → exit 0 em 114s
+04:07:26 scripts/06_com_sem_contexto.py → exit 0 em 224s
+04:09:13 scripts/07_ollama.py → exit 0 em 106s
+scripts com falha: 0
+exit=0

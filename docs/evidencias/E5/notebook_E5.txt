@@ -1,0 +1,14 @@
+# 5b.2 — texto do notebook (markdown do Bloco 4):
+## Bloco 4 — SHAP: explicando o retrieval
+
+> ⚠️ Aqui explicamos o **retrieval**: quais palavras da pergunta aproximam o vetor da pergunta do vetor de um chunk.
+> **Não** é uma explicação do raciocínio do LLM.
+
+A função explicada é `similaridade_cosseno(embedding(pergunta mascarada), embedding(chunk))`. O SHAP mascara palavras
+da pergunta e mede quanto a similaridade muda.
+
+# 5a.1 — saídas salvas da célula SHAP no webinario_rag.ipynb (execução ao vivo mais recente)
+stream Chunk explicado: es2023_ragas.pdf p.5 (similaridade 0.6456)
+stream SHAP em 34s
+base 0.3479 + soma dos SHAP +0.3001 = 0.6480 | similaridade real 0.6456
+display_data ['text/html', 'text/plain']

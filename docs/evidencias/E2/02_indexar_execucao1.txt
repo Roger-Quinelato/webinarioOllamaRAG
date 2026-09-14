@@ -1,0 +1,50 @@
+# Execução 1 (saída do terminal, recodificada de cp1252 para UTF-8)
+Modelo de embedding: bge-m3
+Chunk: 1000 caracteres, sobreposi��o 150
+
+1) Chunking: 556 chunks em 10.8s
+   por tipo: {'pagina': 550, 'resumo': 6}
+   por artigo: {'lewis2020_rag.pdf': 89, 'karpukhin2020_dpr.pdf': 72, 'gao2023_survey.pdf': 137, 'es2023_ragas.pdf': 40, 'asai2023_selfrag.pdf': 136, 'liu2023_lost_middle.pdf': 82}
+
+   P�gina 3 de lewis2020_rag.pdf virou 5 chunks:
+   - lewis2020_rag-p003-c00 (999 car.) termina com: �lity p(y|x) via a top-K approximation. Concretely, the top K
+     lewis2020_rag-p003-c01 (998 car.) come�a com:  document as a single latent variable that is marginalized to�
+   - lewis2020_rag-p003-c01 (998 car.) termina com: �pθ(yi|x,z,y 1:i−1) Finally, we note that RAG can be used for
+     lewis2020_rag-p003-c02 (991 car.) come�a com:  output token, Formally, we define: pRAG-Token(y|x) ≈ N∏ i ∑ �
+   - lewis2020_rag-p003-c02 (991 car.) termina com: �d the document index. This retriever was trained to retrieve
+     lewis2020_rag-p003-c03 (997 car.) come�a com:  [23]. We use a pre-trained bi-encoder from DPR to initialize�
+   - lewis2020_rag-p003-c03 (997 car.) termina com: �r and generator components without any direct supervision on
+     lewis2020_rag-p003-c04 (246 car.) come�a com:  as the parametric memory henceforth. 2.4 Training We jointly�
+
+2) Embeddings + ChromaDB
+  64/556 chunks indexados
+  128/556 chunks indexados
+  192/556 chunks indexados
+  256/556 chunks indexados
+  320/556 chunks indexados
+  384/556 chunks indexados
+  448/556 chunks indexados
+  512/556 chunks indexados
+  556/556 chunks indexados
+   556 vetores na cole��o 'artigos_rag' em 1141.1s
+   dimens�o do vetor: 1024
+   metadados de lewis2020_rag-p001-c00: {"tipo_chunk": "pagina", "arquivo": "lewis2020_rag.pdf", "chunk_id": "lewis2020_rag-p001-c00", "ano": 2020, "autores": "Patrick Lewis; Ethan Perez; Aleksandra Piktus; Fabio Petroni; Vladimir Karpukhin; Naman Goyal; Heinrich K�ttler; Mike Lewis; Wen-tau Yih; Tim Rockt�schel; Sebastian Riedel; Douwe Kiela", "resumo": "The abstract discusses the exploration of retrieval-augmented generation (RAG) mod�
+
+3) Demo: metadados extra�dos pelo LLM (qwen2.5:3b) � metadados.csv � es2023_ragas.pdf
+   extra��o em 134.9s
+   = titulo   csv: 'Ragas: Automated Evaluation of Retrieval Augmented Generatio'
+              llm: 'Ragas: Automated Evaluation of Retrieval Augmented Generatio'
+   ≠ autores  csv: 'Shahul Es; Jithin James; Luis Espinosa-Anke; Steven Schockae'
+              llm: 'Ragas; Shahul Es�; Jithin James�; Luis Espinosa-Anke∗; Steve'
+   = ano      csv: '2023'
+              llm: '2023'
+   ≠ veiculo  csv: 'EACL 2024 (System Demonstrations)'
+              llm: 'N/A (Texto n�o menciona ve�culo espec�fico)'
+   ≠ tema     csv: 'avaliacao'
+              llm: 'retrieval'
+   = idioma   csv: 'en'
+              llm: 'en'
+   salvo em resultados\metadados_llm.json
+exit=0
+
+[exited with code 0]

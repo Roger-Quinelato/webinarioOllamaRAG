@@ -1,0 +1,498 @@
+=== [1] import json
+=== [2] instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, config.MOD
+  stream: Modelos no Ollama: ['bge-m3:latest', 'gemma4:26b', 'qwen2.5:1.5b', 'qwen2.5:3b']
+          Faltando: nenhum
+          Embedding: bge-m3 | Chat: qwen2.5:3b | Plano B: qwen2.5:1.5b
+          
+=== [3] metadados = rag.carregar_metadados()
+   execute_result ['text/html', 'text/plain'] text/plain:                    arquivo  \ 0        lewis2020_rag.pdf    1    karpukhin2020_dpr.pdf    2       gao2023_survey.pdf    3         es2023_ragas.pdf    4     asai2023_selfrag.pdf    5  liu2023_lost_middle.pdf                                                                                titulo  \ 0   
+=== [4] paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pdf")
+  stream: 19 páginas; página 3 tem 3659 caracteres
+          chunk 0: 999 caracteres | início: 'byθ that generates a current token based on a context of the previousi'
+          chunk 1: 998 caracteres | início: 'document as a single latent variable that is marginalized to get the s'
+          chunk 2: 991 caracteres | início: 'output token, Formally, we define: pRAG-Token(y|x) ≈ N∏ i ∑ z∈top-k(p('
+          chunk 3: 997 caracteres | início: '[23]. We use a pre-trained bi-encoder from DPR to initialize our retri'
+          chunk 4: 246 caracteres | início: 'as the parametric memory henceforth. 2.4 Training We jointly train the'
+          
+          Sobreposição entre chunk 0 e chunk 1:
+            fim do 0:   … ieved document as a single latent variable that is marginalized to ge
+=== [5] chunks = rag.gerar_chunks()
+  stream: 556 chunks no total
+          
+   execute_result ['text/html', 'text/plain'] text/plain: tipo_chunk               pagina  resumo arquivo                                 asai2023_selfrag.pdf        135       1 es2023_ragas.pdf             39       1 gao2023_survey.pdf          136       1 karpukhin2020_dpr.pdf        71       1 lewis2020_rag.pdf            88       1 liu2023_lost_middle.
+=== [6] colecao = rag.abrir_colecao()
+  stream: 556 vetores | dimensão 1024
+          
+   execute_result ['text/plain'] text/plain: {'veiculo': 'EACL 2024 (System Demonstrations)',  'resumo': 'Ragas is a framework for evaluating Retrieval Augmented Generation (RAG) systems…',  'ano': 2023,  'titulo': 'Ragas: Automated Evaluation of Retrieval Augmented Generation',  'tema': 'avaliacao',  'tipo_chunk': 'pagina',  'chunk_id': 'es20
+=== [7] artigo = "es2023_ragas.pdf"
+  stream: Extração em 16.6s
+          
+   execute_result ['text/html', 'text/plain'] text/plain:      campo                                                             csv  \ 0   titulo   Ragas: Automated Evaluation of Retrieval Augmented Generation    1  autores  Shahul Es; Jithin James; Luis Espinosa-Anke; Steven Schockaert    2      ano                                                        
+=== [8] primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_middle.pdf",
+  stream: ABSTRACT: While recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance is often highest …
+          
+          
+  stream: RESUMO AO VIVO (8.1s): The study examines the performance of language models on tasks that require identifying relevant information within their input contexts, finding that their performance degrades significantly when relevant information is not at the beginning or end of the context. This suggests that current models do not robustly utilize information in long input contexts, even for models designed to handle such contexts.
+          
+          RESUMO NO CSV: The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of the context. Explicitly long-context models also str
+=== [9] pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG?"
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia           arquivo  pagina   ano       tema idioma  \ 0        1     0.3727  es2023_ragas.pdf       1  2023  avaliacao     en                                                                                                                  texto   0  Ragas: Automated Evaluation o
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia             arquivo  pagina   ano       tema idioma  \ 0        1     0.3727    es2023_ragas.pdf       1  2023  avaliacao     en    1        2     0.4247    es2023_ragas.pdf       1  2023  avaliacao     en    2        3     0.4416  gao2023_survey.pdf      14  2023     survey   
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia             arquivo  pagina   ano       tema idioma  \ 0        1     0.3727    es2023_ragas.pdf       1  2023  avaliacao     en    1        2     0.4247    es2023_ragas.pdf       1  2023  avaliacao     en    2        3     0.4416  gao2023_survey.pdf      14  2023     survey   
+=== [10] pergunta = "Como funciona a recuperação de passagens?"
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                arquivo  pagina   ano       tema idioma  \ 0        1     0.4500  karpukhin2020_dpr.pdf      12  2020  retrieval     en    1        2     0.4723  karpukhin2020_dpr.pdf       4  2020  retrieval     en    2        3     0.4752   asai2023_selfrag.pdf      18  2023  
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia               arquivo  pagina   ano       tema idioma  \ 0        1     0.4752  asai2023_selfrag.pdf      18  2023  retrieval     en    1        2     0.4962  asai2023_selfrag.pdf       5  2023  retrieval     en    2        3     0.5027  asai2023_selfrag.pdf       1  2023  retr
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                arquivo  pagina   ano       tema idioma  \ 0        1     0.4500  karpukhin2020_dpr.pdf      12  2020  retrieval     en    1        2     0.4723  karpukhin2020_dpr.pdf       4  2020  retrieval     en    2        3     0.4752   asai2023_selfrag.pdf      18  2023  
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain: Empty DataFrame Columns: [posicao, distancia, arquivo, pagina, ano, tema, idioma, texto] Index: []
+=== [11] for texto in ("O desempenho cai quando a informação relevante está no meio de um
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                  arquivo  pagina   ano        tema  \ 0        1     0.2939  liu2023_lost_middle.pdf       2  2023  limitacoes    1        2     0.2999  liu2023_lost_middle.pdf       1  2023  limitacoes    2        3     0.3317  liu2023_lost_middle.pdf      11  2023  limitacoes
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                  arquivo  pagina   ano        tema  \ 0        1     0.2697  liu2023_lost_middle.pdf       2  2023  limitacoes    1        2     0.2741  liu2023_lost_middle.pdf       1  2023  limitacoes    2        3     0.3169  liu2023_lost_middle.pdf      11  2023  limitacoes
+=== [12] def comparar_buscas(pergunta):
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                  arquivo  pagina   ano        tema  \ 0        1     0.3978         es2023_ragas.pdf       4  2023   avaliacao    1        2     0.3991  liu2023_lost_middle.pdf       9  2023  limitacoes    2        3     0.3999         es2023_ragas.pdf       3  2023   avaliacao
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                arquivo  \ 0        1     0.4885       es2023_ragas.pdf    1        2     0.4914   asai2023_selfrag.pdf    2        3     0.4915  karpukhin2020_dpr.pdf                                                                                titulo   0                   Rag
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia           arquivo  pagina   ano       tema idioma  \ 0        1     0.3978  es2023_ragas.pdf       4  2023  avaliacao     en    1        2     0.3999  es2023_ragas.pdf       3  2023  avaliacao     en    2        3     0.4015  es2023_ragas.pdf       3  2023  avaliacao     en    
+=== [13] comparar_buscas("Recuperar mais documentos sempre melhora a resposta do modelo?"
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                  arquivo  pagina   ano        tema  \ 0        1     0.3033  liu2023_lost_middle.pdf      10  2023  limitacoes    1        2     0.3054  liu2023_lost_middle.pdf       3  2023  limitacoes    2        3     0.3273  liu2023_lost_middle.pdf       3  2023  limitacoes
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia                arquivo  \ 0        1     0.4461  karpukhin2020_dpr.pdf    1        2     0.4588   asai2023_selfrag.pdf    2        3     0.4705      lewis2020_rag.pdf                                                                                titulo   0                      
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+   display_data ['text/html', 'text/plain'] text/plain:    posicao  distancia            arquivo  pagina   ano         tema idioma  \ 0        1     0.3475  lewis2020_rag.pdf       8  2020  fundamentos     en    1        2     0.3742  lewis2020_rag.pdf       8  2020  fundamentos     en    2        3     0.3748  lewis2020_rag.pdf       9  2020  fundamento
+=== [14] import shap
+  stream: D:\webinarioOllamaRAG\.venv\Lib\site-packages\tqdm\auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+            from .autonotebook import tqdm as notebook_tqdm
+          
+  stream: Chunk explicado: es2023_ragas.pdf p.5 (similaridade 0.6456)
+          
+  stream:   0%|          | 0/132 [00:00<?, ?it/s]
+  stream:  38%|███▊      | 50/132 [00:01<00:01, 44.01it/s]
+  stream:  42%|████▏     | 56/132 [00:01<00:02, 28.36it/s]
+  stream:  47%|████▋     | 62/132 [00:02<00:03, 18.25it/s]
+  stream:  52%|█████▏    | 68/132 [00:03<00:05, 12.00it/s]
+  stream:  56%|█████▌    | 74/132 [00:04<00:05, 10.44it/s]
+  stream:  61%|██████    | 80/132 [00:05<00:05,  8.71it/s]
+  stream:  65%|██████▌   | 86/132 [00:06<00:06,  7.55it/s]
+  stream:  70%|██████▉   | 92/132 [00:07<00:05,  6.94it/s]
+  stream:  74%|███████▍  | 98/132 [00:08<00:04,  7.33it/s]
+  stream:  79%|███████▉  | 104/132 [00:09<00:03,  7.36it/s]
+  stream:  83%|████████▎ | 110/132 [00:10<00:03,  6.54it/s]
+  stream:  85%|████████▍ | 112/132 [00:11<00:04,  4.68it/s]
+  stream:                                                  
+  stream: 
+  stream: PartitionExplainer explainer: 100%|██████████| 1/1 [00:00<?, ?it/s]
+  stream: PartitionExplainer explainer: 2it [00:32, 32.15s/it]               
+  stream: 
+          
+  stream: SHAP em 37s
+          
+  stream: base 0.3479 + soma dos SHAP +0.3001 = 0.6480 | similaridade real 0.6456
+          
+   display_data ['text/html', 'text/plain'] text/plain: <IPython.core.display.HTML object>
+=== [15] shapley = carregar_resultado("shapley_chunks.json")
+  stream: Pergunta: Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG? | modelo: qwen2.5:3b
+          v(nenhum chunk) = 0.3270 | v(todos) = 1.0000
+          
+   execute_result ['text/html', 'text/plain'] text/plain:    chunk               arquivo  pagina  shapley 0      1  asai2023_selfrag.pdf      10   0.2034 1      2  asai2023_selfrag.pdf       1   0.0113 2      3    gao2023_survey.pdf      12   0.2564 3      4  asai2023_selfrag.pdf       4   0.2019
+=== [16] # TODO(autor): trocar pela pergunta-teste definitiva.
+  stream: === SYSTEM ===
+          Você é um assistente que responde em português do Brasil usando SOMENTE os trechos fornecidos pelo usuário. Os trechos podem estar em inglês: traduza e explique em português. Se a resposta não estiver nos trechos, responda exatamente: "Não encontrei essa informação nos documentos." Cite a fonte de cada informação com o número do trecho entre colchetes, por exemplo [1].
+          
+          === USER ===
+          Trechos:
+          [1] (asai2023_selfrag.pdf, p. 10)
+          higher S&P scores on short-form PopQA, which is consistent with Menick et al. (2022). Human annotators also find ISREL and ISSUP reflection token predictions are mostly aligned with their assessments. Appendix Table 6 shows several annotated examples and e
+=== [17] if LLM_AO_VIVO:
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+=== [18] pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta", "sem_cont
+   execute_result ['text/html', 'text/plain'] text/plain:                                                                                                 pergunta  \ 0  Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?    1                             Quais são os tokens de reflexão (reflection tokens) pr
+=== [19] pergunta = "Como o Self-RAG decide quando buscar documentos?"
+  stream: O
+  stream:  Self
+  stream: -R
+  stream: AG
+  stream:  decide
+  stream:  quando
+  stream:  buscar
+  stream:  documentos
+  stream:  de
+  stream:  acordo
+  stream:  com
+  stream:  a
+  stream:  seguint
+  stream: e
+  stream:  descri
+  stream: ção
+  stream:  encontr
+  stream: ada
+  stream:  no
+  stream:  tre
+  stream: cho
+  stream:  [
+  stream: 1
+  stream: ]
+  stream:  da
+  stream:  document
+  stream: ação
+  stream:  as
+  stream: ai
+  stream: 2
+  stream: 0
+  stream: 2
+  stream: 3
+  stream: _self
+  stream: rag
+  stream: .pdf
+  stream: :
+          
+          
+  stream: 1
+  stream: .
+  stream:  O
+  stream:  SELF
+  stream: -R
+  stream: AG
+  stream:  primeiro
+  stream:  determin
+  stream: a
+  stream:  se
+  stream:  é
+  stream:  útil
+  stream:  aument
+  stream: ar
+  stream:  a
+  stream:  g
+  stream: eração
+  stream:  subsequ
+  stream: ente
+  stream:  com
+  stream:  pass
+  stream: agens
+  stream:  recuper
+  stream: adas
+  stream: .
+  stream:  Se
+  stream:  sim
+  stream: ,
+  stream:  ele
+  stream:  g
+  stream: era
+  stream:  um
+  stream:  token
+  stream:  de
+  stream:  busca
+  stream:  que
+  stream:  ch
+  stream: ama
+  stream:  um
+  stream:  modelo
+  stream:  de
+  stream:  busca
+  stream:  quando
+  stream:  necessário
+  stream:  (
+  stream: Pass
+  stream: o
+  stream:  
+  stream: 1
+  stream: ).
+          
+  stream: 2
+  stream: .
+  stream:  Em
+  stream:  seg
+  stream: uida
+  stream: ,
+  stream:  o
+  stream:  SELF
+  stream: -R
+  stream: AG
+  stream:  process
+  stream: a
+  stream:  simult
+  stream: ane
+  stream: amente
+  stream:  mú
+  stream: lt
+  stream: ipl
+  stream: as
+  stream:  pass
+  stream: agens
+  stream:  recuper
+  stream: adas
+  stream: ,
+  stream:  aval
+  stream: i
+  stream: ando
+  stream:  sua
+  stream:  relev
+  stream: ância
+  stream:  e
+  stream:  ger
+  stream: ando
+  stream:  correspond
+  stream: entes
+  stream:  sa
+  stream: í
+  stream: das
+  stream:  de
+  stream:  t
+  stream: are
+  stream: fas
+  stream:  (
+  stream: Pass
+  stream: o
+  stream:  
+  stream: 2
+  stream: ).
+          
+  stream: 3
+  stream: .
+  stream:  Em
+  stream:  seg
+  stream: uida
+  stream: ,
+  stream:  g
+  stream: era
+  stream:  tokens
+  stream:  de
+  stream:  cr
+  stream: ít
+  stream: icas
+  stream:  para
+  stream:  critic
+  stream: ar
+  stream:  sua
+  stream:  própria
+  stream:  sa
+  stream: ída
+  stream:  e
+  stream:  escol
+  stream: her
+  stream:  a
+  stream:  melhor
+  stream:  (
+  stream: Pass
+  stream: o
+  stream:  
+  stream: 3
+  stream: )
+  stream:  em
+  stream:  term
+  stream: os
+  stream:  de
+  stream:  f
+  stream: ided
+  stream: ign
+  stream: idade
+  stream:  e
+  stream:  qualidade
+  stream:  geral
+  stream: .
+  stream:  
+          
+          
+  stream: O
+  stream:  Self
+  stream: -R
+  stream: AG
+  stream:  diferencia
+  stream: -se
+  stream:  de
+  stream:  um
+  stream:  R
+  stream: AG
+  stream:  conv
+  stream: enc
+  stream: ional
+  stream:  (
+  stream: ver
+  stream:  Fig
+  stream: ura
+  stream:  
+  stream: 1
+  stream:  à
+  stream:  es
+  stream: quer
+  stream: da
+  stream: )
+  stream:  que
+  stream:  não
+  stream:  utiliza
+  stream:  tokens
+  stream:  de
+  stream:  reflex
+  stream: ão
+  stream: .
+  stream:  O
+  stream:  Self
+  stream: -R
+  stream: AG
+  stream:  introdu
+  stream: z
+  stream:  "
+  stream: tokens
+  stream:  de
+  stream:  reflex
+  stream: ão
+  stream: "
+  stream:  que
+  stream:  perm
+  stream: item
+  stream:  ao
+  stream:  modelo
+  stream:  intros
+  stream: pec
+  stream: ção
+  stream:  sobre
+  stream:  suas
+  stream:  sa
+  stream: í
+  stream: das
+  stream: .
+  stream:  Est
+  stream: es
+  stream:  tokens
+  stream:  v
+  stream: êm
+  stream:  em
+  stream:  duas
+  stream:  varied
+  stream: ades
+  stream: :
+  stream:  "
+  stream: retrieve
+  stream: "
+  stream:  e
+  stream:  "
+  stream: crit
+  stream: ic
+  stream: ".
+  stream:  O
+  stream:  modelo
+  stream:  decide
+  stream:  quando
+  stream:  at
+  stream: ivar
+  stream:  a
+  stream:  busca
+  stream: ,
+  stream:  ou
+  stream:  altern
+  stream: ativ
+  stream: amente
+  stream: ,
+  stream:  um
+  stream:  lim
+  stream: iar
+  stream:  pré
+  stream: -def
+  stream: in
+  stream: ido
+  stream:  pode
+  stream:  iniciar
+  stream:  o
+  stream:  processo
+  stream: .
+  stream:  Dur
+  stream: ante
+  stream:  a
+  stream:  busca
+  stream: ,
+  stream:  o
+  stream:  ger
+  stream: ador
+  stream:  realiza
+  stream:  um
+  stream:  nível
+  stream:  de
+  stream:  busca
+  stream:  de
+  stream:  fragment
+  stream: os
+  stream:  em
+  stream:  mú
+  stream: lt
+  stream: ipl
+  stream: as
+  stream:  par
+  stream: á
+  stream: graf
+  stream: os
+  stream:  para
+  stream:  deriv
+  stream: ar
+  stream:  a
+  stream:  sequ
+  stream: ência
+  stream:  mais
+  stream:  coer
+  stream: ente
+  stream: .
+  stream:  Os
+  stream:  scores
+  stream:  de
+  stream:  cr
+  stream: ít
+  stream: icas
+  stream:  são
+  stream:  us
+  stream: ados
+  stream:  para
+  stream:  atual
+  stream: izar
+  stream:  os
+  stream:  scores
+  stream:  de
+  stream:  divis
+  stream: ão
+  stream: ,
+  stream:  com
+  stream:  flex
+  stream: ibilidade
+  stream:  para
+  stream:  ajust
+  stream: ar
+  stream:  ess
+  stream: es
+  stream:  pesos
+  stream:  durante
+  stream:  a
+  stream:  infer
+  stream: ência
+  stream: ,
+  stream:  mold
+  stream: ando
+  stream:  o
+  stream:  comport
+  stream: amento
+  stream:  do
+  stream:  modelo
+  stream: .
+  stream: 
+          
+          Fontes:
+          [1] asai2023_selfrag.pdf, p. 1
+          [2] gao2023_survey.pdf, p. 12
+          [3] lewis2020_rag.pdf, p. 3
+          [4] lewis2020_rag.pdf, p. 5
+  stream: 
+          
+          [89.3s com qwen2.5:3b]
+          
+=== [20] display(Markdown("```python\n" + (RAIZ / "app.py").read_text(encoding="utf-8") +
+   display_data ['text/markdown', 'text/plain'] text/plain: <IPython.core.display.Markdown object>
+=== [21] arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"
+  stream: Rode opcional/avaliacao_estilo_ragas.py para gerar o resultado.
+          

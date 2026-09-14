@@ -1,0 +1,26 @@
+D:\webinarioOllamaRAG\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+células de código: 21 | executadas: 21 | com erro: 0 | sem saída: [0] | tempo total: 61s
+  [1] 'import json' → []
+  [2] 'instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, ' → ['stream']
+  [3] 'metadados = rag.carregar_metadados()' → ['execute_result']
+  [4] 'paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pd' → ['stream']
+  [5] 'chunks = rag.gerar_chunks()' → ['execute_result', 'stream']
+  [6] 'colecao = rag.abrir_colecao()' → ['execute_result', 'stream']
+  [7] 'artigo = "es2023_ragas.pdf"' → ['execute_result']
+  [8] 'primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_mi' → ['stream']
+  [9] 'pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG' → ['display_data']
+  [10] 'pergunta = "Como funciona a recuperação de passagens?"' → ['display_data']
+  [11] 'for texto in ("O desempenho cai quando a informação relevante está no ' → ['display_data']
+  [12] 'def comparar_buscas(pergunta):' → ['display_data']
+  [13] 'comparar_buscas("Recuperar mais documentos sempre melhora a resposta d' → ['display_data']
+  [14] 'import shap' → ['display_data', 'stream']
+  [15] 'shapley = carregar_resultado("shapley_chunks.json")' → ['execute_result', 'stream']
+  [16] '# TODO(autor): trocar pela pergunta-teste definitiva.' → ['stream']
+  [17] 'if LLM_AO_VIVO:' → ['display_data']
+  [18] 'pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta",' → ['execute_result']
+  [19] 'pergunta = "Como o Self-RAG decide quando buscar documentos?"' → ['display_data']
+  [20] 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding=' → ['display_data']
+  [21] 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"' → ['stream']
+exit=0

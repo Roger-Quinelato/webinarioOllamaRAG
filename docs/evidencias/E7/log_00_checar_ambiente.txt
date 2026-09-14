@@ -1,0 +1,14 @@
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[OK ] import ollama — sem __version__
+[OK ] import chromadb — 1.5.9
+[OK ] import streamlit — 1.63.0
+[OK ] import pypdf — 6.18.1
+[OK ] import shap — 0.52.0
+[OK ] import numpy — 2.5.3
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+[OK ] Modelos baixados — bge-m3:latest, gemma4:26b, qwen2.5:1.5b, qwen2.5:3b
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+Ambiente pronto.

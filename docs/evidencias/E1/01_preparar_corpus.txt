@@ -1,0 +1,21 @@
+﻿1) Artigos
+   asai2023_selfrag.pdf          30 páginas  105700 caracteres  páginas sem texto: 0
+   es2023_ragas.pdf               8 páginas   31937 caracteres  páginas sem texto: 0
+   gao2023_survey.pdf            21 páginas  109939 caracteres  páginas sem texto: 0
+   karpukhin2020_dpr.pdf         13 páginas   55921 caracteres  páginas sem texto: 0
+   lewis2020_rag.pdf             19 páginas   69058 caracteres  páginas sem texto: 0
+   liu2023_lost_middle.pdf       18 páginas   65436 caracteres  páginas sem texto: 0
+   total: 109 páginas
+
+2) metadados.csv
+   cabeçalho: ['arquivo', 'titulo', 'autores', 'ano', 'veiculo', 'tema', 'idioma', 'resumo']
+   6 linhas válidas (arquivo ↔ PDF, tema, idioma, ano)
+
+3) Resumos gerados pelo LLM a partir do abstract (no idioma do artigo)
+   lewis2020_rag.pdf (232.2s): The abstract discusses the exploration of retrieval-augmented generation (RAG) models, which combine pre-trained parametric and non-parametric memory for language generation. These models use a pre-trained seq2seq model for the parametric memory and a dense vector index of Wikipedia for the non-parametric memory, accessed via a pre-trained neural retriever. The study compares two RAG formulations and demonstrates that these models outperform both parametric seq2seq models and task-specific retrieve-and-extract architectures on knowledge-intensive NLP tasks, generating more specific, diverse, and factual language.
+   karpukhin2020_dpr.pdf (16.3s): This work demonstrates that dense representations can be used effectively for open-domain question answering passage retrieval, outperforming traditional sparse vector space models like TF-IDF and BM25. The proposed dualencoder framework learns embeddings from a small dataset of questions and passages, leading to a retrieval system that significantly improves the accuracy of top-20 passage selection across various open-domain QA datasets, and enhances the overall performance of the QA system.
+   gao2023_survey.pdf (23.9s): Retrieval-Augmented Generation (RAG) has emerged as a promising solution to the challenges faced by Large Language Models (LLMs), such as hallucination and outdated knowledge, by integrating external databases to enhance the accuracy and credibility of the generated content, especially for knowledge-intensive tasks. This review paper examines the progression of RAG paradigms, including Naive RAG, Advanced RAG, and Modular RAG, and highlights the advancements in retrieval, generation, and augmentation techniques, as well as the challenges and future research directions.
+   es2023_ragas.pdf (20.7s): Ragas is a framework for evaluating Retrieval Augmented Generation (RAG) systems, which combine a retrieval module and a language model for knowledge augmentation. It introduces metrics to assess the retrieval system's ability to identify relevant context, the language model's faithful use of this context, and the quality of the generated text, all without requiring human annotations. This framework aims to speed up the evaluation of RAG architectures, which are increasingly adopted with large language models.
+   asai2023_selfrag.pdf (37.6s): SELF-RAG, a new framework, enhances the quality and factuality of large language models by enabling them to adaptively retrieve relevant passages on-demand and generate reflection tokens to self-reflect on both retrieved passages and its own generations. This approach significantly outperforms state-of-the-art models in various tasks, particularly in improving factuality and citation accuracy for long-form generations.
+   liu2023_lost_middle.pdf (14.7s): The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of the context. Explicitly long-context models also struggle with accessing relevant information in the middle of long contexts, indicating a need for improved handling of such contexts.
+   metadados.csv atualizado
