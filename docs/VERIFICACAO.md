@@ -238,3 +238,4 @@ Uma linha por tarefa. É o histórico que mostra o que foi verificado, quando e 
 | 2026-09-14 | README, roteiro, troubleshooting, plano v1.1, versionamento | E10 | 10.2–10.5 ✅; 10.1 ✅ no Windows (README seguido do zero em cópia limpa: todos os passos com exit 0, Streamlit HTTP 200), ⏸️ macOS/Linux sem máquina para testar | ✅ parcial | `docs/evidencias/E10/` |
 | 2026-09-14 | Avaliação no estilo RAGAS (opcional, fora dos critérios) | — | script executado, resultado salvo | ✅ | `docs/evidencias/opcional/avaliacao_estilo_ragas.txt` |
 | 2026-09-14 | Fechamento da sessão: sintaxe dos 19 `.py`, reverificação de E3, duplicação (7.4) e versionamento de PDFs (10.5) | E3, E7, E10 | 3.1–3.6, 7.4, 10.5 | ✅ (pendências: 1.8, 9.3, 10.1 macOS/Linux) | `docs/evidencias/E10/fechamento_sessao.txt` |
+| 2026-09-14 | Primeiro commit (`7e29c38`), autorizado pelo autor; `git ls-files` sem nenhum PDF | E10 | 10.5 | ✅ | `git ls-files` (0 arquivos `.pdf`) |
