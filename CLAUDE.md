@@ -14,7 +14,19 @@ Formato: demonstração ao vivo; participantes (nível intermediário/avançado)
 
 ## Estado atual
 
-Implementado e verificado nas etapas E0–E9 (status em `docs/VERIFICACAO.md`). O git está na branch `main` e **ainda não tem commits**. O `.gitignore` exclui `.venv/`, `Ollama/models/`, `chroma_db/` e todos os PDFs de `arquivosPDF/`.
+Implementado e verificado nas etapas E0–E9 (status em `docs/VERIFICACAO.md`). O git está na branch `main`. O `.gitignore` exclui `.venv/`, `Ollama/models/`, `chroma_db/` e todos os PDFs de `arquivosPDF/`.
+
+Em 2026-09-14, `docs/evidencias/E10/revisao_codigo.md` registrou uma auditoria de código em dois eixos (Standards × Spec, dois sub-agentes de só leitura, achados conferidos no código; checagens estáticas em `docs/evidencias/E10/revisao_codigo_checagens.txt`, versão navegável em `docs/evidencias/auditoria_plano.html`). **Nenhum ✅ de `docs/VERIFICACAO.md` mudou** — a auditoria só lista achados e os critérios abaixo, contestados e pendentes de reverificação:
+
+- **1.6** — seção de conferência manual dos resumos vazia em `E1/verificacao_E1.txt`.
+- **4.4** — o fallback do estágio 1 vazio (`rag.py:234-238`) nunca dispara com pergunta fora da base (a busca vetorial sempre devolve vizinhos); com filtro `where`, o fallback devolve vazio porque herda o mesmo `where`.
+- **6.5** — `responder()` (`rag.py:317-318`) lista os k trechos recuperados como fontes, não os efetivamente citados.
+- **6.7** — só `app.py` e `scripts/07_ollama.py` capturam `OllamaIndisponivel`; `scripts/03`–`06` e `opcional/*.py` não; a checagem `e6_ollama_desligado` só testa `rag.py`.
+- **7.4** — `ferramentas/verificar.py:e7_duplicadas` só compara nomes de função, não varre `ferramentas/`, ignora `opcional/` e nunca falha (só imprime).
+- **8.2, 8.4, 8.5, 8.7** — sem captura de tela salva; evidência é texto de DOM/AppTest.
+- **5a.1, 7.2, 9.1** — números de evidência (ex.: tempo do SHAP) defasados em relação ao notebook versionado.
+
+Reverificar esses critérios com `ferramentas/verificar.py` antes de fechar E10, sem afrouxar os critérios para passar.
 - `arquivosPDF/artigos/`: os 6 PDFs do corpus, baixados por `scripts/01_preparar_corpus.py`.
 - `arquivosPDF/Curso-*.pdf`: cursos do CIIA. **Não fazem parte do corpus**; não apagar.
 - `OLLAMA_MODELS` (variável de usuário) = `D:\webinarioOllamaRAG\Ollama\models`. Nessa pasta também há um `gemma4:26b` que não foi baixado pelo projeto; não apagar.

@@ -1,7 +1,14 @@
 # Ambiente Python
 .venv/
 __pycache__/
+*.pyc
 .ipynb_checkpoints/
+
+# Editor / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
 
 # Modelos do Ollama (vários GB) e índice vetorial regenerável
 Ollama/models/

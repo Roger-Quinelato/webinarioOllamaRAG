@@ -1,0 +1,32 @@
+Tarefa: atualizar README.md e CLAUDE.md explicando a auditoria E10; reforcar .gitignore
+Data: 2026-09-14
+
+--- git status --short ---
+ M .gitignore
+ M CLAUDE.md
+ M README.md
+ M docs/VERIFICACAO.md
+?? docs/evidencias/E10/documentacao_auditoria.txt
+?? docs/evidencias/E10/revisao_codigo.md
+?? docs/evidencias/E10/revisao_codigo_checagens.txt
+?? docs/evidencias/auditoria_plano.html
+
+--- diff --stat (README.md, CLAUDE.md, .gitignore) ---
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+ .gitignore |  7 +++++++
+ CLAUDE.md  | 14 +++++++++++++-
+ README.md  |  6 ++++++
+ 3 files changed, 26 insertions(+), 1 deletion(-)
+
+--- confirmacao: nenhum arquivo de codigo (.py) alterado nesta tarefa ---
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'CLAUDE.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'docs/VERIFICACAO.md', LF will be replaced by CRLF the next time Git touches it
+0
+(0 = nenhum .py alterado)
+
+--- py_compile dos 19 .py (nao deveria ter sido afetado, checagem de sanidade) ---
+19 arquivos compilados, 0 erros
