@@ -30,7 +30,7 @@ Ferramenta principal: `ferramentas/medir.py <cenario>`. Os tokens por segundo v�
 |---|---|---|
 | SHAP de 1 chunk (`max_evals=200`), frio | 112,0 s · 81,6 s | `E5/05_shap.txt`, `E7/log_05_shap.txt` |
 | SHAP de 1 chunk, `bge-m3` já carregado | 18,9 s · 19,7 s | `E5/05_shap.txt`, `E7/log_05_shap.txt` |
-| SHAP no notebook | 37 s · 34 s | `E7/saidas_notebook.txt`, `E5/notebook_E5.txt` |
+| SHAP no notebook | 37 s · 34 s · 48 s · 36 s (última execução: 2026-09-15) | `E7/saidas_notebook.txt`, `E5/notebook_E5.txt` |
 | SHAP no `medir.py` (RAM livre < 0,6 GB) | 74,0 s · 89,3 s | `E9/medicao_*.json` |
 | Shapley exato dos 4 chunks (16 gerações com o 3b) | 621 s | `E5/calcular_shapley_chunks.txt` |
 
@@ -94,9 +94,9 @@ Arquivos: `docs/evidencias/E9/medicao_sem_streamlit.json` e `medicao_com_streaml
 | 2 Indexação | 18 | Reabrir a coleção (< 5 s); extração por LLM 16,6 s quente / 135 s frio; resumo 8,1 s quente / 232 s frio | Sim, **se aquecido** | Não reindexar; com o modelo frio, `LLM_AO_VIVO = False` |
 | 3 Retrieval | 15 | 7 buscas × 0,2–8,5 s | Sim | — |
 | 3b Dois estágios | 7 | 2 comparações × < 2 s | Sim | — |
-| 4 SHAP | 12 | SHAP 19–112 s (94 s na última execução do notebook); Shapley só carregado | Sim | Com RAM baixa (> 90 s), `SHAP_AO_VIVO = False` |
+| 4 SHAP | 12 | SHAP 19–112 s (36 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`); Shapley só carregado | Sim | Com RAM baixa (> 90 s), `SHAP_AO_VIVO = False` |
 | 5 Com × sem contexto | 12 | 2 gerações: 1,6–51 s cada (3b) | Sim | — |
-| 6 Ollama | 12 | 1 resposta em streaming: 8–164 s (3b; 163,8 s na última execução do notebook) | Sim, com folga curta no pior caso | Preferir o 1.5b ao vivo (~20 s) |
+| 6 Ollama | 12 | 1 resposta em streaming: 8–164 s (3b; 70,6 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`) | Sim, com folga curta no pior caso | Preferir o 1.5b ao vivo (~20 s) |
 | 7 Streamlit | 15 | 8–17 s por pergunta com cache quente (AppTest); 42–118 s por resposta sem cache (3b) | ~4 perguntas no pior caso | Limitar a 4 perguntas; 1.5b se estiver lento |
 | 8 Avaliação | 8 | Só carrega resultados | Sim | — |
 

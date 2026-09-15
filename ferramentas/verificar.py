@@ -421,6 +421,39 @@ def e7_saidas():
             print(f"    [célula {celula_i}] {nome}: {texto}")
 
 
+# hazard (achado 9.1, T10): docs/medicoes.md cita números "na última execução do notebook" (o
+# jeito que o documento marca "isto veio de rodar o notebook, não de medir.py") que ficam
+# defasados quando o notebook é reexecutado — ninguém percebia porque nada comparava o texto
+# contra a evidência real. Esta checagem confere cada um contra E7/saidas_notebook.txt.
+_PADRAO_NUMERO_ULTIMA_EXECUCAO = re.compile(r"(\d+(?:[.,]\d+)?)\s*s\s*na última execução do notebook")
+
+
+def e9_numeros():
+    medicoes = (RAIZ / "docs" / "medicoes.md").read_text(encoding="utf-8")
+    saidas = (RAIZ / "docs" / "evidencias" / "E7" / "saidas_notebook.txt").read_text(encoding="utf-8")
+
+    achados = _PADRAO_NUMERO_ULTIMA_EXECUCAO.findall(medicoes)
+    print(f"9.1 números 'na última execução do notebook' em docs/medicoes.md: {achados}")
+    # hazard (/code-review): se a frase exata "na última execução do notebook" for reescrita (ou
+    # sumir) em medicoes.md, achados vira [] e a checagem passaria calada com exit 0 sem ter
+    # conferido nada — o oposto do que este ticket existe para garantir. Pelo menos 2 menções são
+    # esperadas hoje (SHAP no bloco 4, resposta no bloco 6); zero é sinal de checagem quebrada, não
+    # de "nada para verificar".
+    if not achados:
+        print("9.1 nenhuma menção encontrada — ou o texto de medicoes.md mudou e o regex ficou "
+              "para trás, ou os números foram removidos; de qualquer forma, precisa de revisão manual")
+        sys.exit(1)
+
+    faltando = []
+    for numero in achados:
+        normalizado = numero.replace(",", ".")
+        if not re.search(rf"(?<!\d){re.escape(normalizado)}s\b", saidas):
+            faltando.append(numero)
+    print(f"9.1 números sem confirmação em docs/evidencias/E7/saidas_notebook.txt: {faltando or 'nenhum'}")
+    if faltando:
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     inicio = time.perf_counter()
     globals()[sys.argv[1]]()
