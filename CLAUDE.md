@@ -17,6 +17,8 @@ Tickets (GitHub Issues, ver [docs/agents/issue-tracker.md](docs/agents/issue-tra
 
 Não acumular vários tickets num commit, e não pular a revisão para "economizar tempo".
 
+Lote em execução (2026-09-15): tickets #11 a #23. Issues com label `needs-info` (decisão do autor) são puladas até o autor responder — não travam as demais.
+
 ## Propósito
 
 Material do webinário CIIA **Encontro 2 — "Construindo um Assistente com RAG, Ollama e Streamlit"**, conduzido por Roger Quinelato (suporte: João Victor Rikio Enomoto). Turmas: 21/09/2026 (CIIA, ensaio) e 28/09/2026 (público aberto), online, mesmo material. O Encontro 1 foi só teoria: todo o código prático nasce aqui.
