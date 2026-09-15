@@ -6,6 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Toda tarefa começa e termina em [docs/VERIFICACAO.md](docs/VERIFICACAO.md).** Antes: identificar a etapa (E0–E10), ler os critérios e conferir os pré-requisitos. Depois: rodar as verificações, salvar a evidência em `docs/evidencias/EN/`, atualizar os status, reverificar as etapas dependentes e adicionar uma linha no registro de execuções. Nenhum critério vira ✅ sem evidência, e nenhum critério é afrouxado para passar.
 
+## Fluxo de implementação por ticket
+
+Tickets (GitHub Issues, ver [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md)) são implementados **um de cada vez**, nesta ordem fixa:
+
+1. Implementar o ticket (com `/tdd` nos pontos que fizerem sentido).
+2. Rodar `/code-review` sobre o diff do ticket.
+3. Só commitar depois que a revisão não apontar nada pendente — achado real vira correção antes do commit, não é adiado.
+4. Commitar (mensagem referenciando o número do ticket) e só então seguir para o próximo.
+
+Não acumular vários tickets num commit, e não pular a revisão para "economizar tempo".
+
 ## Propósito
 
 Material do webinário CIIA **Encontro 2 — "Construindo um Assistente com RAG, Ollama e Streamlit"**, conduzido por Roger Quinelato (suporte: João Victor Rikio Enomoto). Turmas: 21/09/2026 (CIIA, ensaio) e 28/09/2026 (público aberto), online, mesmo material. O Encontro 1 foi só teoria: todo o código prático nasce aqui.
@@ -93,3 +104,17 @@ bash ferramentas/rodar_scripts.sh
 | `ferramentas/testar_app.py` | Testa o Streamlit com `AppTest` (E8) |
 | `ferramentas/verificar.py e3` | Roda a verificação de uma etapa; também aceita e1_resumos, e2, e2_sobreposicao, e2_reabrir, e4, e6_ollama_desligado, e7_duplicadas e e7_estrutura |
 | `ferramentas/medir.py nome_do_cenario` | Mede os tempos (E9) |
+
+## Agent skills
+
+### Issue tracker
+
+Issues vivem no GitHub (`Roger-Quinelato/webinarioOllamaRAG`), via `gh` CLI. Ver [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Vocabulário padrão (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). Ver [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: `CONTEXT.md` + `docs/adr/` na raiz (ainda não existem; criados sob demanda pelo `/domain-modeling`). Ver [docs/agents/domain.md](docs/agents/domain.md).
