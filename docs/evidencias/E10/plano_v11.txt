@@ -30,7 +30,7 @@ Salvo em D:\webinarioOllamaRAG\docs\Plano_Aula_2-Construindo um Assistente com R
 [Heading 2] 4. Recursos
 [normal] Hardware/Software: Python 3.10+, VS Code (extensões Python e Jupyter), Ollama local; 8 GB de RAM (LLM em CPU).
 [normal] Modelos e bibliotecas: bge-m3 (embeddings), qwen2.5:3b e qwen2.5:1.5b (chat), ollama, chromadb, pypdf, shap, streamlit — sem LangChain/LlamaIndex, para expor o mecanismo do RAG.
-[normal] Material didático: repositório com notebook da aula (saídas salvas), scripts numerados por bloco, app Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 6 artigos do arXiv como base documental.
+[normal] Material didático: repositório com notebook da aula (saídas salvas), scripts numerados por bloco, app Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 6 artigos do arXiv como base documental. Sem slides conceituais: o Encontro 1 foi só teoria (RAG e embeddings) e este encontro é demonstração ao vivo do código, ponta a ponta — os conceitos já foram apresentados lá.
 [Heading 2] 5. Cronograma
 [normal] O Quadro abaixo apresenta o cronograma da aula.
 [Heading 2] 6. Detalhamento da Ação
@@ -69,3 +69,4 @@ Bloco | Atividade | Duração
  | Total: | 1h54
 
 # Checagens: 'Colab' presente? False | 'LangChain' presente? True | 21/09 e 28/09 presentes? True
+# T18/#18: nota sobre slides conceituais (removidos da v1.0, justificados aqui) presente? True

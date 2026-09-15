@@ -80,7 +80,9 @@ substituir_lista(30, 32, [
     "Modelos e bibliotecas: bge-m3 (embeddings), qwen2.5:3b e qwen2.5:1.5b (chat), ollama, chromadb, pypdf, shap, "
     "streamlit — sem LangChain/LlamaIndex, para expor o mecanismo do RAG.",
     "Material didático: repositório com notebook da aula (saídas salvas), scripts numerados por bloco, app "
-    "Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 6 artigos do arXiv como base documental.",
+    "Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 6 artigos do arXiv como base "
+    "documental. Sem slides conceituais: o Encontro 1 foi só teoria (RAG e embeddings) e este encontro é "
+    "demonstração ao vivo do código, ponta a ponta — os conceitos já foram apresentados lá.",
 ])
 
 substituir_lista(24, 26, [
@@ -155,3 +157,38 @@ for paragrafo, texto in zip(anexos, textos_anexos):
 
 documento.save(str(DESTINO))
 print(f"Salvo em {DESTINO}")
+
+# why: gera a evidência junto com o .docx para o critério 10.4 ficar reprodutível rodando
+# só este script, em vez de depender de uma conferência manual não versionada (ticket #18).
+releido = docx.Document(str(DESTINO))
+linhas_evidencia = [f"Salvo em {DESTINO}", "", "# Conteúdo do .docx v1.1 (parágrafos não vazios)"]
+for paragrafo in releido.paragraphs:
+    if not paragrafo.text.strip():
+        continue
+    estilo = paragrafo.style.name if paragrafo.style else "normal"
+    rotulo = estilo if estilo in ("Title", "Subtitle", "Heading 2") else "normal"
+    linhas_evidencia.append(f"[{rotulo}] {paragrafo.text}")
+
+linhas_evidencia += ["", "# Tabela de cabeçalho"]
+for linha in releido.tables[0].rows:
+    linhas_evidencia.append(" | ".join(celula.text for celula in linha.cells))
+
+linhas_evidencia += ["", "# Cronograma"]
+for linha in releido.tables[1].rows:
+    linhas_evidencia.append(" | ".join(celula.text for celula in linha.cells))
+
+texto_completo = "\n".join(p.text for p in releido.paragraphs)
+tem_colab = "Colab" in texto_completo
+tem_langchain = "LangChain" in texto_completo
+tem_datas = "21/09" in texto_completo and "28/09" in texto_completo
+tem_nota_slides = "slides conceituais" in texto_completo.lower() and "Encontro 1" in texto_completo
+
+linhas_evidencia.append("")
+linhas_evidencia.append(f"# Checagens: 'Colab' presente? {tem_colab} | 'LangChain' presente? {tem_langchain} | "
+                         f"21/09 e 28/09 presentes? {tem_datas}")
+linhas_evidencia.append(f"# T18/#18: nota sobre slides conceituais (removidos da v1.0, justificados aqui) "
+                         f"presente? {tem_nota_slides}")
+
+evidencia = RAIZ / "docs" / "evidencias" / "E10" / "plano_v11.txt"
+evidencia.write_text("\n".join(linhas_evidencia) + "\n", encoding="utf-8")
+print(f"Evidência salva em {evidencia}")
