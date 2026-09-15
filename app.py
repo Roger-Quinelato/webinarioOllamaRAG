@@ -20,15 +20,25 @@ def montar_filtro(ano_minimo, temas, idiomas):
     return rag.combinar_filtros(*condicoes)
 
 
-def mostrar_fontes(fontes, caminho, artigos):
-    with st.expander(f"Fontes ({len(fontes)}) — {caminho}"):
-        if artigos:
+def mostrar_fontes(busca):
+    # hazard (achado 6.5, T04): marcar todo o top-k como "Fontes" sem distinguir o que a resposta
+    # citou de fato mistura o que entrou no prompt com o que foi usado — busca["citadas"] vem de
+    # rag.fontes_da_resposta() (calculado uma vez após o streaming), vazio em recusa.
+    # why: fontes/citadas/caminho/artigos sempre andam juntos (são o mesmo "pacote" de uma resposta
+    # do RAG, já reunido em `busca`) — recebê-los como um dict só em vez de 4 parâmetros posicionais
+    # evita repetir a lista dos 4 campos em 3 lugares sincronizados (achado do /code-review, T04).
+    fontes, citadas = busca["resultados"], busca["citadas"]
+    with st.expander(f"Fontes (citadas {len(citadas)} de {len(fontes)}) — {busca['caminho']}"):
+        if busca["artigos"]:
             st.markdown("**Estágio 1 — artigos escolhidos pelos resumos:** "
-                        + ", ".join(f"`{a['arquivo']}`" for a in artigos))
+                        + ", ".join(f"`{a['arquivo']}`" for a in busca["artigos"]))
         if not fontes:
             st.info("Nenhum trecho recuperado com esses filtros.")
+        elif not citadas:
+            st.info("Nenhuma fonte usada")
         for i, fonte in enumerate(fontes, start=1):
-            st.markdown(f"**[{i}] {fonte['titulo']}** — `{fonte['arquivo']}`, p. {fonte['pagina']} "
+            marca = " ✅ citado" if i in citadas else ""
+            st.markdown(f"**[{i}] {fonte['titulo']}**{marca} — `{fonte['arquivo']}`, p. {fonte['pagina']} "
                         f"· distância {fonte['distancia']:.4f} · {fonte['ano']} · {fonte['tema']} · {fonte['idioma']}")
             st.caption(f"Resumo do artigo: {fonte['resumo']}")
             st.text(fonte["texto"][:700])
@@ -64,7 +74,7 @@ for mensagem in st.session_state.mensagens:
     with st.chat_message(mensagem["papel"]):
         st.markdown(mensagem["texto"])
         if mensagem["papel"] == "assistant":
-            mostrar_fontes(mensagem["fontes"], mensagem["caminho"], mensagem["artigos"])
+            mostrar_fontes(mensagem)
 
 pergunta = st.chat_input("Pergunte algo sobre os artigos…")
 if pergunta:
@@ -83,11 +93,13 @@ if pergunta:
             resposta = st.write_stream(
                 rag.responder(pergunta, busca["resultados"], modelo=modelo, incluir_fontes=False)
             )
-            mostrar_fontes(busca["resultados"], busca["caminho"], busca["artigos"])
-            st.session_state.mensagens.append({
-                "papel": "assistant", "texto": resposta, "fontes": busca["resultados"],
-                "caminho": busca["caminho"], "artigos": busca["artigos"],
-            })
+            # why: fontes_da_resposta() devolve pares (indice, resultado); só o índice importa aqui
+            # (marcar "✅ citado" e contar "citadas X de k" em mostrar_fontes), daí o set de índices
+            # em vez de guardar os pares inteiros — mais barato de checar (`i in citadas`) e evita
+            # duplicar os dicts de resultado que busca["resultados"] já guarda.
+            busca["citadas"] = {indice for indice, _ in rag.fontes_da_resposta(resposta, busca["resultados"])}
+            mostrar_fontes(busca)
+            st.session_state.mensagens.append({"papel": "assistant", "texto": resposta, **busca})
         except rag.OllamaIndisponivel as erro:
             st.error(f"⚠️ {erro}")
             st.session_state.mensagens.pop()
