@@ -12,10 +12,42 @@ import config  # noqa: E402
 import rag  # noqa: E402
 
 
+# why: dá ao autor um segundo sinal (idioma_csv × idioma_detectado, contagem de frases,
+# início do abstract) para a conferência manual do critério 1.6, sem que ele precise abrir
+# cada PDF — heurística de palavras funcionais en/pt, sem dependência nova (ticket #11/T11).
+_PALAVRAS_FUNCIONAIS = {
+    "pt": {"de", "que", "não", "para", "com", "uma", "dos", "das", "como", "mais",
+           "são", "por", "ao", "os", "as", "é", "na", "no", "se", "também"},
+    "en": {"the", "and", "of", "in", "to", "is", "for", "that", "with", "as",
+           "on", "are", "this", "by", "from", "an", "be", "we", "our"},
+}
+
+
+def _detectar_idioma(texto):
+    palavras = re.findall(r"[a-zà-úA-ZÀ-Ú]+", texto.lower())
+    contagens = {idioma: sum(1 for p in palavras if p in funcionais)
+                 for idioma, funcionais in _PALAVRAS_FUNCIONAIS.items()}
+    if not any(contagens.values()):
+        return "?"
+    return max(contagens, key=contagens.get)
+
+
+def _contar_frases(texto):
+    return len([f for f in re.split(r"[.!?]+", texto) if f.strip()])
+
+
 def e1_resumos():
     for meta in rag.carregar_metadados():
-        print(f"{meta['arquivo']} [idioma={meta['idioma']}] vazio={not meta['resumo']}")
-        print(f"   {meta['resumo']}")
+        resumo = meta["resumo"]
+        idioma_detectado = _detectar_idioma(resumo) if resumo else "?"
+        frases = _contar_frases(resumo) if resumo else 0
+        paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / meta["arquivo"])
+        abstract = rag.extrair_abstract(paginas[0]) if paginas else ""
+        primeiras_palavras = " ".join(abstract.split()[:3])
+        print(f"{meta['arquivo']} [idioma_csv={meta['idioma']} idioma_detectado={idioma_detectado}] "
+              f"vazio={not resumo} frases={frases}")
+        print(f"   abstract[:3 palavras]={primeiras_palavras!r}")
+        print(f"   resumo={resumo}")
 
 
 def e2():
