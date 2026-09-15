@@ -1,0 +1,8 @@
+6.7 scripts/03_buscar.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 scripts/04_dois_estagios.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 scripts/05_shap.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 scripts/06_com_sem_contexto.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 scripts/07_ollama.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 opcional/avaliacao_estilo_ragas.py: exit=2 traceback=False mensagem_clara=True → OK
+6.7 opcional/calcular_shapley_chunks.py: exit=2 traceback=False mensagem_clara=True → OK
+[e6_ollama_desligado_scripts em 59.3s]
