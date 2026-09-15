@@ -8,6 +8,3 @@ O Self-RAG diferencia-se de um RAG convencional (ver Figura 1 à esquerda) que n
 
 Fontes:
 [1] asai2023_selfrag.pdf, p. 1
-[2] gao2023_survey.pdf, p. 12
-[3] lewis2020_rag.pdf, p. 3
-[4] lewis2020_rag.pdf, p. 5

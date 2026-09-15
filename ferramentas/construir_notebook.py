@@ -317,7 +317,21 @@ if LLM_AO_VIVO:
 else:
     salvo = next(r for r in carregar_resultado("com_sem_contexto.json") if r["pergunta"] == pergunta)
     sem, com = salvo["sem_contexto"], salvo["com_contexto"]
-display(Markdown(f"### Sem contexto\\n{sem}\\n\\n### Com contexto\\n{com}\\n\\n**Fontes**\\n```\\n{rag.formatar_fontes(resultados)}\\n```"))
+# why: mostrar todo o top-k como "Fontes" mistura o que entrou no prompt com o que a resposta de
+# fato citou (achado 6.5) — rag.fontes_da_resposta() só lista os [n] citados (ou nenhuma, em
+# recusa ou sem resultados); os trechos recuperados ficam à parte, já que são "o que foi
+# oferecido ao modelo", não "o que ele usou". Usa fontes_da_resposta()+formatar_fontes() direto,
+# não rag.montar_bloco_fontes() — que embute o rótulo/formato "\\n\\nFontes:\\n" pronto para o
+# streaming de responder(), formato interno que este bloco não deveria precisar desmontar.
+citadas = rag.fontes_da_resposta(com, resultados)
+if citadas:
+    indices, resultados_citados = zip(*citadas)
+    fontes_citadas = rag.formatar_fontes(list(resultados_citados), list(indices))
+else:
+    fontes_citadas = "nenhuma"
+display(Markdown(f"### Sem contexto\\n{sem}\\n\\n### Com contexto\\n{com}\\n\\n"
+                 f"**Fontes citadas**\\n```\\n{fontes_citadas}\\n```\\n\\n"
+                 f"**Trechos enviados ao prompt**\\n```\\n{rag.formatar_fontes(resultados)}\\n```"))
 """)
 
 md("Respostas salvas das outras perguntas-teste (geradas por `scripts/06_com_sem_contexto.py`):")
@@ -334,17 +348,21 @@ md("""
 
 code("""
 pergunta = "Como o Self-RAG decide quando buscar documentos?"
+resultados_bloco6 = rag.buscar(pergunta, colecao=colecao)
 salva = config.PASTA_RESULTADOS / "resposta_bloco6.md"
 if LLM_AO_VIVO:
     inicio = time.perf_counter()
     saida, texto = display(Markdown("…"), display_id=True), ""
-    for pedaco in rag.responder(pergunta, rag.buscar(pergunta, colecao=colecao)):
+    for pedaco in rag.responder(pergunta, resultados_bloco6):
         texto += pedaco
         saida.update(Markdown(texto))
     print(f"[{time.perf_counter() - inicio:.1f}s com {config.MODELO_CHAT}]")
     salva.write_text(texto, encoding="utf-8")
 else:
     display(Markdown(salva.read_text(encoding="utf-8")))
+# why: rag.responder() já cita só as fontes usadas (achado 6.5); aqui mostramos também os trechos
+# recuperados que foram oferecidos ao modelo, separados e rotulados, para não confundir os dois.
+display(Markdown(f"**Trechos enviados ao prompt**\\n```\\n{rag.formatar_fontes(resultados_bloco6)}\\n```"))
 """)
 
 md("""

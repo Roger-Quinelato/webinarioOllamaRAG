@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 import time
@@ -91,7 +92,106 @@ def e4():
           f"{all(r['arquivo'] in escolhidos for r in dois['resultados'])} "
           f"| tipos: {sorted({r['tipo_chunk'] for r in dois['resultados']})}")
     vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"4.4 estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+    print(f"4.4a estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+
+    # hazard (T07): 4.4a só cobre o filtro herdado deixando o estágio 1 sem NENHUM resumo — não
+    # prova que o limiar de distância (achado 4.4 original, calibrado no T06) dispara sozinho para
+    # uma pergunta fora da base sem filtro nenhum, caso em que o estágio 1 sempre acha 3 "vizinhos".
+    prefixo_esperado = "busca simples (estágio 1 sem correspondência: resumo mais próximo"
+    # why: reaproveita a mesma pergunta-teste de _PERGUNTAS_FORA_ESTAGIO_1 (T06) em vez de repetir
+    # a string aqui — se a calibração mudar de pergunta, os dois lugares não podem se desalinhar.
+    fora = rag.buscar_dois_estagios(_PERGUNTAS_FORA_ESTAGIO_1[0], k=4, colecao=colecao)
+    prefixo_ok = fora["caminho"].startswith(prefixo_esperado)
+    print(f"4.4b pergunta fora da base sem filtro: caminho = {fora['caminho']!r} "
+          f"| começa com {prefixo_esperado!r} = {prefixo_ok} | {len(fora['resultados'])} resultados")
+    if fora["caminho"] == "dois estágios" or not prefixo_ok:
+        sys.exit(1)
+
+
+# hazard (T06): DISTANCIA_MAXIMA_ESTAGIO_1 em config.py foi um número escolhido sem dados — esta
+# checagem calibra o limiar contra perguntas reais dentro e fora da base, para não escolher um
+# valor que derrube (recuse) pergunta dentro da base (pior erro) ou nunca dispare o fallback
+# (achado 4.4 original).
+_PERGUNTAS_DENTRO_ESTAGIO_1 = [
+    "Como funciona a arquitetura RAG proposta por Lewis et al.?",
+    "O que é Dense Passage Retrieval (DPR)?",
+    "Quais métricas o Ragas usa para avaliar fidelidade e relevância?",
+    "O que são os tokens de reflexão do Self-RAG?",
+    "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
+    "Quais são os principais desafios de RAG discutidos no survey de Gao et al.?",
+    "Como o DPR treina o retriever com exemplos negativos?",
+    "O que é retrieval-augmented generation?",
+]
+_PERGUNTAS_FORA_ESTAGIO_1 = [
+    "Qual é a receita de pão de queijo mineiro?",
+    "Qual é a capital da Mongólia?",
+    "Quais são as regras do xadrez?",
+    "Como trocar o óleo de um carro?",
+    "Qual é a previsão do tempo para amanhã em Belo Horizonte?",
+]
+
+
+def _escolher_limiar_estagio_1(distancias_dentro, distancias_fora):
+    # why: "escolher o valor que não derruba nenhuma pergunta dentro da base" (spec do T06) é
+    # sempre a maior distância "dentro", haja ou não sobreposição com "fora" — sobreposição só
+    # muda se esse valor também aceita algum falso positivo de fallback (declarado tolerável).
+    # Extraído como função pura (sem rag/Ollama) para dar para testar o ramo de sobreposição com
+    # dados sintéticos — os dados reais deste corpus não sobrepõem, então só um autoteste prova
+    # que a lógica funciona (achado do /code-review).
+    maior_dentro = max(distancias_dentro)
+    menor_fora = min(distancias_fora)
+    return maior_dentro, maior_dentro >= menor_fora
+
+
+def _autoteste_escolher_limiar():
+    limiar, sobreposicao = _escolher_limiar_estagio_1([0.30, 0.50, 0.65], [0.60, 0.70])
+    ok = sobreposicao and abs(limiar - 0.65) < 1e-9
+    print(f"T06 autoteste (dados sintéticos com sobreposição, prova o ramo que os dados reais não "
+          f"exercitam): limiar sugerido={limiar:.4f} sobreposição={sobreposicao} -> {'OK' if ok else 'FALHOU'}")
+    if not ok:
+        sys.exit(1)
+
+
+def e4_limiar():
+    _autoteste_escolher_limiar()
+    colecao = rag.abrir_colecao()
+
+    def distancia_estagio_1(pergunta):
+        # why: rag.buscar() força tipo_chunk="pagina" (combinar_filtros com um where tipo_chunk=
+        # "resumo" dá resultado vazio); rag.buscar_dois_estagios(n_artigos=1) já roda a mesma busca
+        # do estágio 1 internamente e devolve "artigos" com a distância real, mesmo quando o limiar
+        # decide cair no fallback — evita tocar a função privada _consultar direto daqui.
+        dois = rag.buscar_dois_estagios(pergunta, n_artigos=1, colecao=colecao)
+        return dois["artigos"][0]["distancia"]
+
+    grupos = {"dentro da base": [(p, distancia_estagio_1(p)) for p in _PERGUNTAS_DENTRO_ESTAGIO_1],
+              "fora da base": [(p, distancia_estagio_1(p)) for p in _PERGUNTAS_FORA_ESTAGIO_1]}
+
+    print("T06 distância do resumo mais próximo (estágio 1):")
+    for nome, casos in grupos.items():
+        print(f"  {nome}:")
+        for p, d in casos:
+            print(f"    {d:.4f}  {p}")
+
+    dentro, fora = grupos["dentro da base"], grupos["fora da base"]
+    limiar_sugerido, sobreposicao = _escolher_limiar_estagio_1([d for _, d in dentro], [d for _, d in fora])
+    menor_fora = min(d for _, d in fora)
+    print(f"\nT06 maior distância dentro da base: {limiar_sugerido:.4f}")
+    print(f"T06 menor distância fora da base: {menor_fora:.4f}")
+    if sobreposicao:
+        print(f"T06 intervalos SE SOBREPÕEM (maior dentro {limiar_sugerido:.4f} ≥ menor fora {menor_fora:.4f}) "
+              f"— limiar sugerido = {limiar_sugerido:.4f} (a maior distância dentro da base): falso positivo "
+              f"de fallback (tratar uma pergunta fora como se fosse mais uma dentro) é aceitável, recusa "
+              f"indevida de pergunta dentro da base não é.")
+    else:
+        print(f"T06 intervalos não se sobrepõem — limiar seguro em qualquer ponto de "
+              f"({limiar_sugerido:.4f}, {menor_fora:.4f}); sugerido = {limiar_sugerido:.4f}")
+    print(f"\nT06 config.DISTANCIA_MAXIMA_ESTAGIO_1 atual: {config.DISTANCIA_MAXIMA_ESTAGIO_1}")
+    if config.DISTANCIA_MAXIMA_ESTAGIO_1 < limiar_sugerido:
+        print(f"T06 limiar atual ({config.DISTANCIA_MAXIMA_ESTAGIO_1}) é MENOR que o sugerido "
+              f"({limiar_sugerido:.4f}) — derrubaria pergunta legítima, precisa subir")
+        sys.exit(1)
+    print("T06 limiar atual cobre com folga todas as perguntas dentro da base testadas")
 
 
 def e6_ollama_desligado():
@@ -125,6 +225,64 @@ def e6_ollama_desligado_scripts():
             falhas.append(script.name)
     if falhas:
         print(f"6.7 scripts sem tratamento adequado: {falhas}")
+        sys.exit(1)
+
+
+def e6_fontes():
+    # hazard: cobre os casos que a comparação exata anterior perdia (achado 6.5) — citação parcial,
+    # ausência de citação, e a recusa disfarçada por citação colada ou espaçamento irregular do LLM.
+    resultados = [{"arquivo": f"artigo{i}.pdf", "pagina": i} for i in range(1, 4)]
+    recusa = config.RESPOSTA_NAO_ENCONTRADA
+    casos = [
+        ("citação parcial", "Segundo [2], blá blá.", [2]),
+        ("sem citação", "Resposta sem nenhuma citação.", [1, 2, 3]),
+        ("recusa exata", recusa, []),
+        ("recusa com [1]", f"{recusa} [1]", []),
+        ("recusa com espaço extra", "  " + recusa.replace(" ", "  ") + "  ", []),
+    ]
+    falhas = []
+    for nome, texto, esperado in casos:
+        indices = [i for i, _ in rag.fontes_da_resposta(texto, resultados)]
+        ok = indices == esperado
+        print(f"6.5 {nome}: esperado={esperado} obtido={indices} → {'OK' if ok else 'FALHOU'}")
+        if not ok:
+            falhas.append(nome)
+    if falhas:
+        print(f"6.5 casos com divergência: {falhas}")
+        sys.exit(1)
+
+
+# hazard (achado 6.5/7.4, T02): função homônima não é a única forma de copiar lógica do
+# pipeline — dava para reimplementar a regra de recusa/fontes ou chamar o Ollama direto sem
+# nunca definir uma função com o mesmo nome de rag.py, escapando da checagem por nome acima.
+# Cada padrão aqui reproduz uma forma real de cópia já vista no código (scripts/06 antes do T01).
+# hazard: o padrão de .chat(/.embed( é um heurístico de texto, não AST — um método .chat(/.embed(
+# de outra biblioteca (ex.: st.chat_input() do Streamlit, que não bate por terminar diferente)
+# poderia disparar um falso positivo; se isso acontecer, a saída impressa aponta o arquivo/trecho
+# para conferência manual, então o achado não passa despercebido.
+_PADROES_COPIA_PIPELINE = {
+    "RESPOSTA_NAO_ENCONTRADA in ...": re.compile(r"RESPOSTA_NAO_ENCONTRADA\s+in\b"),
+    "indices_citados(...) or list(range(...))": re.compile(r"indices_citados\([^)]*\)\s*or\s*list\(range\("),
+    "import ollama direto": re.compile(r"^\s*import ollama\b", re.MULTILINE),
+    "cliente_ollama() direto": re.compile(r"cliente_ollama\("),
+    ".chat(/.embed( direto no cliente Ollama (fora de rag.py)": re.compile(r"(?<!\brag)\.(chat|embed)\("),
+}
+
+
+def _achados_copia_pipeline(nome, texto):
+    return [rotulo for rotulo, padrao in _PADROES_COPIA_PIPELINE.items() if padrao.search(texto)]
+
+
+def e7_duplicadas_antes_v2(commit="ba814a0"):
+    # why: prova, de um jeito versionado e reexecutável (não um script solto fora do repo), que
+    # _achados_copia_pipeline pegaria a duplicação que scripts/06_com_sem_contexto.py tinha antes
+    # do T01/T02 — sem precisar reintroduzir a duplicação no código real para testar isso.
+    saida = subprocess.run(["git", "show", f"{commit}:scripts/06_com_sem_contexto.py"],
+                           cwd=RAIZ, capture_output=True, text=True, check=True)
+    achados = _achados_copia_pipeline("scripts/06_com_sem_contexto.py", saida.stdout)
+    print(f"7.4 ANTES (scripts/06_com_sem_contexto.py no commit {commit}): {achados or 'nenhum'}")
+    if not achados:
+        print(f"7.4 ANTES deveria ter achado a cópia e não achou — checagem não prova nada")
         sys.exit(1)
 
 
@@ -175,7 +333,23 @@ def e7_duplicadas():
     print(f"7.4 chamadores tocando internals privados de rag.py (leak de 7.4/Shotgun Surgery): "
           f"{chamadas_privadas or 'nenhum'}")
 
-    if duplicadas_do_pipeline or chamadas_privadas:
+    # scripts/, opcional/ e app.py só chamam rag.py (regra de "Arquitetura" do CLAUDE.md); o
+    # notebook é gerado, mas suas células viram código real quando executadas, então valem a
+    # mesma regra. ferramentas/ fica de fora: são scripts de apoio (medição, construção do
+    # notebook), não o pipeline em si, e medir.py chama rag.chat() direto de propósito.
+    copia_pipeline = {}
+    for arquivo in arquivos_chamadores:
+        achados = _achados_copia_pipeline(arquivo.name, arquivo.read_text(encoding="utf-8"))
+        if achados:
+            copia_pipeline[arquivo.relative_to(RAIZ).as_posix()] = achados
+    for celula in notebook["cells"]:
+        if celula["cell_type"] == "code":
+            achados = _achados_copia_pipeline("webinario_rag.ipynb", "".join(celula["source"]))
+            if achados:
+                copia_pipeline.setdefault("webinario_rag.ipynb", []).extend(achados)
+    print(f"7.4 padrões de cópia de lógica do pipeline fora de rag.py: {copia_pipeline or 'nenhum'}")
+
+    if duplicadas_do_pipeline or chamadas_privadas or copia_pipeline:
         sys.exit(1)
 
 
@@ -194,6 +368,90 @@ def e7_estrutura():
         if celula["cell_type"] == "code" and ("carregar_resultado" in fonte or "_AO_VIVO" in fonte
                                               or "REINDEXAR" in fonte):
             print(f"    [{celula.get('execution_count')}] {fonte.splitlines()[0][:90]}")
+
+
+# hazard (achado 5a.1/7.2/9.1, T08): números de evidência (ex.: tempo do SHAP) citados em docs/
+# ficam defasados em relação à última execução salva do notebook, e ninguém percebe porque não há
+# checagem automática. Esta extrai os tempos de fato salvos em webinario_rag.ipynb, sem precisar de
+# kernel (só lê o JSON), para comparar contra o que os docs afirmam.
+_PADROES_TEMPO_NOTEBOOK = {
+    "indexação": re.compile(r"Indexa[çc][ãa]o em ([\d.,]+)s"),
+    "extração": re.compile(r"Extra[çc][ãa]o em ([\d.,]+)s"),
+    "resumo ao vivo": re.compile(r"RESUMO AO VIVO \(([\d.,]+)s\)"),
+    "shap": re.compile(r"SHAP em ([\d.,]+)s"),
+    "resposta bloco 6": re.compile(r"\[([\d.,]+)s com ([^\]]+)\]"),
+}
+# "indexação" só aparece quando REINDEXAR=True (não é o padrão do notebook distribuído — evita os
+# ~19min de reindexação a cada execução); os outros 4 sempre imprimem sob os flags padrão do
+# notebook (LLM_AO_VIVO=True, SHAP_AO_VIVO=True definidos em construir_notebook.py). Exigir todos
+# os 5 quebraria a execução normal; exigir só "achou algo" deixaria passar sem ninguém notar se só
+# UM desses 4 parar de bater (ex.: alguém reescreve o texto do print em construir_notebook.py) —
+# achado do /code-review.
+_PADROES_TEMPO_OBRIGATORIOS = {"extração", "resumo ao vivo", "shap", "resposta bloco 6"}
+
+
+def e7_saidas():
+    import json
+
+    notebook = json.loads((RAIZ / "webinario_rag.ipynb").read_text(encoding="utf-8"))
+    tempos = {}
+    print("7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):")
+    for i, celula in enumerate(notebook["cells"], start=1):
+        if celula["cell_type"] != "code":
+            continue
+        fonte = "".join(celula["source"])
+        tem_saida = bool(celula.get("outputs"))
+        primeira_linha = fonte.splitlines()[0][:70] if fonte else ""
+        print(f"    [{i}] saída={tem_saida} | {primeira_linha!r}")
+        for saida in celula.get("outputs", []):
+            texto = "".join(saida.get("text", [])) or "".join(saida.get("data", {}).get("text/plain", []))
+            for nome, padrao in _PADROES_TEMPO_NOTEBOOK.items():
+                for m in padrao.finditer(texto):
+                    tempos.setdefault(nome, []).append((i, m.group(0)))
+
+    print("\n7.2/9.1 tempos extraídos do notebook atual (para comparar com docs/medicoes.md e afins):")
+    faltando = _PADROES_TEMPO_OBRIGATORIOS - tempos.keys()
+    if faltando:
+        print(f"    padrões obrigatórios sem nenhuma ocorrência: {sorted(faltando)} — ou o notebook não "
+              f"foi executado com os flags padrão (LLM_AO_VIVO=True, SHAP_AO_VIVO=True), ou o texto do "
+              f"print mudou em construir_notebook.py e o regex correspondente em verificar.py ficou para trás")
+        sys.exit(1)
+    for nome, ocorrencias in tempos.items():
+        for celula_i, texto in ocorrencias:
+            print(f"    [célula {celula_i}] {nome}: {texto}")
+
+
+# hazard (achado 9.1, T10): docs/medicoes.md cita números "na última execução do notebook" (o
+# jeito que o documento marca "isto veio de rodar o notebook, não de medir.py") que ficam
+# defasados quando o notebook é reexecutado — ninguém percebia porque nada comparava o texto
+# contra a evidência real. Esta checagem confere cada um contra E7/saidas_notebook.txt.
+_PADRAO_NUMERO_ULTIMA_EXECUCAO = re.compile(r"(\d+(?:[.,]\d+)?)\s*s\s*na última execução do notebook")
+
+
+def e9_numeros():
+    medicoes = (RAIZ / "docs" / "medicoes.md").read_text(encoding="utf-8")
+    saidas = (RAIZ / "docs" / "evidencias" / "E7" / "saidas_notebook.txt").read_text(encoding="utf-8")
+
+    achados = _PADRAO_NUMERO_ULTIMA_EXECUCAO.findall(medicoes)
+    print(f"9.1 números 'na última execução do notebook' em docs/medicoes.md: {achados}")
+    # hazard (/code-review): se a frase exata "na última execução do notebook" for reescrita (ou
+    # sumir) em medicoes.md, achados vira [] e a checagem passaria calada com exit 0 sem ter
+    # conferido nada — o oposto do que este ticket existe para garantir. Pelo menos 2 menções são
+    # esperadas hoje (SHAP no bloco 4, resposta no bloco 6); zero é sinal de checagem quebrada, não
+    # de "nada para verificar".
+    if not achados:
+        print("9.1 nenhuma menção encontrada — ou o texto de medicoes.md mudou e o regex ficou "
+              "para trás, ou os números foram removidos; de qualquer forma, precisa de revisão manual")
+        sys.exit(1)
+
+    faltando = []
+    for numero in achados:
+        normalizado = numero.replace(",", ".")
+        if not re.search(rf"(?<!\d){re.escape(normalizado)}s\b", saidas):
+            faltando.append(numero)
+    print(f"9.1 números sem confirmação em docs/evidencias/E7/saidas_notebook.txt: {faltando or 'nenhum'}")
+    if faltando:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

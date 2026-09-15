@@ -14,11 +14,11 @@ ontext, and the model returns a generated text completion. These input contexts 
 
 Pergunta: Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?
 
---- SEM contexto (9.8s):
-Segundo o artigo "Lost in the Middle", os modelos de linguagem usam melhor a informação nas posições do contexto ao meio, ou seja, nas posições que estão entre o início e o final do contexto fornecido. Essa é uma das descobertas principais do artigo.
+--- SEM contexto (3.6s):
+Segundo o artigo "Lost in the Middle", os modelos de linguagem usam melhor a informação nas posições centrais do contexto.
 
---- COM contexto (11.4s):
-Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre nas posições de início ou fim do contexto. O artigo menciona que a performance é mais alta quando a informação relevante está no início ou no final do contexto, e a performance deixa degradar significativamente quando os modelos precisam acessar e usar a informação no meio do contexto.
+--- COM contexto (27.0s):
+Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre na posição inicial ou final do contexto. O artigo menciona que a performance é mais alta quando a informação relevante está no início ou no final do contexto, e a performance deixa degradar significativamente quando os modelos precisam acessar e usar a informação no meio do contexto.
 
 Fontes:
 [1] liu2023_lost_middle.pdf, p. 1
@@ -41,11 +41,11 @@ fying them as next token predictions from the expanded model vocabulary (i.e., t
 
 Pergunta: Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?
 
---- SEM contexto (8.4s):
-Desculpe, mas não tenho informações específicas sobre tokens de reflexão propostos no Self-RAG. Este é um tópico específico que pode estar relacionado a um projeto ou pesquisa particular. Sem mais contexto, não posso fornecer detalhes precisos sobre esses tokens.
+--- SEM contexto (7.6s):
+Desculpe, mas não tenho informações específicas sobre tokens de reflexão propostos no Self-RAG. Este tema não parece estar associado a um projeto ou documento específico que eu esteja familiarizado. Se você puder fornecer mais contexto ou detalhes, ficarei feliz em tentar ajudar melhor.
 
---- COM contexto (50.8s):
-O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): "retrieve" e "critic". Estes tokens permitem que o modelo introspecte suas próprias saídas. Quando o modelo autodetermina ou quando um limiar pré-definido é atingido, esses tokens são ativados para realizar a coleta de informações relevantes, otimizando o ciclo de coleta.
+--- COM contexto (15.1s):
+O Self-RAG propõe dois tipos de tokens de reflexão: "retrieve" e "critic". O modelo decide quando ativar a busca, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a busca, o gerador realiza um corte de fragmentos de busca em múltiplas parágrafos para derivar a sequência mais coerente. Os pontuações de crítico são usadas para atualizar os pontuações de divisão, com a flexibilidade para ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.
 
 Fontes:
 [1] asai2023_selfrag.pdf, p. 10
@@ -68,32 +68,40 @@ which we can plug different retriever systems directly. Besides the retriever, o
 
 Pergunta: Qual é a receita de pão de queijo mineiro?
 
---- SEM contexto (37.0s):
+--- SEM contexto (27.7s):
 Aqui está uma receita básica de pão de queijo mineiro:
 
 Ingredientes:
 
-- 500g de queijo muçarela ralado
+- 400g de queijo coalho ralado
 - 2 ovos grandes
-- 1/2 xícara de leite
-- 1/2 xícara de farinha de trigo
+- 100g de farinha de trigo
+- 2 colheres de sopa de leite
 - 1 colher de sopa de açúcar
-- 1 colher de sopa de óleo de coco
+- 1 colher de sopa de óleo
 - Sal a gosto
 
 Modo de preparo:
 
-1. Em uma panela, derreta o óleo de coco em fogo médio.
-2. Adicione o queijo ralado e misture bem até que o queijo esteja quase derretido.
-3. Adicione os ovos, o leite e o açúcar. Misture bem até obter uma massa homogênea.
-4. Adicione a farinha de trigo aos poucos, mexendo sempre para evitar grumos.
-5. Adicione sal a gosto.
-6. Deixe a massa descansar por 10 minutos.
-7. Forme bolinhas com a massa e asse em forno pré-aquecido a 180°C por cerca de 20 minutos ou até dourar.
+1. Em uma panela, aqueça o óleo e frite os ovos até ficarem dourados. Reserve.
 
-Lembre-se de que a receita pode variar dependendo da preferência pessoal. Experimente e ajuste conforme necessário.
+2. Em uma tigela, misture o queijo coalho ralado, o açúcar, a farinha de trigo e o sal. Adicione o óleo e o leite.
 
---- COM contexto (1.6s):
-Não encontrei essa informação nos documentos.
+3. Adicione os ovos fritos à mistura e misture bem.
+
+4. Despeje a massa em forma untada e leve ao forno preaquecido a 180°C por cerca de 30 minutos ou até dourar.
+
+5. Sirva quente.
+
+Lembre-se que essa é uma receita básica. Você pode ajustar os ingredientes para atender a sua preferência.
+
+--- COM contexto (2.5s):
+Não encontrei essa informação nos documentos. [1]
 
 Salvo em resultados\com_sem_contexto.json
+=== Confirmação T05: eh_recusa()=True, fontes_citadas=[] (pergunta fora da base) ===
+pergunta: Qual é a receita de pão de queijo mineiro?
+com_contexto: 'Não encontrei essa informação nos documentos. [1]'
+fontes_recuperadas: ['[1] lewis2020_rag.pdf, p. 2', '[2] karpukhin2020_dpr.pdf, p. 3', '[3] lewis2020_rag.pdf, p. 6', '[4] karpukhin2020_dpr.pdf, p. 7']
+fontes_citadas: []
+rag.eh_recusa(com_contexto): True

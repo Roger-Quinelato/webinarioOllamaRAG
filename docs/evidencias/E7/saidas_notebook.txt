@@ -496,3 +496,69 @@
 === [21] arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"
   stream: Rode opcional/avaliacao_estilo_ragas.py para gerar o resultado.
           
+
+# T08 — ferramentas/verificar.py e7_saidas (2026-09-15, sem kernel, lê o .ipynb salvo)
+# hazard: os tempos abaixo são da execução ao vivo mais recente (T03, durante este mesmo dia)
+# e já divergem dos números citados em docs/medicoes.md (37s/34s SHAP, 8,1s resumo, 16,6s
+# extração) — reconciliação de docs/medicoes.md é escopo do T10, não deste ticket.
+
+7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):
+    [2] saída=False | 'import json'
+    [4] saída=True | 'instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, '
+    [6] saída=True | 'metadados = rag.carregar_metadados()'
+    [8] saída=True | 'paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pd'
+    [9] saída=True | 'chunks = rag.gerar_chunks()'
+    [11] saída=True | 'colecao = rag.abrir_colecao()'
+    [13] saída=True | 'artigo = "es2023_ragas.pdf"'
+    [15] saída=True | 'primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_mi'
+    [17] saída=True | 'pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG'
+    [19] saída=True | 'pergunta = "Como funciona a recuperação de passagens?"'
+    [21] saída=True | 'for texto in ("O desempenho cai quando a informação relevante está no '
+    [23] saída=True | 'def comparar_buscas(pergunta):'
+    [25] saída=True | 'comparar_buscas("Recuperar mais documentos sempre melhora a resposta d'
+    [27] saída=True | 'import shap'
+    [29] saída=True | 'shapley = carregar_resultado("shapley_chunks.json")'
+    [31] saída=True | '# TODO(autor): trocar pela pergunta-teste definitiva.'
+    [32] saída=True | 'if LLM_AO_VIVO:'
+    [34] saída=True | 'pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta",'
+    [36] saída=True | 'pergunta = "Como o Self-RAG decide quando buscar documentos?"'
+    [38] saída=True | 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding='
+    [40] saída=True | 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"'
+
+7.2/9.1 tempos extraídos do notebook atual (para comparar com docs/medicoes.md e afins):
+    [célula 13] extração: Extração em 158.1s
+    [célula 15] resumo ao vivo: RESUMO AO VIVO (14.5s)
+    [célula 27] shap: SHAP em 48s
+    [célula 36] resposta bloco 6: [93.8s com qwen2.5:3b]
+[e7_saidas em 0.0s]
+
+# T09 — reexecução completa pós T01-T08 (2026-09-15, ao vivo + offline)
+7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):
+    [2] saída=False | 'import json'
+    [4] saída=True | 'instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, '
+    [6] saída=True | 'metadados = rag.carregar_metadados()'
+    [8] saída=True | 'paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pd'
+    [9] saída=True | 'chunks = rag.gerar_chunks()'
+    [11] saída=True | 'colecao = rag.abrir_colecao()'
+    [13] saída=True | 'artigo = "es2023_ragas.pdf"'
+    [15] saída=True | 'primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_mi'
+    [17] saída=True | 'pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG'
+    [19] saída=True | 'pergunta = "Como funciona a recuperação de passagens?"'
+    [21] saída=True | 'for texto in ("O desempenho cai quando a informação relevante está no '
+    [23] saída=True | 'def comparar_buscas(pergunta):'
+    [25] saída=True | 'comparar_buscas("Recuperar mais documentos sempre melhora a resposta d'
+    [27] saída=True | 'import shap'
+    [29] saída=True | 'shapley = carregar_resultado("shapley_chunks.json")'
+    [31] saída=True | '# TODO(autor): trocar pela pergunta-teste definitiva.'
+    [32] saída=True | 'if LLM_AO_VIVO:'
+    [34] saída=True | 'pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta",'
+    [36] saída=True | 'pergunta = "Como o Self-RAG decide quando buscar documentos?"'
+    [38] saída=True | 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding='
+    [40] saída=True | 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"'
+
+7.2/9.1 tempos extraídos do notebook atual (para comparar com docs/medicoes.md e afins):
+    [célula 13] extração: Extração em 106.6s
+    [célula 15] resumo ao vivo: RESUMO AO VIVO (11.9s)
+    [célula 27] shap: SHAP em 36s
+    [célula 36] resposta bloco 6: [70.6s com qwen2.5:3b]
+[e7_saidas em 0.0s]

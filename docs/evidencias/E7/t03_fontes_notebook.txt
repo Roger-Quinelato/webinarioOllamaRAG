@@ -1,0 +1,42 @@
+=== ferramentas/executar_notebook.py (T03, ao vivo, notebook real com saídas restauradas) ===
+células de código: 21 | executadas: 21 | com erro: 0 | sem saída: [0] | tempo total: 364s
+
+=== celula 17 (execução ao vivo, webinario_rag.ipynb) ===
+### Sem contexto
+Desculpe, mas não tenho informações específicas sobre tokens de reflexão propostos no Self-RAG. Este conceito não parece estar associado a um sistema ou projeto específico conhecido. Você pode estar se referindo a um projeto ou conceito mais amplo que não tenha sido amplamente discutido ou implementado. Se puder fornecer mais contexto ou detalhes, ficarei feliz em tentar ajudar mais.
+
+### Com contexto
+O Self-RAG propõe dois tipos de tokens de reflexão: "retrieve" e "critic". O modelo decide quando ativar a busca, ou alternativamente, um limiar pré-definido pode iniciar o processo. Durante a busca, o gerador realiza um corte de fragmentos de busca em múltiplas parágrafos para derivar a sequência mais coerente. Os pontuações de crítico são usadas para atualizar os pontuações de divisão, com a flexibilidade para ajustar esses pesos durante a inferência, ajustando o comportamento do modelo.
+
+**Fontes citadas**
+```
+[1] asai2023_selfrag.pdf, p. 10
+[2] asai2023_selfrag.pdf, p. 1
+[3] gao2023_survey.pdf, p. 12
+[4] asai2023_selfrag.pdf, p. 4
+```
+
+**Trechos enviados ao prompt**
+```
+[1] asai2023_selfrag.pdf, p. 10
+[2] asai2023_selfrag.pdf, p. 1
+[3] gao2023_survey.pdf, p. 12
+[4] asai2023_selfrag.pdf, p. 4
+```
+
+=== celula 19 (execução ao vivo, webinario_rag.ipynb) ===
+O Self-RAG decide quando buscar documentos baseado na probabilidade de geração de termos. Quando essa probabilidade cai abaixo de um certo limiar, o sistema de busca é ativado para coletar informações relevantes, o que melhora o ciclo de busca.
+
+Fontes:
+[1] asai2023_selfrag.pdf, p. 1
+[2] gao2023_survey.pdf, p. 12
+[3] lewis2020_rag.pdf, p. 3
+[4] lewis2020_rag.pdf, p. 5
+**Trechos enviados ao prompt**
+```
+[1] asai2023_selfrag.pdf, p. 1
+[2] gao2023_survey.pdf, p. 12
+[3] lewis2020_rag.pdf, p. 3
+[4] lewis2020_rag.pdf, p. 5
+```
+
