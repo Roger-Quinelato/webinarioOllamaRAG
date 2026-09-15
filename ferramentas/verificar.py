@@ -95,6 +95,92 @@ def e4():
     print(f"4.4 estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
 
 
+# hazard (T06): DISTANCIA_MAXIMA_ESTAGIO_1 em config.py foi um número escolhido sem dados — esta
+# checagem calibra o limiar contra perguntas reais dentro e fora da base, para não escolher um
+# valor que derrube (recuse) pergunta dentro da base (pior erro) ou nunca dispare o fallback
+# (achado 4.4 original).
+_PERGUNTAS_DENTRO_ESTAGIO_1 = [
+    "Como funciona a arquitetura RAG proposta por Lewis et al.?",
+    "O que é Dense Passage Retrieval (DPR)?",
+    "Quais métricas o Ragas usa para avaliar fidelidade e relevância?",
+    "O que são os tokens de reflexão do Self-RAG?",
+    "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
+    "Quais são os principais desafios de RAG discutidos no survey de Gao et al.?",
+    "Como o DPR treina o retriever com exemplos negativos?",
+    "O que é retrieval-augmented generation?",
+]
+_PERGUNTAS_FORA_ESTAGIO_1 = [
+    "Qual é a receita de pão de queijo mineiro?",
+    "Qual é a capital da Mongólia?",
+    "Quais são as regras do xadrez?",
+    "Como trocar o óleo de um carro?",
+    "Qual é a previsão do tempo para amanhã em Belo Horizonte?",
+]
+
+
+def _escolher_limiar_estagio_1(distancias_dentro, distancias_fora):
+    # why: "escolher o valor que não derruba nenhuma pergunta dentro da base" (spec do T06) é
+    # sempre a maior distância "dentro", haja ou não sobreposição com "fora" — sobreposição só
+    # muda se esse valor também aceita algum falso positivo de fallback (declarado tolerável).
+    # Extraído como função pura (sem rag/Ollama) para dar para testar o ramo de sobreposição com
+    # dados sintéticos — os dados reais deste corpus não sobrepõem, então só um autoteste prova
+    # que a lógica funciona (achado do /code-review).
+    maior_dentro = max(distancias_dentro)
+    menor_fora = min(distancias_fora)
+    return maior_dentro, maior_dentro >= menor_fora
+
+
+def _autoteste_escolher_limiar():
+    limiar, sobreposicao = _escolher_limiar_estagio_1([0.30, 0.50, 0.65], [0.60, 0.70])
+    ok = sobreposicao and abs(limiar - 0.65) < 1e-9
+    print(f"T06 autoteste (dados sintéticos com sobreposição, prova o ramo que os dados reais não "
+          f"exercitam): limiar sugerido={limiar:.4f} sobreposição={sobreposicao} -> {'OK' if ok else 'FALHOU'}")
+    if not ok:
+        sys.exit(1)
+
+
+def e4_limiar():
+    _autoteste_escolher_limiar()
+    colecao = rag.abrir_colecao()
+
+    def distancia_estagio_1(pergunta):
+        # why: rag.buscar() força tipo_chunk="pagina" (combinar_filtros com um where tipo_chunk=
+        # "resumo" dá resultado vazio); rag.buscar_dois_estagios(n_artigos=1) já roda a mesma busca
+        # do estágio 1 internamente e devolve "artigos" com a distância real, mesmo quando o limiar
+        # decide cair no fallback — evita tocar a função privada _consultar direto daqui.
+        dois = rag.buscar_dois_estagios(pergunta, n_artigos=1, colecao=colecao)
+        return dois["artigos"][0]["distancia"]
+
+    grupos = {"dentro da base": [(p, distancia_estagio_1(p)) for p in _PERGUNTAS_DENTRO_ESTAGIO_1],
+              "fora da base": [(p, distancia_estagio_1(p)) for p in _PERGUNTAS_FORA_ESTAGIO_1]}
+
+    print("T06 distância do resumo mais próximo (estágio 1):")
+    for nome, casos in grupos.items():
+        print(f"  {nome}:")
+        for p, d in casos:
+            print(f"    {d:.4f}  {p}")
+
+    dentro, fora = grupos["dentro da base"], grupos["fora da base"]
+    limiar_sugerido, sobreposicao = _escolher_limiar_estagio_1([d for _, d in dentro], [d for _, d in fora])
+    menor_fora = min(d for _, d in fora)
+    print(f"\nT06 maior distância dentro da base: {limiar_sugerido:.4f}")
+    print(f"T06 menor distância fora da base: {menor_fora:.4f}")
+    if sobreposicao:
+        print(f"T06 intervalos SE SOBREPÕEM (maior dentro {limiar_sugerido:.4f} ≥ menor fora {menor_fora:.4f}) "
+              f"— limiar sugerido = {limiar_sugerido:.4f} (a maior distância dentro da base): falso positivo "
+              f"de fallback (tratar uma pergunta fora como se fosse mais uma dentro) é aceitável, recusa "
+              f"indevida de pergunta dentro da base não é.")
+    else:
+        print(f"T06 intervalos não se sobrepõem — limiar seguro em qualquer ponto de "
+              f"({limiar_sugerido:.4f}, {menor_fora:.4f}); sugerido = {limiar_sugerido:.4f}")
+    print(f"\nT06 config.DISTANCIA_MAXIMA_ESTAGIO_1 atual: {config.DISTANCIA_MAXIMA_ESTAGIO_1}")
+    if config.DISTANCIA_MAXIMA_ESTAGIO_1 < limiar_sugerido:
+        print(f"T06 limiar atual ({config.DISTANCIA_MAXIMA_ESTAGIO_1}) é MENOR que o sugerido "
+              f"({limiar_sugerido:.4f}) — derrubaria pergunta legítima, precisa subir")
+        sys.exit(1)
+    print("T06 limiar atual cobre com folga todas as perguntas dentro da base testadas")
+
+
 def e6_ollama_desligado():
     rag._cliente = None
     config.OLLAMA_HOST = "http://localhost:11999"
