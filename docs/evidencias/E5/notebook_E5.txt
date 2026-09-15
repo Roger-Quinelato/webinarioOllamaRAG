@@ -7,8 +7,10 @@
 A função explicada é `similaridade_cosseno(embedding(pergunta mascarada), embedding(chunk))`. O SHAP mascara palavras
 da pergunta e mede quanto a similaridade muda.
 
-# 5a.1 — saídas salvas da célula SHAP no webinario_rag.ipynb (execução ao vivo mais recente)
+# 5a.1 — saídas salvas da célula SHAP no webinario_rag.ipynb (execução ao vivo mais recente,
+# atualizado no T08 via `ferramentas/verificar.py e7_saidas`, que lê o .ipynb sem kernel — achado
+# 5a.1 da auditoria: este número ficava defasado em relação à última execução ao vivo salva)
 stream Chunk explicado: es2023_ragas.pdf p.5 (similaridade 0.6456)
-stream SHAP em 34s
+stream SHAP em 48s
 base 0.3479 + soma dos SHAP +0.3001 = 0.6480 | similaridade real 0.6456
 display_data ['text/html', 'text/plain']

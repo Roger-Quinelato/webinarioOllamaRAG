@@ -370,6 +370,57 @@ def e7_estrutura():
             print(f"    [{celula.get('execution_count')}] {fonte.splitlines()[0][:90]}")
 
 
+# hazard (achado 5a.1/7.2/9.1, T08): números de evidência (ex.: tempo do SHAP) citados em docs/
+# ficam defasados em relação à última execução salva do notebook, e ninguém percebe porque não há
+# checagem automática. Esta extrai os tempos de fato salvos em webinario_rag.ipynb, sem precisar de
+# kernel (só lê o JSON), para comparar contra o que os docs afirmam.
+_PADROES_TEMPO_NOTEBOOK = {
+    "indexação": re.compile(r"Indexa[çc][ãa]o em ([\d.,]+)s"),
+    "extração": re.compile(r"Extra[çc][ãa]o em ([\d.,]+)s"),
+    "resumo ao vivo": re.compile(r"RESUMO AO VIVO \(([\d.,]+)s\)"),
+    "shap": re.compile(r"SHAP em ([\d.,]+)s"),
+    "resposta bloco 6": re.compile(r"\[([\d.,]+)s com ([^\]]+)\]"),
+}
+# "indexação" só aparece quando REINDEXAR=True (não é o padrão do notebook distribuído — evita os
+# ~19min de reindexação a cada execução); os outros 4 sempre imprimem sob os flags padrão do
+# notebook (LLM_AO_VIVO=True, SHAP_AO_VIVO=True definidos em construir_notebook.py). Exigir todos
+# os 5 quebraria a execução normal; exigir só "achou algo" deixaria passar sem ninguém notar se só
+# UM desses 4 parar de bater (ex.: alguém reescreve o texto do print em construir_notebook.py) —
+# achado do /code-review.
+_PADROES_TEMPO_OBRIGATORIOS = {"extração", "resumo ao vivo", "shap", "resposta bloco 6"}
+
+
+def e7_saidas():
+    import json
+
+    notebook = json.loads((RAIZ / "webinario_rag.ipynb").read_text(encoding="utf-8"))
+    tempos = {}
+    print("7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):")
+    for i, celula in enumerate(notebook["cells"], start=1):
+        if celula["cell_type"] != "code":
+            continue
+        fonte = "".join(celula["source"])
+        tem_saida = bool(celula.get("outputs"))
+        primeira_linha = fonte.splitlines()[0][:70] if fonte else ""
+        print(f"    [{i}] saída={tem_saida} | {primeira_linha!r}")
+        for saida in celula.get("outputs", []):
+            texto = "".join(saida.get("text", [])) or "".join(saida.get("data", {}).get("text/plain", []))
+            for nome, padrao in _PADROES_TEMPO_NOTEBOOK.items():
+                for m in padrao.finditer(texto):
+                    tempos.setdefault(nome, []).append((i, m.group(0)))
+
+    print("\n7.2/9.1 tempos extraídos do notebook atual (para comparar com docs/medicoes.md e afins):")
+    faltando = _PADROES_TEMPO_OBRIGATORIOS - tempos.keys()
+    if faltando:
+        print(f"    padrões obrigatórios sem nenhuma ocorrência: {sorted(faltando)} — ou o notebook não "
+              f"foi executado com os flags padrão (LLM_AO_VIVO=True, SHAP_AO_VIVO=True), ou o texto do "
+              f"print mudou em construir_notebook.py e o regex correspondente em verificar.py ficou para trás")
+        sys.exit(1)
+    for nome, ocorrencias in tempos.items():
+        for celula_i, texto in ocorrencias:
+            print(f"    [célula {celula_i}] {nome}: {texto}")
+
+
 if __name__ == "__main__":
     inicio = time.perf_counter()
     globals()[sys.argv[1]]()
