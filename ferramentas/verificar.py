@@ -128,6 +128,30 @@ def e6_ollama_desligado_scripts():
         sys.exit(1)
 
 
+def e6_fontes():
+    # hazard: cobre os casos que a comparação exata anterior perdia (achado 6.5) — citação parcial,
+    # ausência de citação, e a recusa disfarçada por citação colada ou espaçamento irregular do LLM.
+    resultados = [{"arquivo": f"artigo{i}.pdf", "pagina": i} for i in range(1, 4)]
+    recusa = config.RESPOSTA_NAO_ENCONTRADA
+    casos = [
+        ("citação parcial", "Segundo [2], blá blá.", [2]),
+        ("sem citação", "Resposta sem nenhuma citação.", [1, 2, 3]),
+        ("recusa exata", recusa, []),
+        ("recusa com [1]", f"{recusa} [1]", []),
+        ("recusa com espaço extra", "  " + recusa.replace(" ", "  ") + "  ", []),
+    ]
+    falhas = []
+    for nome, texto, esperado in casos:
+        indices = [i for i, _ in rag.fontes_da_resposta(texto, resultados)]
+        ok = indices == esperado
+        print(f"6.5 {nome}: esperado={esperado} obtido={indices} → {'OK' if ok else 'FALHOU'}")
+        if not ok:
+            falhas.append(nome)
+    if falhas:
+        print(f"6.5 casos com divergência: {falhas}")
+        sys.exit(1)
+
+
 def e7_duplicadas():
     import ast
     import json

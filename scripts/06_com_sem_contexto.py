@@ -33,13 +33,10 @@ with rag.cli_seguro():
         com = rag.gerar_texto(mensagens)
         tempo_com = time.perf_counter() - inicio
 
-        # why: mesma regra de rag.responder() (achado 6.5) — listar só o que a resposta citou, não
-        # todo o top-k recuperado, para "fontes" não virar sinônimo de "contexto enviado ao prompt".
-        if config.RESPOSTA_NAO_ENCONTRADA in com:
-            indices, fontes_texto = [], ""
-        else:
-            indices = rag.indices_citados(com, len(resultados)) or list(range(1, len(resultados) + 1))
-            fontes_texto = "\n\nFontes:\n" + rag.formatar_fontes([resultados[i - 1] for i in indices], indices)
+        # why: mesma regra e mesma montagem de texto centralizadas em rag.montar_bloco_fontes()
+        # (achado 6.5) — listar só o que a resposta citou, não todo o top-k recuperado, para
+        # "fontes" não virar sinônimo de "contexto enviado ao prompt"; nada disso é duplicado aqui.
+        fontes_texto = rag.montar_bloco_fontes(com, resultados)
         print(f"\n--- SEM contexto ({tempo_sem:.1f}s):\n{sem}")
         print(f"\n--- COM contexto ({tempo_com:.1f}s):\n{com}{fontes_texto}")
         registros.append({"pergunta": pergunta, "modelo": config.MODELO_CHAT, "prompt": prompt,

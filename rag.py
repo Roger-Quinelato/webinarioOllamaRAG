@@ -331,6 +331,7 @@ def formatar_fontes(resultados, indices=None):
 
 
 _CITACAO_RE = re.compile(r"\[(\d+)\]")
+_ESPACOS_RE = re.compile(r"\s+")
 
 
 def indices_citados(texto, n):
@@ -343,6 +344,39 @@ def indices_citados(texto, n):
     return ordem
 
 
+def eh_recusa(texto):
+    # normaliza espaços (múltiplos → um), remove citações [n] e pontuação repetida antes de comparar,
+    # para reconhecer a recusa mesmo quando o modelo varia o espaçamento ou cita uma fonte por engano
+    # (achado 6.5: comparação exata perdia esses casos).
+    sem_citacoes = _CITACAO_RE.sub("", texto)
+    sem_pontuacao_dupla = re.sub(r"([.,;:!?])\1+", r"\1", sem_citacoes)
+    normalizado = _ESPACOS_RE.sub(" ", sem_pontuacao_dupla).strip()
+    referencia = _ESPACOS_RE.sub(" ", config.RESPOSTA_NAO_ENCONTRADA).strip()
+    return normalizado.startswith(referencia)
+
+
+def fontes_da_resposta(texto, resultados):
+    # hazard: listar os k trechos recuperados como "fontes" mistura o que entrou no prompt com o
+    # que a resposta de fato usou (achado 6.5) — aqui só entram os [n] que aparecem no texto
+    # gerado; se o modelo não citou nenhum, cai para os recuperados, para nunca ficar sem fontes;
+    # e nenhuma fonte é listada quando a resposta é uma recusa.
+    if not resultados or eh_recusa(texto):
+        return []
+    indices = indices_citados(texto, len(resultados)) or list(range(1, len(resultados) + 1))
+    return [(i, resultados[i - 1]) for i in indices]
+
+
+def montar_bloco_fontes(texto, resultados):
+    # why: único lugar que monta o bloco "Fontes:" pronto para exibição — responder() e os scripts
+    # que também mostram fontes (ex.: scripts/06) chamam isto em vez de repetir o zip/formatar_fontes
+    # cada um por conta própria (mesmo achado 6.5 de duplicação que fontes_da_resposta já resolveu).
+    fontes = fontes_da_resposta(texto, resultados)
+    if not fontes:
+        return ""
+    indices, citados = zip(*fontes)
+    return "\n\nFontes:\n" + formatar_fontes(list(citados), list(indices))
+
+
 def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
     modelo = modelo or config.MODELO_CHAT
     texto = ""
@@ -353,13 +387,10 @@ def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
             yield pedaco.message.content
     except _ERROS_CONEXAO as erro:
         raise _erro_ollama(erro, modelo) from None
-    if incluir_fontes and resultados and config.RESPOSTA_NAO_ENCONTRADA not in texto:
-        # hazard: listar os k trechos recuperados como "fontes" mistura o que entrou no prompt com o
-        # que a resposta de fato usou (achado 6.5) — aqui só entram os [n] que aparecem no texto
-        # gerado; se o modelo não citou nenhum, cai para os recuperados, para nunca ficar sem fontes.
-        indices = indices_citados(texto, len(resultados)) or list(range(1, len(resultados) + 1))
-        citados = [resultados[i - 1] for i in indices]
-        yield "\n\nFontes:\n" + formatar_fontes(citados, indices)
+    if incluir_fontes:
+        bloco = montar_bloco_fontes(texto, resultados)
+        if bloco:
+            yield bloco
 
 
 def resumir_abstract(abstract, idioma, modelo=None):
