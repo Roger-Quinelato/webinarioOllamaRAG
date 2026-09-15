@@ -92,7 +92,20 @@ def e4():
           f"{all(r['arquivo'] in escolhidos for r in dois['resultados'])} "
           f"| tipos: {sorted({r['tipo_chunk'] for r in dois['resultados']})}")
     vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"4.4 estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+    print(f"4.4a estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+
+    # hazard (T07): 4.4a só cobre o filtro herdado deixando o estágio 1 sem NENHUM resumo — não
+    # prova que o limiar de distância (achado 4.4 original, calibrado no T06) dispara sozinho para
+    # uma pergunta fora da base sem filtro nenhum, caso em que o estágio 1 sempre acha 3 "vizinhos".
+    prefixo_esperado = "busca simples (estágio 1 sem correspondência: resumo mais próximo"
+    # why: reaproveita a mesma pergunta-teste de _PERGUNTAS_FORA_ESTAGIO_1 (T06) em vez de repetir
+    # a string aqui — se a calibração mudar de pergunta, os dois lugares não podem se desalinhar.
+    fora = rag.buscar_dois_estagios(_PERGUNTAS_FORA_ESTAGIO_1[0], k=4, colecao=colecao)
+    prefixo_ok = fora["caminho"].startswith(prefixo_esperado)
+    print(f"4.4b pergunta fora da base sem filtro: caminho = {fora['caminho']!r} "
+          f"| começa com {prefixo_esperado!r} = {prefixo_ok} | {len(fora['resultados'])} resultados")
+    if fora["caminho"] == "dois estágios" or not prefixo_ok:
+        sys.exit(1)
 
 
 # hazard (T06): DISTANCIA_MAXIMA_ESTAGIO_1 em config.py foi um número escolhido sem dados — esta
