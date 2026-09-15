@@ -31,9 +31,9 @@ Em 2026-09-14, `docs/evidencias/E10/revisao_codigo.md` registrou uma auditoria d
 
 - **1.6** — seção de conferência manual dos resumos vazia em `E1/verificacao_E1.txt`.
 - **4.4** — o fallback do estágio 1 vazio (`rag.py:234-238`) nunca dispara com pergunta fora da base (a busca vetorial sempre devolve vizinhos); com filtro `where`, o fallback devolve vazio porque herda o mesmo `where`.
-- **6.5** — `responder()` (`rag.py:317-318`) lista os k trechos recuperados como fontes, não os efetivamente citados.
+- **6.5** — ~~`responder()` (`rag.py:317-318`) lista os k trechos recuperados como fontes, não os efetivamente citados.~~ Resolvido no ticket [#1](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/1) (T01): `rag.fontes_da_resposta()`/`rag.eh_recusa()` centralizam a regra, usadas por `responder()` e por `scripts/06` via `rag.montar_bloco_fontes()`; evidência em `docs/evidencias/E6/e6_fontes.txt`.
 - **6.7** — só `app.py` e `scripts/07_ollama.py` capturam `OllamaIndisponivel`; `scripts/03`–`06` e `opcional/*.py` não; a checagem `e6_ollama_desligado` só testa `rag.py`.
-- **7.4** — `ferramentas/verificar.py:e7_duplicadas` só compara nomes de função, não varre `ferramentas/`, ignora `opcional/` e nunca falha (só imprime).
+- **7.4** — ~~`ferramentas/verificar.py:e7_duplicadas` só compara nomes de função, não varre `ferramentas/`, ignora `opcional/` e nunca falha (só imprime).~~ Resolvido no ticket [#2](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/2) (T02): `e7_duplicadas` também varre `scripts/`, `opcional/`, `app.py` e o notebook por padrões de cópia de lógica do pipeline fora de nomes de função (`RESPOSTA_NAO_ENCONTRADA in`, `indices_citados(...) or list(range(...))`, `.chat(`/`.embed(`/`cliente_ollama()` diretos) e sai com `sys.exit(1)` em qualquer achado; evidência (antes/depois) em `docs/evidencias/E7/reverificacao_e7_duplicadas_v2.txt`.
 - **8.2, 8.4, 8.5, 8.7** — sem captura de tela salva; evidência é texto de DOM/AppTest.
 - **5a.1, 7.2, 9.1** — números de evidência (ex.: tempo do SHAP) defasados em relação ao notebook versionado.
 
@@ -102,7 +102,7 @@ bash ferramentas/rodar_scripts.sh
 | `ferramentas/executar_notebook.py` | Executa o notebook e salva as saídas |
 | `ferramentas/executar_notebook.py --offline` | Testa as saídas pré-computadas |
 | `ferramentas/testar_app.py` | Testa o Streamlit com `AppTest` (E8) |
-| `ferramentas/verificar.py e3` | Roda a verificação de uma etapa; também aceita e1_resumos, e2, e2_sobreposicao, e2_reabrir, e4, e6_ollama_desligado, e7_duplicadas e e7_estrutura |
+| `ferramentas/verificar.py e3` | Roda a verificação de uma etapa; também aceita e1_resumos, e2, e2_sobreposicao, e2_reabrir, e4, e6_ollama_desligado, e6_fontes, e7_duplicadas e e7_estrutura |
 | `ferramentas/medir.py nome_do_cenario` | Mede os tempos (E9) |
 
 ## Agent skills

@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 import time
@@ -152,6 +153,40 @@ def e6_fontes():
         sys.exit(1)
 
 
+# hazard (achado 6.5/7.4, T02): função homônima não é a única forma de copiar lógica do
+# pipeline — dava para reimplementar a regra de recusa/fontes ou chamar o Ollama direto sem
+# nunca definir uma função com o mesmo nome de rag.py, escapando da checagem por nome acima.
+# Cada padrão aqui reproduz uma forma real de cópia já vista no código (scripts/06 antes do T01).
+# hazard: o padrão de .chat(/.embed( é um heurístico de texto, não AST — um método .chat(/.embed(
+# de outra biblioteca (ex.: st.chat_input() do Streamlit, que não bate por terminar diferente)
+# poderia disparar um falso positivo; se isso acontecer, a saída impressa aponta o arquivo/trecho
+# para conferência manual, então o achado não passa despercebido.
+_PADROES_COPIA_PIPELINE = {
+    "RESPOSTA_NAO_ENCONTRADA in ...": re.compile(r"RESPOSTA_NAO_ENCONTRADA\s+in\b"),
+    "indices_citados(...) or list(range(...))": re.compile(r"indices_citados\([^)]*\)\s*or\s*list\(range\("),
+    "import ollama direto": re.compile(r"^\s*import ollama\b", re.MULTILINE),
+    "cliente_ollama() direto": re.compile(r"cliente_ollama\("),
+    ".chat(/.embed( direto no cliente Ollama (fora de rag.py)": re.compile(r"(?<!\brag)\.(chat|embed)\("),
+}
+
+
+def _achados_copia_pipeline(nome, texto):
+    return [rotulo for rotulo, padrao in _PADROES_COPIA_PIPELINE.items() if padrao.search(texto)]
+
+
+def e7_duplicadas_antes_v2(commit="ba814a0"):
+    # why: prova, de um jeito versionado e reexecutável (não um script solto fora do repo), que
+    # _achados_copia_pipeline pegaria a duplicação que scripts/06_com_sem_contexto.py tinha antes
+    # do T01/T02 — sem precisar reintroduzir a duplicação no código real para testar isso.
+    saida = subprocess.run(["git", "show", f"{commit}:scripts/06_com_sem_contexto.py"],
+                           cwd=RAIZ, capture_output=True, text=True, check=True)
+    achados = _achados_copia_pipeline("scripts/06_com_sem_contexto.py", saida.stdout)
+    print(f"7.4 ANTES (scripts/06_com_sem_contexto.py no commit {commit}): {achados or 'nenhum'}")
+    if not achados:
+        print(f"7.4 ANTES deveria ter achado a cópia e não achou — checagem não prova nada")
+        sys.exit(1)
+
+
 def e7_duplicadas():
     import ast
     import json
@@ -199,7 +234,23 @@ def e7_duplicadas():
     print(f"7.4 chamadores tocando internals privados de rag.py (leak de 7.4/Shotgun Surgery): "
           f"{chamadas_privadas or 'nenhum'}")
 
-    if duplicadas_do_pipeline or chamadas_privadas:
+    # scripts/, opcional/ e app.py só chamam rag.py (regra de "Arquitetura" do CLAUDE.md); o
+    # notebook é gerado, mas suas células viram código real quando executadas, então valem a
+    # mesma regra. ferramentas/ fica de fora: são scripts de apoio (medição, construção do
+    # notebook), não o pipeline em si, e medir.py chama rag.chat() direto de propósito.
+    copia_pipeline = {}
+    for arquivo in arquivos_chamadores:
+        achados = _achados_copia_pipeline(arquivo.name, arquivo.read_text(encoding="utf-8"))
+        if achados:
+            copia_pipeline[arquivo.relative_to(RAIZ).as_posix()] = achados
+    for celula in notebook["cells"]:
+        if celula["cell_type"] == "code":
+            achados = _achados_copia_pipeline("webinario_rag.ipynb", "".join(celula["source"]))
+            if achados:
+                copia_pipeline.setdefault("webinario_rag.ipynb", []).extend(achados)
+    print(f"7.4 padrões de cópia de lógica do pipeline fora de rag.py: {copia_pipeline or 'nenhum'}")
+
+    if duplicadas_do_pipeline or chamadas_privadas or copia_pipeline:
         sys.exit(1)
 
 
