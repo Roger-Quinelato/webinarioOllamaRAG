@@ -106,16 +106,45 @@ def e6_ollama_desligado():
             print(f"6.7 {nome}: OllamaIndisponivel → {erro}")
 
 
+def e6_ollama_desligado_scripts():
+    # hazard: testar só rag.py (e6_ollama_desligado) não prova nada sobre os scripts — cada um
+    # importa rag e chama o Ollama por conta própria, e o achado 6.7 mostrou 03-06 e opcional/
+    # sem nenhum try/except em volta, deixando o traceback vazar para quem está assistindo a aula.
+    ambiente = {**__import__("os").environ, "OLLAMA_HOST": "http://localhost:11999", "PYTHONIOENCODING": "utf-8"}
+    alvos = [*sorted((RAIZ / "scripts").glob("0[3-7]_*.py")), *sorted((RAIZ / "opcional").glob("*.py"))]
+    falhas = []
+    for script in alvos:
+        saida = subprocess.run([sys.executable, str(script)], cwd=RAIZ, capture_output=True, text=True,
+                               env=ambiente, timeout=60)
+        tem_traceback = "Traceback (most recent call last)" in saida.stderr
+        mensagem_clara = "ERRO:" in saida.stdout or "OllamaIndisponivel" in saida.stdout
+        ok = not tem_traceback and (mensagem_clara or saida.returncode != 0)
+        print(f"6.7 {script.relative_to(RAIZ).as_posix()}: exit={saida.returncode} "
+              f"traceback={tem_traceback} mensagem_clara={mensagem_clara} → {'OK' if ok else 'FALHOU'}")
+        if not ok:
+            falhas.append(script.name)
+    if falhas:
+        print(f"6.7 scripts sem tratamento adequado: {falhas}")
+        sys.exit(1)
+
+
 def e7_duplicadas():
     import ast
+    import json
+
+    # hazard: a versão anterior desta checagem só comparava nomes de função, não varria
+    # ferramentas/, ignorava opcional/ na lista de "usadas por" e nunca falhava — o ✅ do
+    # critério 7.4 se apoiava nela sem que ela pudesse de fato reprovar nada (achado da revisão).
+    arquivos_py = [RAIZ / "rag.py", RAIZ / "app.py",
+                   *sorted((RAIZ / "scripts").glob("*.py")),
+                   *sorted((RAIZ / "opcional").glob("*.py")),
+                   *sorted((RAIZ / "ferramentas").glob("*.py"))]
 
     definidas = {}
-    for arquivo in [RAIZ / "rag.py", RAIZ / "app.py", *sorted((RAIZ / "scripts").glob("*.py")),
-                    *sorted((RAIZ / "opcional").glob("*.py"))]:
+    for arquivo in arquivos_py:
         for no in ast.walk(ast.parse(arquivo.read_text(encoding="utf-8"))):
             if isinstance(no, ast.FunctionDef):
                 definidas.setdefault(no.name, []).append(arquivo.relative_to(RAIZ).as_posix())
-    import json
 
     notebook = json.loads((RAIZ / "webinario_rag.ipynb").read_text(encoding="utf-8"))
     for celula in notebook["cells"]:
@@ -123,14 +152,31 @@ def e7_duplicadas():
             for no in ast.walk(ast.parse("".join(celula["source"]))):
                 if isinstance(no, ast.FunctionDef):
                     definidas.setdefault(no.name, []).append("webinario_rag.ipynb")
-    repetidas = {n: locais for n, locais in definidas.items() if len(set(locais)) > 1}
-    print(f"7.4 funções definidas em mais de um arquivo: {repetidas or 'nenhuma'}")
+
+    # Uma função homônima em rag.py e em outro lugar é o sinal real de cópia divergente do
+    # pipeline; homônimas fora de rag.py (ex.: "colecao" em app.py e no notebook, que são coisas
+    # diferentes — cache do Streamlit vs. variável local) são só coincidência de nome e não contam.
+    funcoes_rag = {n for n, locais in definidas.items() if "rag.py" in locais}
+    duplicadas_do_pipeline = {n: locais for n, locais in definidas.items()
+                              if n in funcoes_rag and len(set(locais)) > 1}
+    print(f"7.4 funções de rag.py também definidas em outro arquivo: {duplicadas_do_pipeline or 'nenhuma'}")
+
     fora_do_rag = {n: locais for n, locais in definidas.items() if "rag.py" not in locais}
     print(f"7.4 funções fora do rag.py (apresentação/verificação, não reimplementam o pipeline): {fora_do_rag}")
-    chamadas = sorted({no.attr for arquivo in [RAIZ / "app.py", *sorted((RAIZ / "scripts").glob("*.py"))]
+
+    arquivos_chamadores = [RAIZ / "app.py", *sorted((RAIZ / "scripts").glob("*.py")),
+                           *sorted((RAIZ / "opcional").glob("*.py"))]
+    chamadas = sorted({no.attr for arquivo in arquivos_chamadores
                        for no in ast.walk(ast.parse(arquivo.read_text(encoding="utf-8")))
                        if isinstance(no, ast.Attribute) and isinstance(no.value, ast.Name) and no.value.id == "rag"})
-    print(f"7.4 funções do rag.py usadas por app.py e scripts/: {chamadas}")
+    print(f"7.4 funções do rag.py usadas por app.py, scripts/ e opcional/: {chamadas}")
+
+    chamadas_privadas = [c for c in chamadas if c.startswith("_")]
+    print(f"7.4 chamadores tocando internals privados de rag.py (leak de 7.4/Shotgun Surgery): "
+          f"{chamadas_privadas or 'nenhum'}")
+
+    if duplicadas_do_pipeline or chamadas_privadas:
+        sys.exit(1)
 
 
 def e7_estrutura():

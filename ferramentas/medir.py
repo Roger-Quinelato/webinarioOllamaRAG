@@ -64,7 +64,7 @@ for modelo in (config.MODELO_CHAT, config.MODELO_CHAT_PLANO_B, config.MODELO_CHA
         pergunta_llm = next(perguntas_llm)
         mensagens = rag.montar_mensagens(pergunta_llm, rag.buscar(pergunta_llm, k=4, colecao=colecao))
         inicio = time.perf_counter()
-        resposta = rag.cliente_ollama().chat(model=modelo, messages=mensagens, options=rag._opcoes())
+        resposta = rag.chat(mensagens, modelo=modelo)
         total = time.perf_counter() - inicio
         registrar(f"resposta RAG k=4 com {modelo} (rodada {rodada}: {pergunta_llm})", total,
                   carga_modelo_s=round(resposta.load_duration / 1e9, 2),

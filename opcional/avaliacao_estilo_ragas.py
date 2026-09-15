@@ -65,23 +65,24 @@ def precisao_contexto(pergunta, resultados):
     return sum(relevantes) / len(resultados), relevantes
 
 
-avaliacoes = []
-for pergunta in PERGUNTAS:
-    inicio = time.perf_counter()
-    resultados = rag.buscar(pergunta, k=args.k)
-    contexto = "\n\n".join(r["texto"] for r in resultados)
-    resposta = rag.gerar_texto(rag.montar_mensagens(pergunta, resultados), modelo=args.modelo)
-    fid, detalhes_fid = fidelidade(resposta, contexto)
-    rel, perguntas_geradas = relevancia_resposta(pergunta, resposta)
-    prec, relevantes = precisao_contexto(pergunta, resultados)
-    avaliacao = {"pergunta": pergunta, "resposta": resposta, "fidelidade": fid, "relevancia_resposta": rel,
-                 "precisao_contexto": prec, "afirmacoes": detalhes_fid, "perguntas_geradas": perguntas_geradas,
-                 "trechos_relevantes": relevantes, "segundos": time.perf_counter() - inicio}
-    avaliacoes.append(avaliacao)
-    print(f"\n{pergunta}\n  fidelidade={fid:.2f}  relevância da resposta={rel:.2f}  "
-          f"precisão do contexto={prec:.2f}  ({avaliacao['segundos']:.0f}s)")
+with rag.cli_seguro():
+    avaliacoes = []
+    for pergunta in PERGUNTAS:
+        inicio = time.perf_counter()
+        resultados = rag.buscar(pergunta, k=args.k)
+        contexto = "\n\n".join(r["texto"] for r in resultados)
+        resposta = rag.gerar_texto(rag.montar_mensagens(pergunta, resultados), modelo=args.modelo)
+        fid, detalhes_fid = fidelidade(resposta, contexto)
+        rel, perguntas_geradas = relevancia_resposta(pergunta, resposta)
+        prec, relevantes = precisao_contexto(pergunta, resultados)
+        avaliacao = {"pergunta": pergunta, "resposta": resposta, "fidelidade": fid, "relevancia_resposta": rel,
+                     "precisao_contexto": prec, "afirmacoes": detalhes_fid, "perguntas_geradas": perguntas_geradas,
+                     "trechos_relevantes": relevantes, "segundos": time.perf_counter() - inicio}
+        avaliacoes.append(avaliacao)
+        print(f"\n{pergunta}\n  fidelidade={fid:.2f}  relevância da resposta={rel:.2f}  "
+              f"precisão do contexto={prec:.2f}  ({avaliacao['segundos']:.0f}s)")
 
-config.PASTA_RESULTADOS.mkdir(exist_ok=True)
-saida = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"
-saida.write_text(json.dumps(avaliacoes, ensure_ascii=False, indent=2), encoding="utf-8")
-print(f"\nSalvo em {saida.relative_to(config.RAIZ)}")
+    config.PASTA_RESULTADOS.mkdir(exist_ok=True)
+    saida = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"
+    saida.write_text(json.dumps(avaliacoes, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"\nSalvo em {saida.relative_to(config.RAIZ)}")

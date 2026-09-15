@@ -14,7 +14,7 @@ parser.add_argument("--modelo", default=config.MODELO_CHAT)
 parser.add_argument("--dois-estagios", action="store_true")
 args = parser.parse_args()
 
-try:
+with rag.cli_seguro():
     if args.dois_estagios:
         busca = rag.buscar_dois_estagios(args.pergunta)
         print(f"Caminho: {busca['caminho']}")
@@ -29,6 +29,3 @@ try:
             primeiro_token = time.perf_counter() - inicio
         print(pedaco, end="", flush=True)
     print(f"\n\n[primeiro token em {primeiro_token:.1f}s, resposta completa em {time.perf_counter() - inicio:.1f}s]")
-except rag.OllamaIndisponivel as erro:
-    print(f"\nERRO: {erro}")
-    sys.exit(2)

@@ -2,6 +2,8 @@ import csv
 import json
 import math
 import re
+import sys
+from contextlib import contextmanager
 from itertools import combinations
 from pathlib import Path
 
@@ -39,6 +41,17 @@ def _erro_ollama(erro, modelo=None):
 
 
 _ERROS_CONEXAO = (ConnectionError, httpx.ConnectError, httpx.TimeoutException, ollama.ResponseError)
+
+
+# why: ponto único de saída amigável para os scripts de CLI — sem isto, 03-07 e opcional/*.py
+# reimplementavam o mesmo try/except em volta do corpo inteiro (achado 7.4/Duplicated Code).
+@contextmanager
+def cli_seguro():
+    try:
+        yield
+    except OllamaIndisponivel as erro:
+        print(f"\nERRO: {erro}")
+        sys.exit(2)
 
 
 def verificar_ollama(modelos=None):
@@ -231,10 +244,17 @@ def buscar_dois_estagios(pergunta, k=None, n_artigos=None, where=None, colecao=N
     vetor = gerar_embeddings([pergunta])[0]
     n_artigos = n_artigos or config.N_ARTIGOS_ESTAGIO_1
     artigos = _consultar(colecao, vetor, n_artigos, combinar_filtros({"tipo_chunk": "resumo"}, where))
-    if not artigos:
+    # hazard: a busca vetorial do ChromaDB é sempre por vizinho mais próximo — sem um limiar de
+    # distância, "nenhum resumo relevante" nunca acontece por conta própria (achado 4.4): uma
+    # pergunta totalmente fora da base ainda devolve os 3 resumos menos distantes, só que longe.
+    sem_correspondencia = not artigos or artigos[0]["distancia"] > config.DISTANCIA_MAXIMA_ESTAGIO_1
+    if sem_correspondencia:
+        motivo = ("nenhum resumo com esse filtro" if not artigos else
+                  f"resumo mais próximo está a distância {artigos[0]['distancia']:.4f}, "
+                  f"acima do limiar {config.DISTANCIA_MAXIMA_ESTAGIO_1}")
         return {
-            "caminho": "busca simples (o estágio 1 não encontrou resumos com esse filtro)",
-            "artigos": [],
+            "caminho": f"busca simples (estágio 1 sem correspondência: {motivo})",
+            "artigos": artigos,
             "resultados": buscar(pergunta, k, where, colecao, vetor),
         }
     filtro = {"arquivo": {"$in": [a["arquivo"] for a in artigos]}}
@@ -289,19 +309,38 @@ def _opcoes(max_tokens=None):
             "num_predict": max_tokens or config.MAX_TOKENS_RESPOSTA}
 
 
-def gerar_texto(mensagens, modelo=None, max_tokens=None):
+# why: devolve a resposta bruta do Ollama (load_duration, prompt_eval_count…) para quem precisa medir,
+# em vez de forçar esse chamador a tocar cliente_ollama()/_opcoes() diretamente (achado 7.4, medir.py).
+def chat(mensagens, modelo=None, max_tokens=None):
     modelo = modelo or config.MODELO_CHAT
     if isinstance(mensagens, str):
         mensagens = [{"role": "user", "content": mensagens}]
     try:
-        resposta = cliente_ollama().chat(model=modelo, messages=mensagens, options=_opcoes(max_tokens))
+        return cliente_ollama().chat(model=modelo, messages=mensagens, options=_opcoes(max_tokens))
     except _ERROS_CONEXAO as erro:
         raise _erro_ollama(erro, modelo) from None
-    return resposta.message.content.strip()
 
 
-def formatar_fontes(resultados):
-    return "\n".join(f"[{i}] {r['arquivo']}, p. {r['pagina']}" for i, r in enumerate(resultados, start=1))
+def gerar_texto(mensagens, modelo=None, max_tokens=None):
+    return chat(mensagens, modelo, max_tokens).message.content.strip()
+
+
+def formatar_fontes(resultados, indices=None):
+    indices = indices if indices is not None else range(1, len(resultados) + 1)
+    return "\n".join(f"[{i}] {r['arquivo']}, p. {r['pagina']}" for i, r in zip(indices, resultados))
+
+
+_CITACAO_RE = re.compile(r"\[(\d+)\]")
+
+
+def indices_citados(texto, n):
+    vistos, ordem = set(), []
+    for m in _CITACAO_RE.finditer(texto):
+        i = int(m.group(1))
+        if 1 <= i <= n and i not in vistos:
+            vistos.add(i)
+            ordem.append(i)
+    return ordem
 
 
 def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
@@ -315,7 +354,12 @@ def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
     except _ERROS_CONEXAO as erro:
         raise _erro_ollama(erro, modelo) from None
     if incluir_fontes and resultados and config.RESPOSTA_NAO_ENCONTRADA not in texto:
-        yield "\n\nFontes:\n" + formatar_fontes(resultados)
+        # hazard: listar os k trechos recuperados como "fontes" mistura o que entrou no prompt com o
+        # que a resposta de fato usou (achado 6.5) — aqui só entram os [n] que aparecem no texto
+        # gerado; se o modelo não citou nenhum, cai para os recuperados, para nunca ficar sem fontes.
+        indices = indices_citados(texto, len(resultados)) or list(range(1, len(resultados) + 1))
+        citados = [resultados[i - 1] for i in indices]
+        yield "\n\nFontes:\n" + formatar_fontes(citados, indices)
 
 
 def resumir_abstract(abstract, idioma, modelo=None):
