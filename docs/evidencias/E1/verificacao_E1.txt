@@ -1,4 +1,6 @@
-﻿# E1 — verificação em 2026-09-14T01:09:53
+# E1 — verificação em 2026-09-14T01:09:53
+# Reverificação de 1.6/1.7 em 2026-09-15 (ticket #23): a listagem de resumos, que tinha caído
+# por engano sob "1.7", volta para "1.6"; "1.7" volta a conter só git status + links.
 
 ## 1.1/1.2 contagem de PDFs
 6
@@ -10,23 +12,57 @@ tipos de ano: {'int'}
 temas: ['avaliacao', 'fundamentos', 'limitacoes', 'retrieval', 'survey']
 idiomas: ['en']
 
-## 1.6 resumo por artigo (idioma do CSV × conteúdo)
- 
+## 1.6 resumo por artigo (idioma do CSV × conteúdo) — saída de `verificar.py e1_resumos` (T11/#11)
+lewis2020_rag.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=3
+   abstract[:3 palavras]='Large pre-trained language'
+   resumo=The abstract discusses the exploration of retrieval-augmented generation (RAG) models, which combine pre-trained parametric and non-parametric memory for language generation. These models use a pre-trained seq2seq model for the parametric memory and a dense vector index of Wikipedia for the non-parametric memory, accessed via a pre-trained neural retriever. The study compares two RAG formulations and demonstrates that these models outperform both parametric seq2seq models and task-specific retrieve-and-extract architectures on knowledge-intensive NLP tasks, generating more specific, diverse, and factual language.
+karpukhin2020_dpr.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=2
+   abstract[:3 palavras]='Open-domain question answering'
+   resumo=This work demonstrates that dense representations can be used effectively for open-domain question answering passage retrieval, outperforming traditional sparse vector space models like TF-IDF and BM25. The proposed dualencoder framework learns embeddings from a small dataset of questions and passages, leading to a retrieval system that significantly improves the accuracy of top-20 passage selection across various open-domain QA datasets, and enhances the overall performance of the QA system.
+gao2023_survey.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=2
+   abstract[:3 palavras]='Large Language Models'
+   resumo=Retrieval-Augmented Generation (RAG) has emerged as a promising solution to the challenges faced by Large Language Models (LLMs), such as hallucination and outdated knowledge, by integrating external databases to enhance the accuracy and credibility of the generated content, especially for knowledge-intensive tasks. This review paper examines the progression of RAG paradigms, including Naive RAG, Advanced RAG, and Modular RAG, and highlights the advancements in retrieval, generation, and augmentation techniques, as well as the challenges and future research directions.
+es2023_ragas.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=3
+   abstract[:3 palavras]='We introduce Ragas'
+   resumo=Ragas is a framework for evaluating Retrieval Augmented Generation (RAG) systems, which combine a retrieval module and a language model for knowledge augmentation. It introduces metrics to assess the retrieval system's ability to identify relevant context, the language model's faithful use of this context, and the quality of the generated text, all without requiring human annotations. This framework aims to speed up the evaluation of RAG architectures, which are increasingly adopted with large language models.
+asai2023_selfrag.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=2
+   abstract[:3 palavras]='Despite their remarkable'
+   resumo=SELF-RAG, a new framework, enhances the quality and factuality of large language models by enabling them to adaptively retrieve relevant passages on-demand and generate reflection tokens to self-reflect on both retrieved passages and its own generations. This approach significantly outperforms state-of-the-art models in various tasks, particularly in improving factuality and citation accuracy for long-form generations.
+liu2023_lost_middle.pdf [idioma_csv=en idioma_detectado=en] vazio=False frases=2
+   abstract[:3 palavras]='While recent language'
+   resumo=The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of the context. Explicitly long-context models also struggle with accessing relevant information in the middle of long contexts, indicating a need for improved handling of such contexts.
+[e1_resumos em 5.2s]
+
+### Conferência manual (idioma bate com o original? resumo é fiel ao abstract, não genérico/alucinado?)
+Feita lendo o abstract completo extraído de cada PDF (`rag.extrair_abstract`) lado a lado com o `resumo`
+do CSV — não só os 3 primeiras palavras que `e1_resumos` imprime.
+
+- lewis2020_rag.pdf: idioma OK (csv=en, artigo em inglês). Fiel: sim — cobre os pontos centrais do
+  abstract (RAG combina memória paramétrica seq2seq e não paramétrica com índice denso da Wikipédia,
+  duas formulações comparadas, supera baselines paramétricos e retrieve-and-extract em tarefas de
+  conhecimento intensivo, gera texto mais específico/diverso/factual). Não é genérico nem alucinado.
+- karpukhin2020_dpr.pdf: idioma OK. Fiel: sim — captura o essencial (representações densas superam
+  TF-IDF/BM25 via dual-encoder aprendido de poucos dados, melhora a precisão do top-20 e a QA fim-a-fim
+  em múltiplos datasets). Omite o número exato do ganho (9–19%), mas não distorce o conteúdo.
+- gao2023_survey.pdf: idioma OK. Fiel: sim — reproduz a estrutura do abstract (RAG como solução para
+  alucinação/conhecimento desatualizado dos LLMs, revisão de Naive/Advanced/Modular RAG, avanços em
+  retrieval/geração/augmentação, desafios e direções futuras).
+- es2023_ragas.pdf: idioma OK. Fiel: sim — mantém os pontos-chave (Ragas avalia pipelines RAG sem
+  anotação humana de referência, métricas para relevância do contexto recuperado, fidelidade do LLM ao
+  contexto e qualidade da geração, objetivo de acelerar ciclos de avaliação).
+- asai2023_selfrag.pdf: idioma OK. Fiel: sim — resume corretamente o mecanismo central (retrieval
+  sob demanda, tokens de reflexão para autoavaliar passagens e a própria geração) e o resultado
+  (supera SOTA, ganhos em factualidade e precisão de citação).
+- liu2023_lost_middle.pdf: idioma OK. Fiel: sim — reproduz o achado central do artigo (desempenho cai
+  quando a informação relevante não está no início/fim do contexto; modelos long-context também sofrem
+  com informação no meio), sem generalizar além do que o abstract sustenta.
+
+Resultado: 6/6 artigos com idioma correto e resumo fiel ao abstract (nenhum genérico ou alucinado).
+Nenhum artigo em português no corpus ainda (T12/#12, pendente do autor) — só `en` a conferir por ora.
+
+conferido por/data:
 
 ## 1.7 git status (PDFs ignorados) e links
 !! arquivosPDF/
-.gitignore:11:arquivosPDF/**/*.pdf	arquivosPDF/artigos/lewis2020_rag.pdf
+.gitignore:18:arquivosPDF/**/*.pdf	arquivosPDF/artigos/lewis2020_rag.pdf
 6
-lewis2020_rag.pdf [idioma=en] vazio=False
-   The abstract discusses the exploration of retrieval-augmented generation (RAG) models, which combine pre-trained parametric and non-parametric memory for language generation. These models use a pre-trained seq2seq model for the parametric memory and a dense vector index of Wikipedia for the non-parametric memory, accessed via a pre-trained neural retriever. The study compares two RAG formulations and demonstrates that these models outperform both parametric seq2seq models and task-specific retrieve-and-extract architectures on knowledge-intensive NLP tasks, generating more specific, diverse, and factual language.
-karpukhin2020_dpr.pdf [idioma=en] vazio=False
-   This work demonstrates that dense representations can be used effectively for open-domain question answering passage retrieval, outperforming traditional sparse vector space models like TF-IDF and BM25. The proposed dualencoder framework learns embeddings from a small dataset of questions and passages, leading to a retrieval system that significantly improves the accuracy of top-20 passage selection across various open-domain QA datasets, and enhances the overall performance of the QA system.
-gao2023_survey.pdf [idioma=en] vazio=False
-   Retrieval-Augmented Generation (RAG) has emerged as a promising solution to the challenges faced by Large Language Models (LLMs), such as hallucination and outdated knowledge, by integrating external databases to enhance the accuracy and credibility of the generated content, especially for knowledge-intensive tasks. This review paper examines the progression of RAG paradigms, including Naive RAG, Advanced RAG, and Modular RAG, and highlights the advancements in retrieval, generation, and augmentation techniques, as well as the challenges and future research directions.
-es2023_ragas.pdf [idioma=en] vazio=False
-   Ragas is a framework for evaluating Retrieval Augmented Generation (RAG) systems, which combine a retrieval module and a language model for knowledge augmentation. It introduces metrics to assess the retrieval system's ability to identify relevant context, the language model's faithful use of this context, and the quality of the generated text, all without requiring human annotations. This framework aims to speed up the evaluation of RAG architectures, which are increasingly adopted with large language models.
-asai2023_selfrag.pdf [idioma=en] vazio=False
-   SELF-RAG, a new framework, enhances the quality and factuality of large language models by enabling them to adaptively retrieve relevant passages on-demand and generate reflection tokens to self-reflect on both retrieved passages and its own generations. This approach significantly outperforms state-of-the-art models in various tasks, particularly in improving factuality and citation accuracy for long-form generations.
-liu2023_lost_middle.pdf [idioma=en] vazio=False
-   The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of the context. Explicitly long-context models also struggle with accessing relevant information in the middle of long contexts, indicating a need for improved handling of such contexts.
-[e1_resumos em 0.0s]
