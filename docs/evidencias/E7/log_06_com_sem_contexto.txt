@@ -14,11 +14,25 @@ ontext, and the model returns a generated text completion. These input contexts 
 
 Pergunta: Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?
 
---- SEM contexto (12.6s):
-Segundo o artigo "Lost in the Middle", os modelos de linguagem usam melhor a informação nas posições centrais do contexto.
+--- SEM contexto (96.5s):
+De acordo com o artigo "Lost in the Middle" (Aqui no Meio), os modelos usam melhor a informação nas seguintes posições do contexto:
 
---- COM contexto (49.3s):
-Segundo o artigo, os modelos de linguagem usam melhor a informação quando ela ocorre na posição inicial ou final do contexto. O artigo menciona que a performance dos modelos de linguagem tende a ser mais alta quando a informação relevante está no início ou no final do contexto, e a performance tende a se deteriorar quando os modelos precisam acessar ou usar a informação no meio do contexto.
+1. **Início do contexto**: Os modelos começam a processar e interpretar o contexto do início do texto. Isso permite que eles entendam o contexto geral antes de começar a analisar a informação específica.
+
+2. **Meio do contexto**: Nesse ponto, os modelos já têm uma boa compreensão do contexto geral. Isso permite que eles se concentrem mais na análise da informação específica, sem perder o contexto.
+
+3. **Fim do contexto**: No final do contexto, os modelos podem ter uma compreensão completa do contexto. Isso permite que eles se concentrem em analisar a informação específica e interpretar seu significado dentro do contexto.
+
+4. **Interpolação**: Os modelos podem usar melhor a informação em posições onde a informação é interposta, como em parágrafos ou em partes do texto que não são diretamente relacionadas com o contexto inicial.
+
+5. **Repetição**: Os modelos podem usar melhor a informação em posições onde a informação é repetida, como em tópicos ou em partes do texto que são frequentemente citadas.
+
+6. **Contexto de contexto**: Os modelos podem usar melhor a informação em posições onde a informação é contextualizada, como em parágrafos que explicam o significado de uma palavra ou termo.
+
+É importante notar que, embora essas são as posições onde os modelos usam melhor a informação, eles também podem se beneficiar de uma análise mais completa do contexto geral, o que pode levar a melhores resultados em qualquer posição do texto.
+
+--- COM contexto (18.7s):
+Segundo o artigo Lost in the Middle, os modelos usam melhor a informação quando ela ocorre na posição inicial (primacy bias) ou na posição final (recency bias) do contexto.
 
 Fontes:
 [1] liu2023_lost_middle.pdf, p. 1
@@ -41,11 +55,23 @@ fying them as next token predictions from the expanded model vocabulary (i.e., t
 
 Pergunta: Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?
 
---- SEM contexto (9.7s):
-Desculpe, mas não tenho informações específicas sobre tokens de reflexão propostos no Self-RAG. Este tema não parece estar associado a um projeto ou documento específico que eu esteja familiarizado. Se você puder fornecer mais contexto ou detalhes, ficarei feliz em tentar ajudar melhor.
+--- SEM contexto (27.4s):
+Os tokens de reflexão (reflection tokens) propostos no Self-RAG são:
 
---- COM contexto (50.9s):
-O Self-RAG propõe dois tipos de tokens de reflexão (reflection tokens): "retrieve" e "critic". Estes tokens permitem que o modelo introspecte suas próprias saídas. Quando o modelo autodetermina ou quando um limiar pré-definido é atingido, esses tokens são ativados para realizar a coleta de informações relevantes, otimizando o ciclo de coleta.
+1. "self"
+2. "rag"
+3. "query"
+4. "document"
+5. "context"
+6. "answer"
+7. "query-document-context"
+8. "query-document-answer"
+9. "query-document-context-answer"
+
+Estes tokens são usados para representar o contexto, o documento, a resposta e o contexto-documento-resposta em um modelo de aprendizado de máquina para busca de documentos.
+
+--- COM contexto (62.4s):
+No Self-RAG, os tokens de reflexão (reflection tokens) são dois tipos: "retrieve" e "critic". O modelo decide se deve ativar a busca de referência ou se um pré-definido de um threshold deve ser ativado para iniciar o processo. Durante a busca, o gerador realiza uma busca em fragmentos em nível parcial em várias parágrafos para derivar a sequência mais coerente. As critic scores são usadas para atualizar as subdivisões de pontuação, com a flexibilidade de ajustar esses pesos durante a inferência, moldando a comportamento do modelo.
 
 Fontes:
 [1] asai2023_selfrag.pdf, p. 10
@@ -55,7 +81,7 @@ Fontes:
 ====================================================================================================
 Pergunta: Qual é a receita de pão de queijo mineiro?
 
---- Prompt enriquecido (3855 caracteres), início:
+--- Prompt enriquecido (3656 caracteres), início:
 === SYSTEM ===
 Você é um assistente que responde em português do Brasil usando SOMENTE os trechos fornecidos pelo usuário. Os trechos podem estar em inglês: traduza e explique em português. Se a resposta não estiver nos trechos, responda exatamente: "Não encontrei essa informação nos documentos." Cite a fonte de cada informação com o número do trecho entre colchetes, por exemplo [1].
 
@@ -64,38 +90,53 @@ Trechos:
 [1] (lewis2020_rag.pdf, p. 2)
 The Divine Comedy (x) q Query Encoder q(x) MIPS pθ Generator pθ (Parametric) Marginalize This 14th century work is divided into 3 sections: "Inferno", "Purgatorio" & "Paradiso" (y) End-to-End Backprop through q and pθ Barack Obama was born in Hawaii.(x) Fact Verification: Fact Query supports (y) Question Generation Fact Verification: Label Generation Document Index Define "middle ear"(x) Question Answering: Question Query The middle ear includes the tympanic cavity and the three ossicles. (y) Question Answering: Answer GenerationRetriever pη (Non-Parametric) z4 z3 z2 z1 d(z) Jeopardy Question Generation: Answer Query Figure 1: Overview of our approach.
 […]
-which we can plug different retriever systems directly. Besides the retriever, our QA system consists of a neural reader that outputs the answer to the question. Given the top k retrieved passages
+ain onB2 (qi,pj) question/passage pairs in each batch. Any (qi,pj) pair is a positive example when i =j, and negative otherwise. This createsB training instances in each batch, where there areB− 1
 
 Pergunta: Qual é a receita de pão de queijo mineiro?
 
---- SEM contexto (32.9s):
-Aqui está uma receita básica de pão de queijo mineiro:
+--- SEM contexto (39.9s):
+A receita tradicional de pão de queijo mineiro é um prato típico da região mineira brasileira. Aqui está uma versão básica:
 
 Ingredientes:
+- 2 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+- 1 kg de farinha de trigo
+- 1 kg de leite
+- 1 kg de queijo parmesão
+- 1 kg de queijo branco
+-
 
-- 400g de queijo coalho ralado
-- 2 ovos grandes
-- 100g de farinha de trigo
-- 2 colheres de sopa de leite
-- 1 colher de sopa de açúcar
-- 1 colher de sopa de óleo
-- Sal a gosto
-
-Modo de preparo:
-
-1. Em uma panela, aqueça o óleo e frite os ovos até ficarem dourados. Reserve.
-
-2. Em uma tigela, misture o queijo coalho ralado, o açúcar, a farinha de trigo e o sal. Adicione o óleo e o leite.
-
-3. Adicione os ovos fritos à mistura e misture bem.
-
-4. Despeje a massa em forma untada e leve ao forno preaquecido a 180°C por cerca de 30 minutos ou até dourar.
-
-5. Sirva quente.
-
-Lembre-se que essa é uma receita básica. Você pode ajustar os ingredientes para atender a sua preferência.
-
---- COM contexto (49.4s):
-Não encontrei essa informação nos documentos. [1]
+--- COM contexto (22.6s):
+Não encontrei essa informação nos documentos.
 
 Salvo em resultados\com_sem_contexto.json

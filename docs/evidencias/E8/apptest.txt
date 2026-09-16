@@ -1,22 +1,30 @@
-2026-09-14 02:56:38.882 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
+2026-09-16 00:16:34.641 WARNING streamlit.runtime.scriptrunner_utils.script_run_context: Thread 'MainThread': missing ScriptRunContext! This warning can be ignored when running in bare mode.
 8.1 app carregou sem exceção: True | avisos: []
 
-8.2 pergunta 1 respondida em 8s | exceção: False | erros: []
-    resposta: '[Ragas, p. 5] [1] O Ragas prediz a fidelidade da resposta de maneira geral de forma muito precisa.'
-    legendas: ['Caminho usado: busca simples · k = 2 · modelo qwen2.5:3b']
-8.4 k=2 → expanders: ['Fontes (2) — busca simples'] | fontes na sessão: 2
+8.2 pergunta 1 respondida em 44s | exceção: False | erros: []
+    resposta: 'De acordo com o trecho [1], o Ragas avaliou a fidelidade de uma resposta da seguinte forma:\n\n"the Ragas prediction are in general highly accurate. For answer relevance, the agreement is lower, but this is largely due to the fact that the differences between the two candidate answers are often very s'
+    legendas: ['Caminho usado: busca simples · k = 2 · modelo qwen2.5:1.5b']
+8.4 k=2 → expanders: ['Fontes (citadas 1 de 2) — busca simples'] | fontes na sessão: 2 | citadas: [1]
 
 8.3 histórico após 2 perguntas: 4 mensagens → papéis ['user', 'assistant', 'user', 'assistant']
-    pergunta 2 respondida em 17s | resposta: 'Quando o contexto é muito longo, aparecem problemas como a performance do modelo de linguagem degradar significativamente quando o local relevante no contexto é alterado. Isso indica que os modelos atuais não usam robustamente informações presentes em contextos de entrada muito longos. Além disso, a'
-8.4 k=5 → fontes na última resposta: 5 | expanders: ['Fontes (2) — busca simples', 'Fontes (5) — dois estágios']
+    pergunta 2 (só k) respondida em 50s | resposta: 'Quando o contexto é muito longo, os problemas que aparecem incluem:\n\n1. **Inferência lenta**: A performance da LLM pode ser afetada negativamente, especialmente na inferência, quando o contexto é muito longo.\n\n2. **Operacionalidade reduzida**: O uso de chunked retrieval e input on-demand pode melhor'
+8.4 k=5 → fontes na última resposta: 5 | citadas: [1, 2, 3, 4, 5] | expanders: ['Fontes (citadas 1 de 2) — busca simples', 'Fontes (citadas 5 de 5) — busca simples']
+
+    pergunta 3 (só modo) respondida em 39s | resposta: 'Quando o contexto é muito longo, os problemas que aparecem incluem:\n\n1. A performance do modelo pode degradar significativamente quando a posição da informação relevante muda.\n2. A performance é geralmente alta quando a informação relevante está no início ou no final do contexto.\n3. A performance é '
+8.6 caminho usado: 'dois estágios' | artigos do estágio 1: ['liu2023_lost_middle.pdf', 'karpukhin2020_dpr.pdf', 'medeiros2025_embeddings_pt.pdf']
+
+    pergunta 4 (só filtro) respondida em 28s | resposta: 'Quando o contexto é muito longo, os problemas que aparecem incluem:\n\n1. A performance do modelo pode degradar significativamente quando a posição do informação relevante muda.\n2. A performance é geralmente alta quando a informação relevante está no início ou no fim do contexto.\n3. A performance é si'
 8.5 filtro tema ∈ [avaliacao, limitacoes] → temas das fontes: ['limitacoes']
-8.6 caminho usado: 'dois estágios' | artigos do estágio 1: ['liu2023_lost_middle.pdf', 'es2023_ragas.pdf']
+8.7/T04 rótulo do último expander: 'Fontes (citadas 1 de 5) — dois estágios'
+T04 trechos citados marcados '✅ citado': ['[1] Lost in the Middle: How Language Models Use Long Contexts']
 8.7 conteúdo do último expander:
-    [markdown] **Estágio 1 — artigos escolhidos pelos resumos:** `liu2023_lost_middle.pdf`, `es2023_ragas.pdf`
-    [markdown] **[1] Lost in the Middle: How Language Models Use Long Contexts** — `liu2023_lost_middle.pdf`, p. 1 · distância 0.3721 · 2023 · limitacoes · en
+    [markdown] **Estágio 1 — artigos escolhidos pelos resumos:** `liu2023_lost_middle.pdf`, `medeiros2025_embeddings_pt.pdf`, `es2023_ragas.pdf`
+    [markdown] **[1] Lost in the Middle: How Language Models Use Long Contexts** ✅ citado — `liu2023_lost_middle.pdf`, p. 1 · distância 0.3721 · 2023 · limitacoes · en
     [caption (resumo)] Resumo do artigo: The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of th
     [caption (resumo)] Resumo do artigo: The study found that recent language models struggle with using longer input contexts effectively, with performance degrading significantly when relevant information is not at the beginning or end of th
     [text (trecho)] Lost in the Middle: How Language Models Use Long Contexts Nelson F . Liu1∗ Kevin Lin2 John Hewitt1 Ashwin Paranjape3 Michele Bevilacqua3 Fabio Petroni3 Percy Liang1 1Stanford University 2University of California, Berkele
     [text (trecho)] 2023; Rubin and Berant, 2023, inter alia ) have resulted in language models with larger context windows (e.g., 4096, 32K, and even 100K tokens), but it remains unclear how these extended-context language models make use 
+
+T04 recusa (26s): resposta='Não encontrei essa informação nos documentos.' | citadas=[] | rótulo do expander='Fontes (citadas 0 de 5) — busca simples' | avisos 'Nenhuma fonte usada': ['Nenhuma fonte usada']
 
 exceções finais: nenhuma

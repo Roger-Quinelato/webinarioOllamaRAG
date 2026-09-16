@@ -17,6 +17,8 @@ Tickets (GitHub Issues, ver [docs/agents/issue-tracker.md](docs/agents/issue-tra
 
 Não acumular vários tickets num commit, e não pular a revisão para "economizar tempo".
 
+Lote em execução (2026-09-15): tickets #11 a #23. Issues com label `needs-info` (decisão do autor) são puladas até o autor responder — não travam as demais.
+
 ## Propósito
 
 Material do webinário CIIA **Encontro 2 — "Construindo um Assistente com RAG, Ollama e Streamlit"**, conduzido por Roger Quinelato (suporte: João Victor Rikio Enomoto). Turmas: 21/09/2026 (CIIA, ensaio) e 28/09/2026 (público aberto), online, mesmo material. O Encontro 1 foi só teoria: todo o código prático nasce aqui.
@@ -47,8 +49,8 @@ Reverificar esses critérios com `ferramentas/verificar.py` antes de fechar E10,
 
 - **Sem framework** (nada de LangChain/LlamaIndex): Python puro, para o mecanismo do RAG ficar visível. Dependências fixadas com `==` em `requirements.txt` (`requirements.lock` = `pip freeze` do ambiente testado; `requirements-dev.txt` = ferramentas). A avaliação é `opcional/avaliacao_estilo_ragas.py`: implementa as métricas do artigo do Ragas usando o próprio Ollama como juiz, sem a biblioteca `ragas`, e nunca roda ao vivo.
 - **Sem Colab.** Tudo local, em `.venv` dentro do projeto; nunca instalar no Python global.
-- **Ollama para embeddings e chat**: embedding `bge-m3` (plano B `nomic-embed-text`); chat `qwen2.5:3b` (plano B `qwen2.5:1.5b`), selecionável por variável de configuração. A máquina de demo tem 7,9 GB de RAM, i5-8250U e só GPU integrada: o LLM roda em CPU dividindo recursos com a transmissão. Por isso toda etapa lenta precisa de saída pré-computada salva no notebook.
-- **Corpus**: ~6 artigos do arXiv em inglês (Lewis 2020 RAG, Karpukhin 2020 DPR, Gao 2023 survey, Es 2023 RAGAS, Asai 2023 Self-RAG, Liu 2023 Lost in the Middle) + 1–2 artigos em português escolhidos pelo autor (pendente). PDFs dos artigos **não são versionados**: o README e o notebook trazem os links.
+- **Ollama para embeddings e chat**: embedding `bge-m3` (plano B `nomic-embed-text`); chat `qwen2.5:1.5b` (plano B `qwen2.5:3b`, invertido em 2026-09-15 pelo ticket #19 — decisão parcial do autor de validar a pipeline com o modelo leve antes de testar se a máquina aguenta o 3b), selecionável por variável de configuração. A máquina de demo tem 7,9 GB de RAM, i5-8250U e só GPU integrada: o LLM roda em CPU dividindo recursos com a transmissão. Por isso toda etapa lenta precisa de saída pré-computada salva no notebook.
+- **Corpus**: 6 artigos do arXiv em inglês (Lewis 2020 RAG, Karpukhin 2020 DPR, Gao 2023 survey, Es 2023 RAGAS, Asai 2023 Self-RAG, Liu 2023 Lost in the Middle) + 2 artigos em português (T12/#12, 2026-09-15: Rocha et al. 2025, RAG-SFT via SBBD; Medeiros & Oliveira 2025, comparação de embeddings/LLMs via SEMISH — decisão de quais artigos delegada ao agente pelo autor). PDFs dos artigos **não são versionados**: o README e o notebook trazem os links.
 - **Metadados**: `metadados.csv` escrito à mão, com as colunas `arquivo, titulo, autores, ano, veiculo, tema, idioma, resumo`. O `tema` usa vocabulário fechado (`fundamentos`, `retrieval`, `avaliacao`, `survey`, `limitacoes`). A `pagina` e o `chunk_id` são gerados na indexação. O notebook também demonstra a extração de metadados por LLM comparada com o CSV. O `resumo` é gerado pelo LLM a partir do abstract, **no idioma original do artigo**: 1 ao vivo, os demais pré-computados no CSV.
 - **Chunking**: por página, subdividindo as páginas longas por tamanho fixo com sobreposição.
 - **Busca**: top-k simples → filtros `where` do ChromaDB → **busca em dois estágios** (1º estágio nos resumos escolhe os artigos; 2º estágio busca os chunks com `where={"arquivo": {"$in": [...]}}`).
@@ -71,9 +73,8 @@ Cronograma (~1h54): recap 10 · indexação 18 · retrieval top-k 15 · dois est
 
 ## Pendências do autor
 
-- Escolha dos 1–2 artigos em português (E1 critério 1.8).
 - Perguntas-teste definitivas (marcadas com `TODO(autor)` em `scripts/06_com_sem_contexto.py`, `opcional/avaliacao_estilo_ragas.py` e no notebook).
-- Decisão do modelo ao vivo, 3b ou 1.5b (E9 critério 9.3), no ensaio de 21/09.
+- Decisão final do modelo ao vivo (E9 critério 9.3): parcialmente decidido em 2026-09-15 (ticket #19) — `config.MODELO_CHAT` passou a `qwen2.5:1.5b` para validar a pipeline; `qwen2.5:3b` vira `MODELO_CHAT_PLANO_B` para testar depois se a máquina aguenta. Confirmação final no ensaio de 21/09.
 
 ## Comandos
 

@@ -36,8 +36,8 @@ with rag.cli_seguro():
         print(f"Resultado mudou? {'sim' if mudou else 'não'}")
 
     print("=" * 100)
-    print("Filtro que não casa com nenhum resumo (idioma = pt):")
-    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
+    print("Filtro que não casa com nenhum resumo (ano fora do corpus, T12/#12: idioma=pt já tem 2 artigos):")
+    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
     print(f"Caminho usado: {vazio['caminho']}")
     print(rag.tabela_resultados(vazio["resultados"]))
 

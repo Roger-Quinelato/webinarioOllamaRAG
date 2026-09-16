@@ -12,10 +12,42 @@ import config  # noqa: E402
 import rag  # noqa: E402
 
 
+# why: dá ao autor um segundo sinal (idioma_csv × idioma_detectado, contagem de frases,
+# início do abstract) para a conferência manual do critério 1.6, sem que ele precise abrir
+# cada PDF — heurística de palavras funcionais en/pt, sem dependência nova (ticket #11/T11).
+_PALAVRAS_FUNCIONAIS = {
+    "pt": {"de", "que", "não", "para", "com", "uma", "dos", "das", "como", "mais",
+           "são", "por", "ao", "os", "as", "é", "na", "no", "se", "também"},
+    "en": {"the", "and", "of", "in", "to", "is", "for", "that", "with", "as",
+           "on", "are", "this", "by", "from", "an", "be", "we", "our"},
+}
+
+
+def _detectar_idioma(texto):
+    palavras = re.findall(r"[a-zà-úA-ZÀ-Ú]+", texto.lower())
+    contagens = {idioma: sum(1 for p in palavras if p in funcionais)
+                 for idioma, funcionais in _PALAVRAS_FUNCIONAIS.items()}
+    if not any(contagens.values()):
+        return "?"
+    return max(contagens, key=contagens.get)
+
+
+def _contar_frases(texto):
+    return len([f for f in re.split(r"[.!?]+", texto) if f.strip()])
+
+
 def e1_resumos():
     for meta in rag.carregar_metadados():
-        print(f"{meta['arquivo']} [idioma={meta['idioma']}] vazio={not meta['resumo']}")
-        print(f"   {meta['resumo']}")
+        resumo = meta["resumo"]
+        idioma_detectado = _detectar_idioma(resumo) if resumo else "?"
+        frases = _contar_frases(resumo) if resumo else 0
+        paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / meta["arquivo"])
+        abstract = rag.extrair_abstract(paginas[0]) if paginas else ""
+        primeiras_palavras = " ".join(abstract.split()[:3])
+        print(f"{meta['arquivo']} [idioma_csv={meta['idioma']} idioma_detectado={idioma_detectado}] "
+              f"vazio={not resumo} frases={frases}")
+        print(f"   abstract[:3 palavras]={primeiras_palavras!r}")
+        print(f"   resumo={resumo}")
 
 
 def e2():
@@ -77,8 +109,13 @@ def e3():
     resultados = rag.buscar(pergunta_pt, k=3, colecao=colecao)
     print(f"3.5 cross-lingual: {pergunta_pt!r} → {[(r['arquivo'], r['pagina'], r['idioma']) for r in resultados]}")
     print(f"    trecho do 1º: {resultados[0]['texto'][:200]}")
-    vazio = rag.buscar("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"3.6 filtro idioma=pt (sem artigos): {len(vazio)} resultados, sem erro")
+    # T12/#12: idioma=pt passou a ter 2 artigos reais (rocha2025_ragsft, medeiros2025_embeddings_pt);
+    # o filtro que garante zero resultados sem depender do idioma agora é um ano fora do corpus.
+    vazio = rag.buscar("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
+    print(f"3.6 filtro ano>=2030 (sem artigos): {len(vazio)} resultados, sem erro")
+    com_pt = rag.buscar("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
+    print(f"3.6b filtro idioma=pt (com artigos, T12/#12): {len(com_pt)} resultados, "
+          f"todos pt = {all(r['idioma'] == 'pt' for r in com_pt)}")
 
 
 def e4():
@@ -91,8 +128,10 @@ def e4():
     print(f"4.2 estágio 2: todos os resultados dentro dos artigos escolhidos = "
           f"{all(r['arquivo'] in escolhidos for r in dois['resultados'])} "
           f"| tipos: {sorted({r['tipo_chunk'] for r in dois['resultados']})}")
-    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"4.4a estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+    # T12/#12: idioma=pt deixou de esvaziar o estágio 1 (2 artigos reais agora); troca para um
+    # filtro por ano fora do corpus, que continua esvaziando os resumos independente do idioma.
+    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
+    print(f"4.4a estágio 1 vazio (ano>=2030): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
 
     # hazard (T07): 4.4a só cobre o filtro herdado deixando o estágio 1 sem NENHUM resumo — não
     # prova que o limiar de distância (achado 4.4 original, calibrado no T06) dispara sozinho para

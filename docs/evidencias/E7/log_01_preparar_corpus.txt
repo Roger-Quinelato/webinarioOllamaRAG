@@ -5,11 +5,13 @@
    karpukhin2020_dpr.pdf         13 páginas   55921 caracteres  páginas sem texto: 0
    lewis2020_rag.pdf             19 páginas   69058 caracteres  páginas sem texto: 0
    liu2023_lost_middle.pdf       18 páginas   65436 caracteres  páginas sem texto: 0
-   total: 109 páginas
+   medeiros2025_embeddings_pt.pdf  12 páginas   36455 caracteres  páginas sem texto: 0
+   rocha2025_ragsft.pdf          14 páginas   42154 caracteres  páginas sem texto: 0
+   total: 135 páginas
 
 2) metadados.csv
    cabeçalho: ['arquivo', 'titulo', 'autores', 'ano', 'veiculo', 'tema', 'idioma', 'resumo']
-   6 linhas válidas (arquivo ↔ PDF, tema, idioma, ano)
+   8 linhas válidas (arquivo ↔ PDF, tema, idioma, ano)
 
 3) Resumos gerados pelo LLM a partir do abstract (no idioma do artigo)
    lewis2020_rag.pdf: já preenchido
@@ -18,3 +20,5 @@
    es2023_ragas.pdf: já preenchido
    asai2023_selfrag.pdf: já preenchido
    liu2023_lost_middle.pdf: já preenchido
+   rocha2025_ragsft.pdf: já preenchido
+   medeiros2025_embeddings_pt.pdf: já preenchido

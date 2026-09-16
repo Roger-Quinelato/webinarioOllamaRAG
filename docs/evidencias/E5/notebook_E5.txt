@@ -13,6 +13,6 @@ da pergunta e mede quanto a similaridade muda.
 # O tempo varia de execução para execução (CPU, estado do Ollama); o valor certo é sempre "o que
 # e7_saidas acabou de extrair", não um número fixo — por isso reaparece aqui a cada reexecução.
 stream Chunk explicado: es2023_ragas.pdf p.5 (similaridade 0.6456)
-stream SHAP em 36s
+stream SHAP em 50s
 base 0.3479 + soma dos SHAP +0.3001 = 0.6480 | similaridade real 0.6456
 display_data ['text/html', 'text/plain']

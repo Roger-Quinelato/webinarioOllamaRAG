@@ -7,7 +7,7 @@ Todos os números abaixo foram medidos **nesta máquina**, entre 13 e 14/09/2026
 | CPU | Intel Core i5-8250U, só GPU integrada (UHD 620) |
 | RAM | 7,9 GB. **Livre durante os testes: 0,22 a 0,68 GB** (Claude, Chrome e Streamlit abertos) |
 | Ollama | 0.34.0, modelos em `D:\webinarioOllamaRAG\Ollama\models` |
-| Corpus | 6 artigos, 109 páginas, 556 chunks (550 de página + 6 de resumo), vetores de 1024 dimensões |
+| Corpus | 8 artigos (T12/#12, 2026-09-15: +2 em português), 135 páginas, 659 chunks (651 de página + 8 de resumo), vetores de 1024 dimensões |
 
 Ferramenta principal: `ferramentas/medir.py <cenario>`. Os tokens por segundo vêm dos campos `prompt_eval_*`, `eval_*` e `load_duration` que o próprio Ollama devolve.
 
@@ -82,7 +82,7 @@ Arquivos: `docs/evidencias/E9/medicao_sem_streamlit.json` e `medicao_com_streaml
 | Decisão | Situação | Base |
 |---|---|---|
 | `Ollama/models` no D: ou no C: | **Manter no D:.** O tempo de carga (40–80 s) e as quedas de desempenho acompanham a RAM livre, e nenhuma medição apontou o disco como gargalo. Não houve comparação direta com o C:. | Seções 9.1 e 9.2 |
-| `qwen2.5:3b` ao vivo ou plano B | **Proposta, com decisão do autor no ensaio de 21/09:** usar o `qwen2.5:1.5b` ao vivo. Ele processa o prompt ~2× mais rápido (52–59 contra 13–41 tokens/s) e gera ~2× mais rápido (13–14,5 contra 7 tokens/s), e respondeu em ~20 s contra 42–164 s do 3b. O 3b fica como "qualidade" nas saídas pré-computadas. O `config.py` continua com o 3b até o autor decidir. | Seção 9.1 |
+| `qwen2.5:3b` ao vivo ou plano B | **Decisão parcial do autor, 2026-09-15 (ticket #19):** `config.MODELO_CHAT` agora é `qwen2.5:1.5b`, para validar a pipeline inteira primeiro. Ele processa o prompt ~2× mais rápido (52–59 contra 13–41 tokens/s) e gera ~2× mais rápido (13–14,5 contra 7 tokens/s), e respondeu em ~20 s contra 42–164 s do 3b. O `qwen2.5:3b` vira `config.MODELO_CHAT_PLANO_B`, para testar depois se a máquina/o notebook aguenta bem — decisão final (e as perguntas-teste) seguem para o ensaio de 21/09. | Seção 9.1 |
 | Alternar entre os modelos durante a live | **Não alternar.** Cada troca custa 40–80 s de carga, e voltar ao 3b logo depois derrubou a geração para 3,0 tokens/s (156,8 s de resposta). | `E9/medicao_sem_streamlit.json` |
 | Reindexar ao vivo | **Não.** São 1104–1141 s, maior que o bloco 2 inteiro (18 min = 1080 s). O notebook usa `REINDEXAR = False`. | Seção 9.1 |
 
@@ -91,12 +91,12 @@ Arquivos: `docs/evidencias/E9/medicao_sem_streamlit.json` e `medicao_com_streaml
 | Bloco | Min | Operações lentas ao vivo (medido) | Cabe? | Ajuste proposto |
 |---|---|---|---|---|
 | 1 Recap | 10 | `verificar_ollama` (< 1 s) | Sim | Aquecer os modelos **antes** da live (carga de 40–80 s) |
-| 2 Indexação | 18 | Reabrir a coleção (< 5 s); extração por LLM 16,6 s quente / 135 s frio; resumo 8,1 s quente / 232 s frio | Sim, **se aquecido** | Não reindexar; com o modelo frio, `LLM_AO_VIVO = False` |
+| 2 Indexação | 18 | Reabrir a coleção (< 5 s); extração por LLM 190,7 s na última execução do notebook (2026-09-15, `E7/saidas_notebook.txt`) — número alto provavelmente por troca de modelo (3b→1.5b, ticket #19) concorrendo com outras tarefas na máquina durante a reindexação do corpus de 8 artigos, não uma regressão do 1.5b em si; resumo ao vivo 8,9 s | Sim, **se aquecido** | Não reindexar; com o modelo frio, `LLM_AO_VIVO = False` |
 | 3 Retrieval | 15 | 7 buscas × 0,2–8,5 s | Sim | — |
 | 3b Dois estágios | 7 | 2 comparações × < 2 s | Sim | — |
-| 4 SHAP | 12 | SHAP 19–112 s (36 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`); Shapley só carregado | Sim | Com RAM baixa (> 90 s), `SHAP_AO_VIVO = False` |
+| 4 SHAP | 12 | SHAP 19–112 s (50 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`); Shapley só carregado | Sim | Com RAM baixa (> 90 s), `SHAP_AO_VIVO = False` |
 | 5 Com × sem contexto | 12 | 2 gerações: 1,6–51 s cada (3b) | Sim | — |
-| 6 Ollama | 12 | 1 resposta em streaming: 8–164 s (3b; 70,6 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`) | Sim, com folga curta no pior caso | Preferir o 1.5b ao vivo (~20 s) |
+| 6 Ollama | 12 | 1 resposta em streaming: 8–164 s (3b) ou ~18–20 s (1.5b, modelo ao vivo desde o ticket #19; 17,9 s na última execução do notebook, 2026-09-15, `E7/saidas_notebook.txt`) | Sim, com folga | 1.5b já é o padrão ao vivo (`config.MODELO_CHAT`) |
 | 7 Streamlit | 15 | 8–17 s por pergunta com cache quente (AppTest); 42–118 s por resposta sem cache (3b) | ~4 perguntas no pior caso | Limitar a 4 perguntas; 1.5b se estiver lento |
 | 8 Avaliação | 8 | Só carrega resultados | Sim | — |
 

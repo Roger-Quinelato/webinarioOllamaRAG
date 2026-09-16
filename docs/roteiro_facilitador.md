@@ -15,7 +15,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 
 **Plano B geral:** se o LLM travar, mude `LLM_AO_VIVO = False` (ou `SHAP_AO_VIVO = False`), rode a célula de configuração e depois a célula que travou. Todas as células lentas carregam o resultado salvo em `resultados/`. O notebook inteiro nesse modo foi testado e roda em 61 s.
 
-**Modelo ao vivo (decidir no ensaio de 21/09):** a proposta é usar o `qwen2.5:1.5b`, que respondeu em ~20 s contra 42–164 s do `qwen2.5:3b` nesta máquina. Para isso, troque `MODELO_CHAT` em `config.py` **antes** de abrir o notebook e o app.
+**Modelo ao vivo (decisão parcial do autor, 2026-09-15 — ticket #19):** `config.MODELO_CHAT` agora é `qwen2.5:1.5b` por padrão, para validar a pipeline inteira primeiro; `qwen2.5:3b` vira o "plano B" em `config.MODELO_CHAT_PLANO_B`, para testar depois se a máquina/o notebook aguenta bem no ensaio de 21/09. O 1.5b respondeu em ~20 s contra 42–164 s do 3b nesta máquina. Perguntas-teste definitivas ainda não foram definidas (fica para depois; ticket #19 segue aberto para essa parte).
 
 ---
 
@@ -46,7 +46,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 - **Fala:** "Distância de cosseno: quanto menor, mais parecido. Aumentar o k traz mais contexto, mas também mais ruído."
 - **Demo:**
   1. Mesma pergunta com k = 1, 4 e 8; comentar em que posição os trechos deixam de ser relevantes.
-  2. Filtros `ano >= 2023`, `tema = retrieval` e `idioma = pt`. O último volta vazio porque ainda não há artigos em português.
+  2. Filtros `ano >= 2023`, `tema = retrieval` e `idioma = pt` (T12/#12: 2 artigos em português já entram no filtro).
   3. Cross-lingual: pergunta em português e em inglês; comparar as distâncias.
 - **Checkpoint:** pedir no chat um valor de k para uma pergunta e testar ao vivo.
 - **Plano B:** nenhum. A busca não usa o LLM, só embedding, e é rápida.
@@ -100,6 +100,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 - **Checkpoint:** pedir uma pergunta do chat e fazê-la no app. No máximo 4 perguntas neste bloco: sem cache, cada resposta do 3b levou 42–118 s.
 - **Atenção:** o envio é pelo botão de seta; nos testes, o Enter não enviou.
 - **Plano B:** se o Ollama cair, o app mostra o aviso sem quebrar; reabra o Ollama. Trocar o modelo na barra lateral custa outra carga de 40–80 s, então só faça isso em último caso.
+- **Decisão do autor, 2026-09-15 (ticket #14, respondida em chat):** o seletor de modelo (`st.selectbox("Modelo de chat", ...)`) e o botão "Limpar conversa" **ficam no app**, contra a recomendação do ticket de tirar o seletor — o autor prefere poder trocar de modelo ao vivo na demo. Nenhuma mudança de código foi necessária (os dois já existem em `app.py`); esta é só a decisão registrada.
 
 ## Bloco 8 — Avaliação, reranking e próximos passos (8 min)
 

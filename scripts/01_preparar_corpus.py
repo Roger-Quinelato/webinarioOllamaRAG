@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 config.PASTA_ARTIGOS.mkdir(parents=True, exist_ok=True)
 print("1) Artigos")
-for nome, url in config.ARTIGOS_ARXIV.items():
+for nome, url in config.ARTIGOS_CORPUS.items():
     destino = config.PASTA_ARTIGOS / nome
     if not destino.exists():
         print(f"   baixando {nome} de {url}")

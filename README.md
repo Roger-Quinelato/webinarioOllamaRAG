@@ -92,7 +92,7 @@ A última linha deve ser `Ambiente pronto.`
 python scripts/01_preparar_corpus.py
 ```
 
-O script baixa os artigos do arXiv para `arquivosPDF/artigos/` (os PDFs não ficam no repositório), valida o `metadados.csv` e gera com o LLM os resumos que estiverem vazios.
+O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no repositório), valida o `metadados.csv` e gera com o LLM os resumos que estiverem vazios.
 
 | Arquivo | Artigo |
 |---|---|
@@ -102,6 +102,8 @@ O script baixa os artigos do arXiv para `arquivosPDF/artigos/` (os PDFs não fic
 | `es2023_ragas.pdf` | Es et al. (2023). *Ragas: Automated Evaluation of Retrieval Augmented Generation* — <https://arxiv.org/abs/2309.15217> |
 | `asai2023_selfrag.pdf` | Asai et al. (2023). *Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection* — <https://arxiv.org/abs/2310.11511> |
 | `liu2023_lost_middle.pdf` | Liu et al. (2023). *Lost in the Middle: How Language Models Use Long Contexts* — <https://arxiv.org/abs/2307.03172> |
+| `rocha2025_ragsft.pdf` | Rocha et al. (2025). *Aprimorando Geração Aumentada por Recuperação via Ajuste Fino Sequencial de Modelos de Linguagem Pequenos* (SBBD) — <https://sol.sbc.org.br/index.php/sbbd/article/view/37242> |
+| `medeiros2025_embeddings_pt.pdf` | Medeiros & Oliveira (2025). *Comparação de Modelos de Embeddings e LLMs para Geração Aumentada por Recuperação em Português* (SEMISH) — <https://sol.sbc.org.br/index.php/semish/article/view/36829> |
 
 ### 7. Indexar
 
