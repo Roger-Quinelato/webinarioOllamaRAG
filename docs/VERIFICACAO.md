@@ -47,6 +47,37 @@ Legenda: ⬜ não iniciada · 🔄 em andamento · ✅ verificada · ❌ falhou 
 | `requirements.txt` | E0 e todas as que importam o pacote alterado |
 | Modelo trocado para o plano B | E2 (reindexar, se for o embedding), E6, E9 |
 
+## Auditoria RODADA-1 (issues #27–#36)
+
+Auditoria multiagente em andamento, com seis eixos de só leitura validados por um agente CTO. Processo em
+[`auditoria/PROTOCOLO_AUDITORIA.md`](auditoria/PROTOCOLO_AUDITORIA.md), prompts em
+[`auditoria/PROMPT_AUDITORIA.md`](auditoria/PROMPT_AUDITORIA.md), contexto de partida em
+[`ESTADO_ATUAL.md`](ESTADO_ATUAL.md).
+
+| Ticket | Eixo / etapa do ciclo | Critérios sob exame | Bloqueado por |
+|---|---|---|---|
+| [#27](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/27) | Piloto do ciclo completo no eixo **A1 — pipeline RAG** (`rag.py`, `config.py`) | 3.1–3.6, 4.1–4.4, 6.1–6.7 | — |
+| [#28](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/28) | Calibração do protocolo com o aprendizado do piloto | — (só documentação da auditoria) | #27 |
+| [#29](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/29) | **A2 — verificação e evidências** (este documento, `docs/evidencias/**`, `ferramentas/verificar.py`) | todos os ✅ de E0–E10 e a força da evidência que os sustenta | #28 |
+| [#30](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/30) | **A3 — material didático** (notebook, `scripts/**`, `opcional/**`, roteiro) | 7.1–7.6, 5a.1–5b.2, 9.4 | #28 |
+| [#31](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/31) | **A4 — aplicação Streamlit** | 8.1–8.8 | #28 |
+| [#32](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/32) | **A5 — documentação e números** | 9.1–9.4, 10.1–10.4 | #28 |
+| [#33](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/33) | **A6 — reprodutibilidade e ambiente** | 0.1–0.8, 7.5, 10.1, 10.5 | #28 |
+| [#34](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/34) | Parecer do CTO sobre A2–A6, com lacunas e placar | — (valida os achados dos eixos) | #29–#33 |
+| [#35](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/35) | Rodadas de devolução dos eixos A2–A6 | — | #34 |
+| [#36](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/36) | Consolidado: bloqueadores, backlog e veredito para 21/09 | lista final de critérios contestados | #27, #35 |
+
+**A auditoria não muda nenhum status deste documento.** Ela produz achados validados e um backlog de
+tickets; um ✅ só é alterado depois que a correção foi implementada e a etapa reverificada com evidência
+nova — o mesmo caminho da auditoria de 2026-09-14 (`docs/evidencias/E10/revisao_codigo.md`), cujos
+achados só viraram mudança de status ao longo dos tickets #1–#23.
+
+Regras que valem para todo agente da auditoria: só leitura no projeto (escrita apenas em
+`docs/auditoria/`); proibido rodar `scripts/02_indexar.py` ou `ferramentas/executar_notebook.py` sem
+`--offline`, porque destrói a coleção e as saídas usadas pelas demais verificações; chamadas ao Ollama
+serializadas entre agentes (7,9 GB de RAM, LLM em CPU); `.claude/worktrees/**` fora do escopo; nenhum
+critério afrouxado, reescrito ou removido para conseguir passar.
+
 ---
 
 ## E0 — Ambiente
@@ -265,3 +296,5 @@ Uma linha por tarefa. É o histórico que mostra o que foi verificado, quando e 
 | 2026-09-16 | Correção: a bateria `rodar_scripts.sh` do ticket #12 **completou `00`–`07` inteira com sucesso** (`scripts com falha: 0`; `02_indexar.py → exit 0 em 1420s`, `03` a `07` também exit 0) — a notificação de "killed" recebida durante a sessão não correspondia a uma interrupção real do script, só a leitura do output ficou defasada. `docs/evidencias/E7/log_02_indexar.txt` foi reconstruído a partir de uma execução equivalente (a saída real foi sobrescrita por engano por um `git checkout` antes de eu perceber que o processo já tinha terminado); `log_03`–`log_07` são a saída real e completa desta execução | E1–E4, E6, E7, E10 | 1.1, 1.8, 2.2–2.6, 3.1–3.6, 4.1–4.4, 6.4–6.7, 7.1–7.6 | ✅ | `docs/evidencias/E7/log_02_indexar.txt` … `log_07_ollama.txt` |
 | 2026-09-16 | Ticket #16 (T16): confirmado o índice íntegro (`verificar.py e2`: 659/659 vetores) e roda `ferramentas/testar_app.py` de verdade contra ele: 3 rodadas isoladas (só k, só modo, só filtro) sem nenhum `FALHA`, 0 exceções; o artigo em português `medeiros2025_embeddings_pt.pdf` aparece no estágio 1 da busca em dois estágios, confirmando boa integração do corpus novo | E8 | 8.1–8.7 | ✅ | `docs/evidencias/E8/apptest.txt` |
 | 2026-09-16 | Ticket #12 (E5): `scripts/05_shap.py` rodado contra o corpus de 8 artigos (também coberto pela bateria completa, linha acima), exit 0; tempo do SHAP no notebook (célula ao vivo) atualizado de 36s para 50s em `docs/evidencias/E5/notebook_E5.txt` (mesmo chunk explicado, `es2023_ragas.pdf` p.5, similaridade 0.6456 — só o tempo mudou, extraído direto do `webinario_rag.ipynb` salvo). 5b.1 (Shapley dos chunks pré-computado) não precisa reindexar — critério já deixa explícito que não roda ao vivo | E5 | 5a.1–5a.3, 5b.1–5b.2 | ✅ | `docs/evidencias/E5/notebook_E5.txt`, `docs/evidencias/E7/log_05_shap.txt` |
+| 2026-09-16 | Levantamento do estado atual e abertura da auditoria RODADA-1: novo `docs/ESTADO_ATUAL.md` (arquitetura, inventário, corpus de 8 artigos/659 vetores, status E0–E10, tickets, estado do git, 9 invariantes), novo `docs/auditoria/PROTOCOLO_AUDITORIA.md` (6 eixos de só leitura + agente CTO validador, formato de achado, formato de devolução em 5 campos — erro / onde / evidência contrária / como refazer / critério de aceite —, LACUNAs, limite de 3 rodadas por eixo) e novo `docs/auditoria/PROMPT_AUDITORIA.md` (prompts de orquestrador, auditor, CTO, devolução e consolidação). Abertas as issues #27–#36 com as dependências nativas do GitHub (frontier = #27). Divergências já localizadas na leitura, entregues à auditoria como hipóteses e **não** como achados fechados: `README.md:5` e `:181` ainda descrevem `qwen2.5:3b` como padrão (invertido pelo #19 em `config.py:17-18`); `docs/medicoes.md:20` e `docs/troubleshooting.md:47` ainda citam 556 chunks/embeddings (corpus foi a 659 no T12); `docs/evidencias/E8/capturas/` tem 8 PNGs não commitados, sem a captura 8.8 nem o `capturas.txt`; `scripts/01` e `02` seguem sem `rag.cli_seguro()` (issue #24 já aberta). **Nenhum critério verificado, nenhum status alterado** — tarefa de documentação e planejamento | — | nenhum (só leitura) | ✅ (documentação) | `docs/ESTADO_ATUAL.md`, `docs/auditoria/PROTOCOLO_AUDITORIA.md`, `docs/auditoria/PROMPT_AUDITORIA.md`, issues #27–#36 |
+| 2026-09-16 | Ticket #27 (T21): piloto do ciclo completo de auditoria no eixo A1 (`rag.py`, `config.py`), só leitura. **Incidente de ambiente antes de começar**: a `.venv` foi encontrada com os diretórios de código de ~31 distribuições apagados (`chromadb`, `python-dotenv`, `certifi`, `anyio`, `click`, `filelock`, `fsspec`, `comm`, `debugpy`…) e os `dist-info` intactos, de modo que `pip list` os dava como instalados e `import chromadb` falhava — nenhum script do repositório rodava. Reparado com `pip install --force-reinstall --no-deps -r requirements.lock` (sem `pip`, `setuptools`, `wheel`); nenhum `dist-info` do Python global foi tocado (verificado), causa raiz não determinada. E0 reverificado: `pip check` limpo e `scripts/00_checar_ambiente.py` com exit 0, todos os 8 itens OK. Auditoria A1: 8 achados propostos, 6 confirmados pelo CTO, 1 reclassificado (A1-02, média→baixa, por ignorar o fallback já documentado em `rag.py:359-365`), 1 rejeitado (A1-07, erro de medição da sobreposição), 1 lacuna aberta pelo CTO e respondida (A1-09). A investigação exigida pela devolução A1-02 revelou o achado A1-08 (alta): com `MODELO_CHAT=qwen2.5:1.5b`, padrão desde o #19, o modelo não emite nenhuma citação `[n]` nas respostas positivas salvas, o fallback dispara sempre e "fontes citadas" volta a ser o top-k inteiro — a separação construída nos tickets #1/#3/#4 não aparece na demonstração do critério 6.5. Checagens rodadas, todas exit 0: `e6_fontes`, `e7_duplicadas`, `e7_estrutura`, `e4`, `e4_limiar`, `py_compile` dos 21 `.py`. Nada reindexado, notebook não reexecutado. **Nenhum status alterado**: os achados viram backlog no #36 | E0 (reverificada), A1 audita E3/E4/E6 | 0.1–0.8 reverificados; 4.1–4.4 e 6.5 exercitados sem alterar status | ✅ E0; auditoria com achados registrados | `docs/evidencias/E0/reverificacao_ambiente_2026-09-16.txt`, `docs/auditoria/rodadas/RODADA-1/A1-achados.md`, `cto-parecer.md`, `A1-achados-v2.md`, `devolucoes/A1-02.md`, `devolucoes/A1-07.md`, `A1-sonda.txt`, `cto-sonda.txt` |
