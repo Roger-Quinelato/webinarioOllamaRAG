@@ -22,7 +22,7 @@ with rag.cli_seguro():
         "tema = retrieval": {"tema": "retrieval"},
         "idioma = en": {"idioma": "en"},
         "ano = 2020 e tema = fundamentos": {"$and": [{"ano": 2020}, {"tema": "fundamentos"}]},
-        "idioma = pt (ainda sem artigos em português)": {"idioma": "pt"},
+        "idioma = pt (T12/#12: 2 artigos)": {"idioma": "pt"},
     }
     for nome, filtro in filtros.items():
         resultados = rag.buscar("Como funciona a recuperação de passagens?", k=4, where=filtro, colecao=colecao)

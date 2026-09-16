@@ -46,7 +46,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 - **Fala:** "Distância de cosseno: quanto menor, mais parecido. Aumentar o k traz mais contexto, mas também mais ruído."
 - **Demo:**
   1. Mesma pergunta com k = 1, 4 e 8; comentar em que posição os trechos deixam de ser relevantes.
-  2. Filtros `ano >= 2023`, `tema = retrieval` e `idioma = pt`. O último volta vazio porque ainda não há artigos em português.
+  2. Filtros `ano >= 2023`, `tema = retrieval` e `idioma = pt` (T12/#12: 2 artigos em português já entram no filtro).
   3. Cross-lingual: pergunta em português e em inglês; comparar as distâncias.
 - **Checkpoint:** pedir no chat um valor de k para uma pergunta e testar ao vivo.
 - **Plano B:** nenhum. A busca não usa o LLM, só embedding, e é rápida.

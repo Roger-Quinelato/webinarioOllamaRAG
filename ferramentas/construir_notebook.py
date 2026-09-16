@@ -216,7 +216,8 @@ for nome, filtro in {
 
 md("""
 ### 3.2 Cross-lingual
-Corpus em inglês, pergunta em português: o `bge-m3` coloca as duas línguas no mesmo espaço vetorial.
+Corpus majoritariamente em inglês (6 artigos) + 2 em português: o `bge-m3` coloca as duas línguas no
+mesmo espaço vetorial, então uma pergunta em português também recupera bem os trechos em inglês.
 """)
 
 code("""

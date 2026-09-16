@@ -29,13 +29,16 @@ COLUNAS_METADADOS = ["arquivo", "titulo", "autores", "ano", "veiculo", "tema", "
 TEMAS = ["fundamentos", "retrieval", "avaliacao", "survey", "limitacoes"]
 IDIOMAS = ["en", "pt"]
 
-ARTIGOS_ARXIV = {
+ARTIGOS_CORPUS = {
     "lewis2020_rag.pdf": "https://arxiv.org/pdf/2005.11401",
     "karpukhin2020_dpr.pdf": "https://arxiv.org/pdf/2004.04906",
     "gao2023_survey.pdf": "https://arxiv.org/pdf/2312.10997",
     "es2023_ragas.pdf": "https://arxiv.org/pdf/2309.15217",
     "asai2023_selfrag.pdf": "https://arxiv.org/pdf/2310.11511",
     "liu2023_lost_middle.pdf": "https://arxiv.org/pdf/2307.03172",
+    # T12/#12: artigos em português, decisão do autor de 2026-09-15 (delegada ao agente).
+    "rocha2025_ragsft.pdf": "https://sol.sbc.org.br/index.php/sbbd/article/download/37242/37025/",
+    "medeiros2025_embeddings_pt.pdf": "https://sol.sbc.org.br/index.php/semish/article/download/36829/36615/",
 }
 
 RESPOSTA_NAO_ENCONTRADA = "Não encontrei essa informação nos documentos."

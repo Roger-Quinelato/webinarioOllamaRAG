@@ -80,8 +80,9 @@ substituir_lista(30, 32, [
     "Modelos e bibliotecas: bge-m3 (embeddings), qwen2.5:3b e qwen2.5:1.5b (chat), ollama, chromadb, pypdf, shap, "
     "streamlit — sem LangChain/LlamaIndex, para expor o mecanismo do RAG.",
     "Material didático: repositório com notebook da aula (saídas salvas), scripts numerados por bloco, app "
-    "Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 6 artigos do arXiv como base "
-    "documental. Sem slides conceituais: o Encontro 1 foi só teoria (RAG e embeddings) e este encontro é "
+    "Streamlit, README de instalação, vídeo de instalação no YouTube do CIIA e 8 artigos como base documental "
+    "(6 do arXiv + 2 em português, via SBBD e SEMISH). Sem slides conceituais: o Encontro 1 foi só teoria "
+    "(RAG e embeddings) e este encontro é "
     "demonstração ao vivo do código, ponta a ponta — os conceitos já foram apresentados lá.",
 ])
 

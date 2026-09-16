@@ -109,8 +109,13 @@ def e3():
     resultados = rag.buscar(pergunta_pt, k=3, colecao=colecao)
     print(f"3.5 cross-lingual: {pergunta_pt!r} → {[(r['arquivo'], r['pagina'], r['idioma']) for r in resultados]}")
     print(f"    trecho do 1º: {resultados[0]['texto'][:200]}")
-    vazio = rag.buscar("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"3.6 filtro idioma=pt (sem artigos): {len(vazio)} resultados, sem erro")
+    # T12/#12: idioma=pt passou a ter 2 artigos reais (rocha2025_ragsft, medeiros2025_embeddings_pt);
+    # o filtro que garante zero resultados sem depender do idioma agora é um ano fora do corpus.
+    vazio = rag.buscar("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
+    print(f"3.6 filtro ano>=2030 (sem artigos): {len(vazio)} resultados, sem erro")
+    com_pt = rag.buscar("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
+    print(f"3.6b filtro idioma=pt (com artigos, T12/#12): {len(com_pt)} resultados, "
+          f"todos pt = {all(r['idioma'] == 'pt' for r in com_pt)}")
 
 
 def e4():
@@ -123,8 +128,10 @@ def e4():
     print(f"4.2 estágio 2: todos os resultados dentro dos artigos escolhidos = "
           f"{all(r['arquivo'] in escolhidos for r in dois['resultados'])} "
           f"| tipos: {sorted({r['tipo_chunk'] for r in dois['resultados']})}")
-    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
-    print(f"4.4a estágio 1 vazio (idioma=pt): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
+    # T12/#12: idioma=pt deixou de esvaziar o estágio 1 (2 artigos reais agora); troca para um
+    # filtro por ano fora do corpus, que continua esvaziando os resumos independente do idioma.
+    vazio = rag.buscar_dois_estagios("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
+    print(f"4.4a estágio 1 vazio (ano>=2030): caminho = {vazio['caminho']!r}, {len(vazio['resultados'])} resultados")
 
     # hazard (T07): 4.4a só cobre o filtro herdado deixando o estágio 1 sem NENHUM resumo — não
     # prova que o limiar de distância (achado 4.4 original, calibrado no T06) dispara sozinho para
