@@ -100,6 +100,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 - **Checkpoint:** pedir uma pergunta do chat e fazê-la no app. No máximo 4 perguntas neste bloco: sem cache, cada resposta do 3b levou 42–118 s.
 - **Atenção:** o envio é pelo botão de seta; nos testes, o Enter não enviou.
 - **Plano B:** se o Ollama cair, o app mostra o aviso sem quebrar; reabra o Ollama. Trocar o modelo na barra lateral custa outra carga de 40–80 s, então só faça isso em último caso.
+- **Decisão do autor, 2026-09-15 (ticket #14, respondida em chat):** o seletor de modelo (`st.selectbox("Modelo de chat", ...)`) e o botão "Limpar conversa" **ficam no app**, contra a recomendação do ticket de tirar o seletor — o autor prefere poder trocar de modelo ao vivo na demo. Nenhuma mudança de código foi necessária (os dois já existem em `app.py`); esta é só a decisão registrada.
 
 ## Bloco 8 — Avaliação, reranking e próximos passos (8 min)
 
