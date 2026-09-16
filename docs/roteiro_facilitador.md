@@ -15,7 +15,7 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 
 **Plano B geral:** se o LLM travar, mude `LLM_AO_VIVO = False` (ou `SHAP_AO_VIVO = False`), rode a célula de configuração e depois a célula que travou. Todas as células lentas carregam o resultado salvo em `resultados/`. O notebook inteiro nesse modo foi testado e roda em 61 s.
 
-**Modelo ao vivo (decidir no ensaio de 21/09):** a proposta é usar o `qwen2.5:1.5b`, que respondeu em ~20 s contra 42–164 s do `qwen2.5:3b` nesta máquina. Para isso, troque `MODELO_CHAT` em `config.py` **antes** de abrir o notebook e o app.
+**Modelo ao vivo (decisão parcial do autor, 2026-09-15 — ticket #19):** `config.MODELO_CHAT` agora é `qwen2.5:1.5b` por padrão, para validar a pipeline inteira primeiro; `qwen2.5:3b` vira o "plano B" em `config.MODELO_CHAT_PLANO_B`, para testar depois se a máquina/o notebook aguenta bem no ensaio de 21/09. O 1.5b respondeu em ~20 s contra 42–164 s do 3b nesta máquina. Perguntas-teste definitivas ainda não foram definidas (fica para depois; ticket #19 segue aberto para essa parte).
 
 ---
 

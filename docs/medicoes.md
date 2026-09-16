@@ -82,7 +82,7 @@ Arquivos: `docs/evidencias/E9/medicao_sem_streamlit.json` e `medicao_com_streaml
 | Decisão | Situação | Base |
 |---|---|---|
 | `Ollama/models` no D: ou no C: | **Manter no D:.** O tempo de carga (40–80 s) e as quedas de desempenho acompanham a RAM livre, e nenhuma medição apontou o disco como gargalo. Não houve comparação direta com o C:. | Seções 9.1 e 9.2 |
-| `qwen2.5:3b` ao vivo ou plano B | **Proposta, com decisão do autor no ensaio de 21/09:** usar o `qwen2.5:1.5b` ao vivo. Ele processa o prompt ~2× mais rápido (52–59 contra 13–41 tokens/s) e gera ~2× mais rápido (13–14,5 contra 7 tokens/s), e respondeu em ~20 s contra 42–164 s do 3b. O 3b fica como "qualidade" nas saídas pré-computadas. O `config.py` continua com o 3b até o autor decidir. | Seção 9.1 |
+| `qwen2.5:3b` ao vivo ou plano B | **Decisão parcial do autor, 2026-09-15 (ticket #19):** `config.MODELO_CHAT` agora é `qwen2.5:1.5b`, para validar a pipeline inteira primeiro. Ele processa o prompt ~2× mais rápido (52–59 contra 13–41 tokens/s) e gera ~2× mais rápido (13–14,5 contra 7 tokens/s), e respondeu em ~20 s contra 42–164 s do 3b. O `qwen2.5:3b` vira `config.MODELO_CHAT_PLANO_B`, para testar depois se a máquina/o notebook aguenta bem — decisão final (e as perguntas-teste) seguem para o ensaio de 21/09. | Seção 9.1 |
 | Alternar entre os modelos durante a live | **Não alternar.** Cada troca custa 40–80 s de carga, e voltar ao 3b logo depois derrubou a geração para 3,0 tokens/s (156,8 s de resposta). | `E9/medicao_sem_streamlit.json` |
 | Reindexar ao vivo | **Não.** São 1104–1141 s, maior que o bloco 2 inteiro (18 min = 1080 s). O notebook usa `REINDEXAR = False`. | Seção 9.1 |
 

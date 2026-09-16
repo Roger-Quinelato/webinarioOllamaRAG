@@ -11,8 +11,11 @@ NOME_COLECAO = "artigos_rag"
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 MODELO_EMBEDDING = os.getenv("MODELO_EMBEDDING", "bge-m3")
-MODELO_CHAT = os.getenv("MODELO_CHAT", "qwen2.5:3b")
-MODELO_CHAT_PLANO_B = "qwen2.5:1.5b"
+# T19/#19 (decisão parcial do autor, 2026-09-15): valida a pipeline com o 1.5b primeiro;
+# o 3b vira o "plano B" para testar depois se a máquina/notebook aguenta. Perguntas-teste
+# definitivas ainda pendentes (ticket segue aberto para a parte (a)).
+MODELO_CHAT = os.getenv("MODELO_CHAT", "qwen2.5:1.5b")
+MODELO_CHAT_PLANO_B = "qwen2.5:3b"
 
 TAMANHO_CHUNK = 1000
 SOBREPOSICAO = 150
