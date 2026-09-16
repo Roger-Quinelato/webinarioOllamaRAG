@@ -1,0 +1,29 @@
+== CTO/A1-01 frase realista de preambulo, diferente da usada pelo auditor ==
+  eh_recusa=False fontes=[1, 2, 3, 4] <- 'Com base nos trechos fornecidos: Não encontre'
+  eh_recusa=False fontes=[1, 2, 3, 4] <- 'Resposta: Não encontrei essa informação nos d'
+  eh_recusa=True  fontes=[] <- 'Não encontrei essa informação nos documentos.'
+  eh_recusa=True  fontes=[] <- '  Não encontrei essa informação nos documento'
+== CTO/A1-02 citacao mista valida+invalida vs so invalida ==
+  indices_citados=[2] fontes=[2] <- 'Segundo [2] e [9].'
+  indices_citados=[] fontes=[1, 2, 3, 4] <- 'Segundo [9].'
+  indices_citados=[] fontes=[1, 2, 3, 4] <- 'Segundo [0].'
+  indices_citados=[] fontes=[1, 2, 3, 4] <- 'Sem citacao alguma.'
+== CTO/A1-03 ano nao numerico no CSV real ==
+  carregar_metadados levantou ValueError cru: invalid literal for int() with base 10: 'vinte e vinte'
+== CTO/A1-04 regex do abstract: qual ramo casa ==
+  com quebras: 'Texto do abstract aqui.'
+  normalizado: 'Texto do abstract aqui. Keywords: rag, retrieval Resto.'
+== CTO/A1-05 aviso na indexacao quando falta resumo ==
+  'resumo' aparece em aviso/print dentro de gerar_chunks? False
+  scripts/01 avisa 'preencha o resumo a mao'? True
+== CTO/A1-07 sobreposicao: existe caso com sobreposicao zero ou palavra cortada? ==
+  sobreposicoes observadas: min=149 max=149 zeros=0 (config=150)
+  alguma parte termina no meio de uma palavra? False
+== CTO/LACUNA _erro_ollama: mensagem para erro que NAO e de conexao ==
+  status 500 -> Não consegui falar com o Ollama em http://localhost:11434. Abra o aplicativo Ollama (ou rode `ollama serve`) e tente de novo. Detalhe: internal server error (status code: 500)
+  status 404 -> O modelo 'qwen2.5:1.5b' não está baixado. Rode no terminal: ollama pull qwen2.5:1.5b
+== CTO/LACUNA determinismo com seed=42 ==
+  _opcoes() = {'temperature': 0.1, 'seed': 42, 'num_predict': 400}
+  duas chamadas iguais -> identicas=True | '2' vs '2'
+== CTO/A1-00 estado atual do ambiente ==
+  pip check -> exit=0 'No broken requirements found.'

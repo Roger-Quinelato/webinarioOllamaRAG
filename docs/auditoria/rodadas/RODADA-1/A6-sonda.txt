@@ -1,0 +1,135 @@
+A6-sonda — raiz: D:\webinarioOllamaRAG
+python: D:\webinarioOllamaRAG\.venv\Scripts\python.exe
+
+==============================================================================
+A6/imports — imports de terceiros × requirements
+==============================================================================
+requirements.txt=10  requirements-dev.txt(extras)=5  requirements.lock=141
+
+-- declarado em requirements.txt/-dev.txt e ausente ou divergente no lock --
+  nenhum
+
+-- import de terceiros usado no código -> distribuição -> onde está declarado --
+  IPython                -> ipython[lock]
+                            usado em: docs/evidencias/E7/webinario_rag_offline.ipynb#celula1, webinario_rag.ipynb#celula1
+  capturar_app           -> NAO INSTALADO / desconhecido
+                            usado em: docs/auditoria/rodadas/RODADA-1/A4-sonda.py, ferramentas/capturar_evidencias_e8.py
+  capturar_evidencias_e8 -> NAO INSTALADO / desconhecido
+                            usado em: docs/auditoria/rodadas/RODADA-1/A4-sonda.py
+  chromadb               -> chromadb[txt+lock]
+                            usado em: docs/auditoria/rodadas/RODADA-1/A3-sonda.py, rag.py
+  docx                   -> python-docx[dev+lock]
+                            usado em: ferramentas/gerar_plano_v11.py
+  httpx                  -> httpx[txt+lock]
+                            usado em: rag.py, scripts/00_checar_ambiente.py
+  nbclient               -> nbclient[dev+lock]
+                            usado em: ferramentas/executar_notebook.py
+  nbformat               -> nbformat[dev+lock]
+                            usado em: ferramentas/construir_notebook.py, ferramentas/executar_notebook.py
+  numpy                  -> numpy[txt+lock]
+                            usado em: opcional/avaliacao_estilo_ragas.py, rag.py
+  ollama                 -> ollama[txt+lock]
+                            usado em: docs/auditoria/rodadas/RODADA-1/A4-sonda.py, rag.py
+  pandas                 -> pandas[txt+lock]
+                            usado em: docs/evidencias/E7/webinario_rag_offline.ipynb#celula1, webinario_rag.ipynb#celula1
+  playwright             -> playwright[dev+lock]
+                            usado em: docs/auditoria/rodadas/RODADA-1/A4-sonda.py, ferramentas/capturar_app.py, ferramentas/capturar_evidencias_e8.py
+  psutil                 -> psutil[dev+lock]
+                            usado em: ferramentas/medir.py
+  pypdf                  -> pypdf[txt+lock]
+                            usado em: rag.py
+  shap                   -> shap[txt+lock]
+                            usado em: docs/evidencias/E7/webinario_rag_offline.ipynb#celula26, rag.py, scripts/05_shap.py, webinario_rag.ipynb#celula26
+  streamlit              -> streamlit[txt+lock]
+                            usado em: app.py, docs/auditoria/rodadas/RODADA-1/A4-sonda.py, ferramentas/testar_app.py
+
+-- declarado em requirements.txt e nunca importado diretamente --
+  ipykernel
+  matplotlib
+
+==============================================================================
+A6/venv — dist-info sem o código correspondente (modo de falha do A1-00)
+==============================================================================
+site-packages: D:\webinarioOllamaRAG\.venv\Lib\site-packages
+ATENÇÃO: Distribution.files do Python 3.12 aplica skip_missing_files() e descarta
+silenciosamente o que sumiu do disco — usar essa API aqui daria falso negativo.
+Esta sonda lê o RECORD como texto, sem passar por Distribution.files.
+
+dist-info com RECORD lidos: 142
+nenhuma distribuição com arquivo de RECORD faltando — venv íntegra
+
+-- existe alguma checagem no repositório que detecte isso? --
+  scripts/00_checar_ambiente.py: nenhum padrão de integridade encontrado
+  ferramentas/verificar.py: nenhum padrão de integridade encontrado
+  docs/troubleshooting.md menciona 'dist-info':  False
+  docs/troubleshooting.md menciona 'requirements.lock':  False
+  docs/troubleshooting.md menciona 'force-reinstall':  False
+
+==============================================================================
+A6/venv2 — segunda medição: nomes de topo importáveis por distribuição
+==============================================================================
+distribuições com nome de topo importável: 142
+nenhuma órfã — concorda com a primeira medição (venv íntegra)
+
+-- prova de que o detector dispara: site-packages sintético só com dist-info --
+  metadata.version('ollama') = 0.6.2  <- o pip/pip list o dá como instalado
+  diretório 'ollama/' existe no disco? False  <- import falharia
+  Distribution.files (API do 3.12): 0 arquivos de código -> detector via API dispara: False  (FALSO NEGATIVO)
+  RECORD lido como texto: 5 arquivos de código, 5 ausentes -> detector via RECORD dispara: True
+
+==============================================================================
+A6/scripts00 — o que 00_checar_ambiente.py de fato checa
+==============================================================================
+chamadas a checar() (as únicas que podem FALHAR o script): 7
+  linha  34: 'Python 3.10+'
+  linha  35: 'Rodando dentro de um ambiente virtual'
+  linha  41: f-string: import {...}
+  linha  50: 'Servidor Ollama respondendo'
+  linha  56: 'Modelos baixados'
+  linha  43: f-string: import {...}
+  linha  59: 'Servidor Ollama respondendo'
+
+pacotes que o script importa (lista literal):
+  linha 37: ['ollama', 'chromadb', 'streamlit', 'pypdf', 'shap', 'numpy']
+
+declarados em requirements.txt e NÃO importados por scripts/00:
+  ipykernel  (módulos: ['__pycache__', 'ipykernel', 'ipykernel_launcher'])
+  pandas  (módulos: ['pandas'])
+  matplotlib  (módulos: ['__pycache__', 'matplotlib', 'mpl_toolkits', 'pylab'])
+
+palavras-chave ausentes do script (critério 0.5 = pip check / versões fixadas):
+  'pip' presente: False
+  'requirements' presente: False
+  'check' presente: False
+  'kernelspec' presente: False
+  'jupyter' presente: False
+
+critério 0.2 (OLLAMA_MODELS aponta para D:\webinarioOllamaRAG\Ollama\models):
+  linha 62-63 usa print('[INFO] ...'), não checar(): True
+  valor atual na sessão: OLLAMA_MODELS='D:\\webinarioOllamaRAG\\Ollama\\models'
+
+==============================================================================
+A6/scripts00-sim — scripts/00 aprova ambiente ao qual falta pacote do requirements?
+==============================================================================
+
+-- bloqueando ['pandas'] --
+   [FALHOU] import shap — [sonda A6] pandas indisponível
+   1 verificação(ões) falharam: import shap
+   exit=1
+   [controle] import pandas nesse mesmo subprocesso: ImportError: [sonda A6] pandas indisponível (exit=1)
+
+-- bloqueando ['matplotlib'] --
+   Ambiente pronto.
+   exit=0
+   [controle] import matplotlib nesse mesmo subprocesso: ImportError: [sonda A6] matplotlib indisponível (exit=1)
+
+-- bloqueando ['ipykernel'] --
+   Ambiente pronto.
+   exit=0
+   [controle] import ipykernel nesse mesmo subprocesso: ImportError: [sonda A6] ipykernel indisponível (exit=1)
+
+-- bloqueando ['httpx'] --
+   [FALHOU] import ollama — [sonda A6] httpx indisponível
+   [FALHOU] import chromadb — [sonda A6] httpx indisponível
+   exit=1
+   [controle] import httpx nesse mesmo subprocesso: ImportError: [sonda A6] httpx indisponível (exit=1)
