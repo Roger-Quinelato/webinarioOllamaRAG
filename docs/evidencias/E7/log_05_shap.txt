@@ -1,6 +1,6 @@
 
 Chunk 1: es2023_ragas.pdf p.5 (similaridade 0.6456)
-SHAP em 81.6s
+SHAP em 83.3s
    +0.0893  Ragas
    +0.0612  fidelidade
    +0.0606  relevância
@@ -17,7 +17,7 @@ Aditividade: base 0.3479 + soma +0.3001 = 0.6480 | similaridade real 0.6456 | di
 Gráfico salvo em resultados\shap_similaridade_chunk1.html
 
 Chunk 2: es2023_ragas.pdf p.5 (similaridade 0.6347)
-SHAP em 19.7s
+SHAP em 17.8s
    +0.0865  relevância
    +0.0837  respostas
    +0.0686  métricas
