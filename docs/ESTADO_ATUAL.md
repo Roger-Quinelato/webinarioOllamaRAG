@@ -199,6 +199,14 @@ não como achados fechados — cada um ainda precisa de verificação e de decis
 | `docs/evidencias/E8/capturas/` | 8 PNGs presentes | Não commitados e sem a captura 8.8; `VERIFICACAO.md` 8.2–8.8 ainda não os cita como evidência |
 | `scripts/01`, `scripts/02` | sem `with rag.cli_seguro():` | `scripts/03`–`07` e `opcional/*` têm; é exatamente o achado 6.7 (issue #24) |
 
+Acrescentado pelo piloto de auditoria (#27, 2026-09-16), já com evidência:
+
+| Onde | O que foi verificado | Consequência |
+|---|---|---|
+| `rag.py:365`, `config.py:17`, `resultados/com_sem_contexto.json` | Com `qwen2.5:1.5b` (padrão desde o #19), o modelo não emite nenhuma citação `[n]` nas respostas positivas salvas | O fallback dispara sempre e "fontes citadas" volta a ser o top-k inteiro; a separação dos tickets #1/#3/#4 não aparece na demonstração de 6.5 (achado A1-08, alta) |
+| `.venv/Lib/site-packages/` | Diretórios de código de ~31 distribuições apagados, `dist-info` intactos; `pip list` dava tudo como instalado e `import chromadb` falhava | Nenhum script rodava. Reparado pelo `requirements.lock` e E0 reverificada (achado A1-00, crítica) |
+| `rag.py:33-43` | `ollama.ResponseError` 500 cai na mensagem de servidor fora do ar | Instrução errada justamente no erro mais provável ao vivo, falta de memória (achado A1-09, média) |
+
 ## 9. Invariantes que a auditoria não deve propor violar
 
 1. Nenhum ✅ em `VERIFICACAO.md` sem evidência salva em `docs/evidencias/EN/`.

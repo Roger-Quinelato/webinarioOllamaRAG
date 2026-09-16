@@ -19,6 +19,12 @@ Ordem de uso: **§1** (orquestrador) → **§2** (seis auditores, em paralelo) �
 >
 > Depois:
 >
+> 0. **Cheque o ambiente antes de tudo:** `.venv/Scripts/python -m pip check` e
+>    `.venv/Scripts/python scripts/00_checar_ambiente.py`. Os dois precisam sair com 0. No piloto (#27),
+>    a `.venv` estava com os diretórios de código de ~31 distribuições apagados e os `dist-info`
+>    intactos — `pip list` dava tudo como instalado e nada importava. Se falhar, repare com
+>    `pip install --force-reinstall --no-deps -r requirements.lock` (sem `pip`, `setuptools` e `wheel`,
+>    que travam o processo) e salve a evidência em `docs/evidencias/E0/` antes de auditar qualquer coisa.
 > 1. Crie `docs/auditoria/rodadas/RODADA-1/`.
 > 2. Dispare **seis subagentes de auditoria em paralelo** (eixos A1–A6 do protocolo), cada um com o
 >    prompt da §2 deste documento, preenchido com o escopo do eixo. Eles são **só leitura**.
@@ -55,6 +61,15 @@ Ordem de uso: **§1** (orquestrador) → **§2** (seis auditores, em paralelo) �
 >
 > 1. Leia o escopo inteiro antes de julgar qualquer coisa. Este repo é pequeno (~2.700 linhas de Python);
 >    não há desculpa para auditar por amostragem.
+> 1a. **Repita toda medição numérica com uma segunda entrada, de forma e tamanho diferentes, antes de
+>    reportá-la.** No piloto (#27), um intervalo de sobreposição medido uma vez só em texto sintético
+>    repetitivo virou achado rejeitado: o número era artefato da medição, não do código. Se as duas
+>    medições discordam, o achado é sobre a instabilidade, não sobre o valor.
+> 1b. **Leia os comentários `why:` e `hazard:` da região antes de classificar qualquer comportamento
+>    como defeito.** Este código registra decisões nesses comentários. Se o comportamento que você vai
+>    reportar já está explicado ali, o achado só é válido se disser por que a decisão documentada não
+>    cobre o caso que você encontrou — e cite a linha do comentário. Sem isso, o CTO rejeita por falta
+>    de contexto, como aconteceu no piloto com o fallback de `fontes_da_resposta`.
 > 2. Para cada afirmação que o repositório faz sobre si mesmo (um ✅, um número, uma instrução do README,
 >    um comentário `why:`/`hazard:`), pergunte: **isso se sustenta no código e na evidência de hoje?**
 >    O corpus mudou de 6 para 8 artigos e de 556 para 659 chunks; o modelo de chat foi invertido
@@ -72,8 +87,13 @@ Ordem de uso: **§1** (orquestrador) → **§2** (seis auditores, em paralelo) �
 >
 > **Entrega:** escreva `docs/auditoria/rodadas/RODADA-1/{A1..A6}-achados.md` com um bloco por achado,
 > exatamente no formato da §4 do protocolo (severidade, categoria, onde, criterio, o-que-observei,
-> como-reproduzir, saida-obtida, por-que-importa, confianca, relacionado). Sem propor correção — a
-> recomendação de implementação é do CTO.
+> como-reproduzir, saida-obtida, por-que-importa, confianca, relacionado, e `decisao-documentada`
+> quando houver `why:`/`hazard:` na região). Sem propor correção — a recomendação de implementação é do
+> CTO.
+>
+> Se você escrever um script de sonda para exercitar casos de borda, **versione-o** ao lado do relatório
+> (`{A1..A6}-sonda.py`) com a saída salva (`-sonda.txt`). Sonda que não fica no repositório não é
+> reproduzível pelo CTO, e o achado que depende dela cai.
 >
 > Termine o arquivo com uma seção `## Não verificado` listando o que ficou fora do seu alcance e por quê.
 > Um eixo que entrega "nada encontrado" sem essa seção será tratado como auditoria incompleta.

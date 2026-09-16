@@ -61,6 +61,8 @@ Cada auditor entrega um arquivo markdown com um bloco por achado, nesta estrutur
 - **categoria:** correcao | evidencia | documentacao | reprodutibilidade | didatico | risco-ao-vivo
 - **onde:** `ferramentas/construir_notebook.py:312`, `webinario_rag.ipynb` (célula 27)
 - **criterio:** 7.2, 7.6
+- **decisao-documentada:** <obrigatório quando a região tem `why:`/`hazard:` — cite a linha do
+  comentário e diga por que a decisão registrada ali não cobre o caso; omita quando não houver>
 - **o-que-observei:** <fato, sem interpretação>
 - **como-reproduzir:**
   ```bash
@@ -76,6 +78,11 @@ Regras de preenchimento:
 
 - `onde` sempre com linha. Se for o notebook, identificar a célula **e** o trecho de
   `construir_notebook.py` que a gera (o `.ipynb` não se edita à mão).
+- **Todo número reportado vem de duas medições**, com entradas de forma e tamanho diferentes. Uma
+  medição só é hipótese. O piloto (#27) rejeitou um achado inteiro por isso.
+- **`decisao-documentada` é obrigatório quando a região tem `why:`/`hazard:`.** Achado que contradiz
+  uma decisão registrada sem sequer citá-la é rejeitado por falta de contexto, não julgado no mérito.
+- Script de sonda usado para chegar ao achado é versionado na pasta da rodada, com a saída salva.
 - `como-reproduzir` precisa ser um comando que o CTO consiga rodar. Se o achado for textual, o comando
   é o `grep` que o localiza.
 - `confianca: baixa` é permitido e preferível a omitir — o CTO decide o que fazer com isso.
@@ -187,6 +194,12 @@ docs/auditoria/
 
 ## 9. Salvaguardas
 
+- **Ambiente conferido antes da rodada.** `pip check` e `scripts/00_checar_ambiente.py` precisam sair
+  com 0 antes de qualquer eixo começar. No piloto (#27) a `.venv` estava com os diretórios de código de
+  ~31 distribuições apagados e os `dist-info` intactos: `pip list` dava tudo como instalado e
+  `import chromadb` falhava. Reparo: `pip install --force-reinstall --no-deps -r requirements.lock`,
+  excluindo `pip`, `setuptools` e `wheel` — incluí-los faz o pip travar no meio da própria
+  reinstalação. Salve a evidência em `docs/evidencias/E0/`.
 - **Só leitura na auditoria.** Se um auditor precisar rodar algo que escreve (`02_indexar.py` recria a
   coleção; `executar_notebook.py` sobrescreve saídas), ele **não roda**: registra como "não verificável
   sem efeito colateral" e passa ao CTO, que decide.
