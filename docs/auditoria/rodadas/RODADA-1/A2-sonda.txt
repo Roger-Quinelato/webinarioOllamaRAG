@@ -1,0 +1,141 @@
+﻿
+== A2-01 índice atual × evidência de E2 ==
+  medição 1 (colecao.count())      = 659
+  medição 2 (len(get()['ids']))    = 659
+  por tipo_chunk                   = {'pagina': 651, 'resumo': 8}
+  artigos distintos                = 8
+  E2/verificacao_E2.txt: total=556 por_tipo={'pagina': 550, 'resumo': 6}
+  E2/reverificacao_e2.txt: total=556 por_tipo={'pagina': 550, 'resumo': 6}
+
+== A2-02 e9_numeros × histórico acumulado de saidas_notebook.txt ==
+  medicoes.md hoje afirma: ['190,7', '50', '17,9']
+  '36s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '70,6s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '94s' seria CONFIRMADO por saidas_notebook.txt? False (0 ocorrência(s))
+  '163,8s' seria CONFIRMADO por saidas_notebook.txt? False (0 ocorrência(s))
+  '48s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '34s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '50s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '190,7s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  '17,9s' seria CONFIRMADO por saidas_notebook.txt? True (1 ocorrência(s))
+  blocos acumulados no arquivo (marcadores): 8
+    # T08 — ferramentas/verificar.py e7_saidas (2026-09-15, sem kernel, lê o .ipynb salvo)
+    # hazard: os tempos abaixo são da execução ao vivo mais recente (T03, durante este mesmo dia)
+    # e já divergem dos números citados em docs/medicoes.md (37s/34s SHAP, 8,1s resumo, 16,6s
+    # extração) — reconciliação de docs/medicoes.md é escopo do T10, não deste ticket.
+    7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):
+    # T09 — reexecução completa pós T01-T08 (2026-09-15, ao vivo + offline)
+    7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):
+    7.2/9.1 células do notebook (sem kernel — só lê o .ipynb salvo):
+
+== A2-03 funções de verificar.py que não têm como reprovar ==
+  e1_resumos                       pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e2                               pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e2_sobreposicao                  pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e2_reabrir                       pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e3                               pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e4                               pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e4_limiar                        pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: True)
+  e6_ollama_desligado              pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e6_ollama_desligado_scripts      pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e6_fontes                        pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e7_duplicadas_antes_v2           pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e7_duplicadas                    pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e7_estrutura                     pode_reprovar_ast=False pode_reprovar_texto=False (via auxiliar: False)
+  e7_saidas                        pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+  e9_numeros                       pode_reprovar_ast=True  pode_reprovar_texto=True  (via auxiliar: False)
+
+== A2-04 e2_reabrir com subprocesso que falha ==
+  [subprocesso OK] returncode=0 → linha impressa por e2_reabrir seria:
+      2.6 contagem em outro processo: 659 
+  [subprocesso quebrado] returncode=1 → linha impressa por e2_reabrir seria:
+      2.6 contagem em outro processo:  boom
+
+== A2-05 código de saída real de scripts/00 com o Ollama inalcançável ==
+  últimas linhas: ['[INFO] OLLAMA_MODELS = D:\\webinarioOllamaRAG\\Ollama\\models', '1 verificaÃ§Ã£o(Ãµes) falharam: Servidor Ollama respondendo']
+  returncode real = 1
+  o que a evidência E6/ollama_desligado.txt anota:
+    exit=0 
+    1 verificação(ões) falharam: Servidor Ollama respondendo
+    exit=0 
+
+== A2-06 arquivos de evidência citados em VERIFICACAO.md ==
+  docs/evidencias/E0/                                                    existe=True
+  docs/evidencias/E0/ambiente.txt                                        existe=True
+  docs/evidencias/E0/reverificacao_ambiente_2026-09-16.txt               existe=True
+  docs/evidencias/E1/                                                    existe=True
+  docs/evidencias/E1/verificacao_E1.txt                                  existe=True
+  docs/evidencias/E10/                                                   existe=True
+  docs/evidencias/E10/documentacao_auditoria.txt                         existe=True
+  docs/evidencias/E10/fechamento_sessao.txt                              existe=True
+  docs/evidencias/E10/plano_v11.txt                                      existe=True
+  docs/evidencias/E10/revisao_codigo.md                                  existe=True
+  docs/evidencias/E10/revisao_codigo_checagens.txt                       existe=True
+  docs/evidencias/E2/                                                    existe=True
+  docs/evidencias/E2/indexacao.txt                                       existe=False
+  docs/evidencias/E2/reverificacao_e2.txt                                existe=True
+  docs/evidencias/E3/                                                    existe=True
+  docs/evidencias/E3/reverificacao_e3.txt                                existe=True
+  docs/evidencias/E4/                                                    existe=True
+  docs/evidencias/E4/limiar_estagio1.txt                                 existe=True
+  docs/evidencias/E4/reverificacao_e4.txt                                existe=True
+  docs/evidencias/E4/reverificacao_e4_v2.txt                             existe=True
+  docs/evidencias/E5/                                                    existe=True
+  docs/evidencias/E5/notebook_E5.txt                                     existe=True
+  docs/evidencias/E6/                                                    existe=True
+  docs/evidencias/E6/06_com_sem_contexto.txt                             existe=True
+  docs/evidencias/E6/e6_fontes.txt                                       existe=True
+  docs/evidencias/E6/reverificacao_6.5_fontes.txt                        existe=True
+  docs/evidencias/E6/reverificacao_e6_ollama_desligado.txt               existe=True
+  docs/evidencias/E6/reverificacao_e6_ollama_desligado_scripts.txt       existe=True
+  docs/evidencias/E7/                                                    existe=True
+  docs/evidencias/E7/execucao_notebook.txt                               existe=True
+  docs/evidencias/E7/execucao_notebook_offline.txt                       existe=True
+  docs/evidencias/E7/log_01_preparar_corpus.txt                          existe=True
+  docs/evidencias/E7/log_02_indexar.txt                                  existe=True
+  docs/evidencias/E7/log_05_shap.txt                                     existe=True
+  docs/evidencias/E7/reverificacao_e7_duplicadas.txt                     existe=True
+  docs/evidencias/E7/reverificacao_e7_duplicadas_v2.txt                  existe=True
+  docs/evidencias/E7/reverificacao_e7_estrutura.txt                      existe=True
+  docs/evidencias/E7/saidas_notebook.txt                                 existe=True
+  docs/evidencias/E7/t03_fontes_notebook.txt                             existe=True
+  docs/evidencias/E7/webinario_rag_offline.ipynb                         existe=True
+  docs/evidencias/E8/                                                    existe=True
+  docs/evidencias/E8/apptest.txt                                         existe=True
+  docs/evidencias/E8/capturas/                                           existe=True
+  docs/evidencias/E8/t04_fontes_citadas_app.txt                          existe=True
+  docs/evidencias/E9/                                                    existe=True
+  docs/evidencias/E9/reconciliacao_numeros.txt                           existe=True
+  docs/evidencias/EN/                                                    existe=False
+  docs/evidencias/auditoria_plano.html                                   existe=True
+  docs/evidencias/opcional/avaliacao_estilo_ragas.txt                    existe=True
+  evidencias/E1/verificacao_E1.txt                                       existe=True
+  evidencias/E4/reverificacao_e4_v2.txt                                  existe=True
+  evidencias/E5/notebook_E5.txt                                          existe=True
+  evidencias/E6/06_com_sem_contexto.txt                                  existe=True
+  evidencias/E7/saidas_notebook.txt                                      existe=True
+  evidencias/E9/reconciliacao_numeros.txt                                existe=True
+
+== A2-07 cobertura do glob de e6_ollama_desligado_scripts ==
+  cobertos  : ['03_buscar.py', '04_dois_estagios.py', '05_shap.py', '06_com_sem_contexto.py', '07_ollama.py', 'avaliacao_estilo_ragas.py', 'calcular_shapley_chunks.py']
+  NÃO cobertos: ['scripts/00_checar_ambiente.py', 'scripts/01_preparar_corpus.py', 'scripts/02_indexar.py']
+    scripts/00_checar_ambiente.py          usa rag.cli_seguro()=False coberto=False
+    scripts/01_preparar_corpus.py          usa rag.cli_seguro()=False coberto=False
+    scripts/02_indexar.py                  usa rag.cli_seguro()=False coberto=False
+    scripts/03_buscar.py                   usa rag.cli_seguro()=True coberto=True
+    scripts/04_dois_estagios.py            usa rag.cli_seguro()=True coberto=True
+    scripts/05_shap.py                     usa rag.cli_seguro()=True coberto=True
+    scripts/06_com_sem_contexto.py         usa rag.cli_seguro()=True coberto=True
+    scripts/07_ollama.py                   usa rag.cli_seguro()=True coberto=True
+    opcional/avaliacao_estilo_ragas.py     usa rag.cli_seguro()=True coberto=True
+    opcional/calcular_shapley_chunks.py    usa rag.cli_seguro()=True coberto=True
+
+== A2-08 rótulos gravados na evidência × rótulos do código atual ==
+  '3.6 filtro ano>=2030'                                  presente em verificar.py = True
+  '3.6 filtro idioma=pt (sem artigos)'                    presente em verificar.py = False
+  '4.4a estágio 1 vazio (ano>=2030)'                      presente em verificar.py = True
+  '4.4a estágio 1 vazio (idioma=pt)'                      presente em verificar.py = False
+  E3/verificacao_E3.txt: ['3.6 filtro idioma=pt (sem artigos): 0 resultados, sem erro']
+  E3/reverificacao_e3.txt: ['3.6 filtro idioma=pt (sem artigos): 0 resultados, sem erro']
+  E4/reverificacao_e4.txt: ["4.4 estágio 1 vazio (idioma=pt): caminho = 'busca simples (estágio 1 sem correspondência: nenhum resumo com esse filtro)', 0 resultados"]
+  E4/reverificacao_e4_v2.txt: ["4.4a estágio 1 vazio (idioma=pt): caminho = 'busca simples (estágio 1 sem correspondência: nenhum resumo com esse filtro)', 0 resultados", "4.4b pergunta fora da base sem filtro: caminho = 'busca simples (estágio 1 sem correspondência: resumo mais próximo está a distância 0.7322, acima do limiar 0.6)' | começa com 'busca simples (estágio 1 sem correspondência: resumo mais próximo' = True | 4 resultados"]
