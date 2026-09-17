@@ -43,13 +43,16 @@ Cada entrada abaixo aconteceu de verdade durante a montagem e a verificação do
 
 ## Indexação e busca
 
-### A indexação demora quase 20 minutos
-- **Causa:** gerar os 556 embeddings do `bge-m3` em CPU levou 1141 s na 1ª execução e 1111 s na 2ª.
-- **Resposta:** "É esperado sem GPU. Rode `scripts/02_indexar.py` uma vez; ele grava a coleção em `chroma_db/` e o notebook só a reabre (`REINDEXAR = False`)."
+### A indexação demora mais de 20 minutos
+- **Causa:** gerar os 659 embeddings do `bge-m3` em CPU levou **1420 s (23,7 min)** na medição mais recente desta máquina, com o corpus de 8 artigos. No corpus anterior, de 6 artigos e 556 embeddings, eram 1141 s e 1111 s (`docs/evidencias/E2/02_indexar_execucao1.txt`, `02_indexar_execucao2.txt`).
+- **Resposta:** "É esperado sem GPU: cerca de 24 minutos nesta máquina. Rode `scripts/02_indexar.py` uma vez, **fora da aula**; ele grava a coleção em `chroma_db/` e o notebook a reabre em vez de reindexar."
+- **Cuidado:** hoje o notebook só deixa de reindexar se `REINDEXAR = False` **e** a contagem da coleção conferir com o número de chunks; basta divergir para ele reindexar ao vivo. Correção em [#40](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/40).
+- **De onde vêm os 1420 s:** do resumo da bateria `ferramentas/rodar_scripts.sh` de 2026-09-16 (`02_indexar.py → exit 0 em 1420s`), com a contagem confirmada por `verificar.py e2` (659/659). O arquivo `docs/evidencias/E7/log_02_indexar.txt` cita o valor, mas é uma **reconstrução** — a saída original foi sobrescrita por um `git checkout`, como a nota no fim do próprio arquivo registra.
 
-### O filtro `idioma = pt` não traz nada
-- **Causa:** ainda não há artigos em português no corpus. O resultado vazio é o comportamento esperado e não gera erro (E3 critério 3.6).
-- **Resposta:** "Ainda não há artigos em português. Esse filtro volta vazio de propósito."
+### O filtro `idioma = pt` traz pouca coisa, ou eu esperava que viesse vazio
+- **Causa:** o corpus tem **2 artigos em português** desde o T12/#12 (`rocha2025_ragsft.pdf`, SBBD 2025; `medeiros2025_embeddings_pt.pdf`, SEMISH 2025), que respondem por 103 dos 659 chunks indexados. `idioma = pt` recupera trechos de verdade — só de dois artigos, contra seis em inglês. Quem lembra da versão antiga do material (corpus só em inglês) espera resultado vazio e estranha.
+- **Resposta:** "Traz sim: dois dos oito artigos estão em português. O filtro que volta vazio de propósito é um que não casa com nada, por exemplo `ano >= 2030` — é o caso que o critério 3.6 usa para mostrar que filtro sem correspondência devolve lista vazia sem erro."
+- **Onde conferir:** `ferramentas/verificar.py e3` imprime os dois casos lado a lado — `3.6 filtro ano>=2030 (sem artigos): 0 resultados, sem erro` e `3.6b filtro idioma=pt (com artigos, T12/#12): 4 resultados, todos pt = True`. Os 4 são o `k` pedido na chamada, não o total disponível: com o filtro de idioma a coleção tem 103 chunks para escolher.
 
 ### A busca em dois estágios "perdeu" o artigo certo
 - **Causa:** o 1º estágio escolhe os artigos pelos **resumos**. Se o resumo não menciona o assunto, o artigo fica de fora. Caso registrado na etapa E4: "Recuperar mais documentos sempre melhora a resposta do modelo?" encontra o *Lost in the Middle* na busca simples, mas não nos dois estágios.

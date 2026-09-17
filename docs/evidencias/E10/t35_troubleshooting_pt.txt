@@ -1,0 +1,164 @@
+================================================================================
+T35 / issue #38 — Correção de docs/troubleshooting.md (critério 10.3)
+Data: 2026-09-16 · Máquina de demo (i5-8250U, 7,9 GB RAM, GPU integrada)
+Origem: achados A5-09 (alta), A5-10 e A2-16 da RODADA-1 — bloqueador B4
+================================================================================
+
+## O que estava errado
+
+Duas entradas da seção "Indexação e busca" mandavam o facilitador dizer, ao vivo, coisas que o
+corpus atual tornou falsas (docs/troubleshooting.md:46-52 no commit dc97e1c):
+
+  ### A indexação demora quase 20 minutos
+  - **Causa:** gerar os 556 embeddings do `bge-m3` em CPU levou 1141 s na 1ª execução e 1111 s na 2ª.
+
+  ### O filtro `idioma = pt` não traz nada
+  - **Causa:** ainda não há artigos em português no corpus. O resultado vazio é o comportamento
+    esperado e não gera erro (E3 critério 3.6).
+  - **Resposta:** "Ainda não há artigos em português. Esse filtro volta vazio de propósito."
+
+O corpus tem 8 artigos e 659 chunks desde o T12/#12, dois deles em português.
+
+--------------------------------------------------------------------------------
+## 1. O filtro idioma=pt traz resultados de verdade
+
+Comando:
+  PYTHONIOENCODING=utf-8 .venv/Scripts/python ferramentas/verificar.py e3
+
+Saída (exit=0):
+
+3.1/3.2 k=1: 1 resultados | ordenado=True | campos texto/distancia/arquivo/pagina=True
+3.1/3.2 k=4: 4 resultados | ordenado=True | campos texto/distancia/arquivo/pagina=True
+3.1/3.2 k=8: 8 resultados | ordenado=True | campos texto/distancia/arquivo/pagina=True
+3.3 pergunta: 'Quais métricas o Ragas usa para avaliar um pipeline de RAG?' | esperado es2023_ragas.pdf | posições no top-4: [1, 2]
+3.4 ano >= 2023: 8 resultados, todos obedecem = True
+3.4 tema = retrieval: 8 resultados, todos obedecem = True
+3.4 idioma = en: 8 resultados, todos obedecem = True
+3.5 cross-lingual: 'O desempenho cai quando a informação relevante está no meio de um contexto longo?' → [('liu2023_lost_middle.pdf', 2, 'en'), ('liu2023_lost_middle.pdf', 1, 'en'), ('liu2023_lost_middle.pdf', 11, 'en')]
+    trecho do 1º: or end of the context. We find that changing the position of relevant information in the input context can substantially affect model performance, indicating that current language models do not robust
+3.6 filtro ano>=2030 (sem artigos): 0 resultados, sem erro
+3.6b filtro idioma=pt (com artigos, T12/#12): 4 resultados, todos pt = True
+[e3 em 60.6s]
+
+As duas últimas linhas são o ponto:
+
+  3.6 filtro ano>=2030 (sem artigos): 0 resultados, sem erro
+  3.6b filtro idioma=pt (com artigos, T12/#12): 4 resultados, todos pt = True
+
+O caso que volta vazio de propósito (critério 3.6) é o filtro que não casa com nada — ano >= 2030 —,
+não o filtro de idioma.
+
+Atenção ao que o "4" é: é o `k` pedido na chamada (ferramentas/verificar.py:116 usa k=4), não o total
+de trechos em português disponíveis. O total, contado direto na coleção:
+
+  .venv/Scripts/python -c "import rag; c=rag.abrir_colecao();
+      d=c.get(where={'idioma':'pt'}, include=['metadatas']);
+      print(len(d['ids']), sorted({m['arquivo'] for m in d['metadatas']}), c.count())"
+
+  103 ['medeiros2025_embeddings_pt.pdf', 'rocha2025_ragsft.pdf'] 659
+
+103 dos 659 chunks são em português, vindos dos 2 artigos. É esse número que a entrada nova publica.
+
+--------------------------------------------------------------------------------
+## 2. Conferência por um segundo comando
+
+docs/evidencias/E7/log_03_buscar.txt (saída real de scripts/03_buscar.py na bateria de 2026-09-16),
+linhas 48-52, mostra o mesmo filtro recuperando os dois artigos em português:
+
+  [idioma = pt (T12/#12: 2 artigos)] {'idioma': 'pt'}
+   1. dist=0.5140 | rocha2025_ragsft.pdf p.5 | 2025 retrieval pt | para cada conjunto de dados…
+   2. dist=0.5196 | rocha2025_ragsft.pdf p.8 | 2025 retrieval pt | de recuperação e geração…
+   3. dist=0.5196 | rocha2025_ragsft.pdf p.4 | 2025 retrieval pt | de todos os 783 milhões…
+   4. dist=0.5363 | medeiros2025_embeddings_pt.pdf p.7 | 2025 avaliacao pt | proporcional entre…
+
+Ressalva honesta: os dois comandos leem a **mesma** coleção do ChromaDB, então não são fontes
+independentes — descartam erro de chamada e de parâmetro, não um problema na própria coleção. Para
+essa camada a garantia é outra: `verificar.py e2` confirma 659/659 vetores contra os chunks gerados.
+
+--------------------------------------------------------------------------------
+## 3. Números de indexação
+
+Valor publicado antes: 556 embeddings, 1141 s / 1111 s.
+Valor real do corpus atual: 659 embeddings, 1420 s (23,7 min).
+
+De onde vem o 1420 s, dito com precisão:
+  - fonte primária: o resumo da bateria `ferramentas/rodar_scripts.sh` de 2026-09-16
+    ("02_indexar.py → exit 0 em 1420s");
+  - contagem confirmada de forma independente por `verificar.py e2` (659/659 vetores);
+  - docs/evidencias/E7/log_02_indexar.txt:30 cita "659 vetores na coleção 'artigos_rag' em 1420.0s",
+    MAS o próprio arquivo registra, nas linhas 37-46, que é uma **reconstrução**: a saída original
+    foi sobrescrita por um `git checkout` com o processo ainda rodando.
+
+A entrada nova do troubleshooting diz isso explicitamente, em vez de apresentar o log reconstruído
+como se fosse a saída da execução. Fonte única para esse número — não há segunda medição do corpus
+de 8 artigos, e fazer uma custaria 23,7 min de reindexação, o que o protocolo proíbe fora de medição
+planejada.
+
+Os números antigos (1141 s / 1111 s, 556 embeddings) não foram apagados: ficaram na entrada como
+histórico do corpus de 6 artigos, com o arquivo de evidência de cada um
+(E2/02_indexar_execucao1.txt, E2/02_indexar_execucao2.txt), porque são medições reais — só não são
+mais o estado atual.
+
+--------------------------------------------------------------------------------
+## 4. A frase sobre REINDEXAR, que a correção não podia republicar
+
+A resposta antiga terminava com "o notebook só a reabre (`REINDEXAR = False`)". O bloqueador B1
+(achado A3-03, issue #40) provou que isso é falso hoje: `ferramentas/construir_notebook.py:149` usa
+`if REINDEXAR or colecao.count() != len(chunks):`, então a contagem divergente reindexa ao vivo mesmo
+com a chave em False.
+
+Reescrever a entrada sem tocar nessa frase teria republicado, num commit de correção, uma fala já
+auditada como falsa. A entrada nova separa as duas coisas: a resposta diz que o notebook reabre em vez
+de reindexar, e um item "Cuidado" registra a condição que falta, com o link para #40. Quando o #40
+fechar, o "Cuidado" sai.
+
+--------------------------------------------------------------------------------
+## 5. A2-16: a evidência que sustentava o ✅ de 10.3
+
+Corrigir só o troubleshooting deixaria de pé o arquivo que o achado A2-16 aponta:
+docs/evidencias/E10/troubleshooting_cobertura.txt, a tabela "problema × entrada" que sustenta o ✅ de
+10.3. Duas linhas dela repetiam a afirmação falsa e citavam títulos de entrada que esta correção
+renomeou (referências órfãs):
+
+  | Indexação ~19 min | … | "A indexação demora quase 20 minutos" |
+  | Filtro idioma=pt vazio | E3/verificacao_E3.txt (3.6) | "O filtro idioma = pt não traz nada" |
+
+As duas foram reescritas: o problema real de cada uma, a evidência que o sustenta hoje e o título novo
+da entrada. Sem isso, o ✅ de 10.3 continuaria apoiado num documento que afirma o contrário do código.
+
+--------------------------------------------------------------------------------
+## 6. Varredura final
+
+Comando (com -E, alternância de verdade):
+  grep -rnE "portugu(ê|e)s" docs/troubleshooting.md
+
+Saída:
+
+53:- **Causa:** o corpus tem **2 artigos em português** desde o T12/#12 (`rocha2025_ragsft.pdf`, SBBD 2025; `medeiros2025_embeddings_pt.pdf`, SEMISH 2025), que respondem por 103 dos 659 chunks indexados. `idioma = pt` recupera trechos de verdade — só de dois artigos, contra seis em inglês. Quem lembra da versão antiga do material (corpus só em inglês) espera resultado vazio e estranha.
+54:- **Resposta:** "Traz sim: dois dos oito artigos estão em português. O filtro que volta vazio de propósito é um que não casa com nada, por exemplo `ano >= 2030` — é o caso que o critério 3.6 usa para mostrar que filtro sem correspondência devolve lista vazia sem erro."
+
+Todas as ocorrências estão nas entradas novas e todas afirmam que os artigos existem. Nenhuma
+afirmação de ausência sobrou no arquivo.
+
+--------------------------------------------------------------------------------
+## 7. Fora de escopo, com dono
+
+A auditoria registrou os mesmos números defasados em outros arquivos, que este ticket não toca porque
+têm ticket próprio:
+
+  - docs/medicoes.md (556 chunks, 1104,1 s, AppTest do 3b) → T36 / #43
+  - README.md e CLAUDE.md ("~19–20 min", corpus de 6 PDFs) → T45 / #50
+  - docs/ESTADO_ATUAL.md:198, que lista "troubleshooting.md:47 … 556 embeddings" como divergência
+    aberta e agora é ponteiro morto → T46 / #51
+
+Enquanto esses três não fecharem, o repositório segue com números conflitantes entre arquivos. Está
+declarado aqui para não parecer que a correção foi completa além do que foi.
+
+--------------------------------------------------------------------------------
+## Critério
+
+10.3 — mantido ✅. A correção remove uma instrução de fala falsa e reancora a evidência de cobertura;
+a definição do critério não foi alterada (o texto da coluna "como verificar" só ganhou os ponteiros
+para os dois arquivos de evidência, convenção já usada em 1.6, 4.4 e 9.1).
+
+Nenhum outro status alterado. `scripts/02_indexar.py` NÃO foi rodado.
