@@ -49,7 +49,7 @@ sys.path.insert(0, str(RAIZ))
 import config
 import rag
 
-REINDEXAR = False        # True: apaga e recria a coleção (alguns minutos em CPU)
+REINDEXAR = False        # True: apaga e recria a coleção — 1420 s (23,7 min) medidos nesta máquina
 LLM_AO_VIVO = True       # False: usa as respostas salvas em resultados/
 SHAP_AO_VIVO = True      # False: mostra o gráfico SHAP salvo em resultados/
 
@@ -144,15 +144,34 @@ md("""
 Cada chunk vira um vetor gerado pelo `bge-m3` (multilíngue) e é gravado com seus metadados.
 """)
 
+# hazard (achado A3-03, T31): a condição desta célula era
+# `if REINDEXAR or colecao.count() != len(chunks)`, e o `or` fazia REINDEXAR = False NÃO impedir a
+# reindexação — bastava a contagem divergir para o notebook gastar 1420 s (23,7 min) ao vivo, no
+# bloco 2, sob transmissão. Agora quem autoriza reindexar é a chave, e só ela; divergência de
+# contagem é aviso. O comentário fica aqui, no gerador, e não dentro da célula: a célula é projetada
+# ao vivo e não é lugar de narrar o histórico do bug.
+# hazard: avisar e seguir não basta — com o índice defasado, o `colecao.get()` abaixo pode voltar
+# vazio e a célula morreria num IndexError opaco logo depois do aviso, trocando 24 min por um crash.
+# Por isso a amostra é conferida antes de ser usada.
 code("""
 colecao = rag.abrir_colecao()
-if REINDEXAR or colecao.count() != len(chunks):
+if REINDEXAR:
     inicio = time.perf_counter()
     colecao = rag.indexar(chunks)
     print(f"Indexação em {time.perf_counter() - inicio:.0f}s")
+elif colecao.count() != len(chunks):
+    print(f"[AVISO] a coleção tem {colecao.count()} vetores e os PDFs geram {len(chunks)} chunks.\\n"
+          f"        O índice está defasado, mas NÃO vou reindexar agora (leva ~24 min em CPU).\\n"
+          f"        Rode `python scripts/02_indexar.py` fora da aula, ou ponha REINDEXAR = True acima.")
+
 amostra = colecao.get(ids=["es2023_ragas-p001-c00"], include=["metadatas", "embeddings"])
-print(f"{colecao.count()} vetores | dimensão {len(amostra['embeddings'][0])}")
-{k: (v[:80] + "…" if isinstance(v, str) and len(v) > 80 else v) for k, v in amostra["metadatas"][0].items()}
+if not amostra["ids"]:
+    print(f"{colecao.count()} vetores | o chunk de exemplo não está no índice — reindexe fora da aula")
+    metadados_amostra = {}
+else:
+    print(f"{colecao.count()} vetores | dimensão {len(amostra['embeddings'][0])}")
+    metadados_amostra = amostra["metadatas"][0]
+{k: (v[:80] + "…" if isinstance(v, str) and len(v) > 80 else v) for k, v in metadados_amostra.items()}
 """)
 
 md("""

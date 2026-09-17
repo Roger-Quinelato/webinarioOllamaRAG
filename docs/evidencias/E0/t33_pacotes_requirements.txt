@@ -1,0 +1,253 @@
+================================================================================
+T33 / issue #39 — scripts/00_checar_ambiente.py passa a checar requirements.txt
+Data: 2026-09-16/17 · Máquina de demo (i5-8250U, 7,9 GB RAM, GPU integrada)
+Origem: achado A6-02 (alta) da RODADA-1 — bloqueador B3 · Critérios: 0.5, 0.6, 0.8
+================================================================================
+
+## O que estava errado
+
+`scripts/00_checar_ambiente.py:37` tinha a lista de pacotes escrita no código:
+
+    pacotes = ["ollama", "chromadb", "streamlit", "pypdf", "shap", "numpy"]
+
+Seis nomes, contra dez declarados em `requirements.txt`. Faltavam `matplotlib` (exigido por
+`shap.plots.text`, usado em `scripts/05_shap.py:36`), `ipykernel` (kernel do notebook), `pandas` e
+`httpx`. O script imprimia "Ambiente pronto." e saía com 0 num ambiente onde o bloco de SHAP quebra
+com traceback cru depois de ~40 s de cálculo — ao vivo, no bloco 4 da aula.
+
+A correção troca a lista fixa pela leitura do próprio `requirements.txt`: dependência nova passa a
+ser checada sem ninguém lembrar de editar uma segunda lista.
+
+--------------------------------------------------------------------------------
+## 1. Execução normal — exit 0, agora com os 10 pacotes
+
+Comando:
+  PYTHONIOENCODING=utf-8 .venv/Scripts/python scripts/00_checar_ambiente.py
+
+Saída:
+
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[OK ] requirements.txt existe — D:\webinarioOllamaRAG\requirements.txt
+10 pacotes declarados em requirements.txt: ollama, chromadb, streamlit, pypdf, shap, ipykernel, numpy, pandas, matplotlib, httpx
+[OK ] requirements.txt declara pelo menos uma dependência — D:\webinarioOllamaRAG\requirements.txt
+[OK ] Todas as linhas de requisito foram reconhecidas
+[OK ] import ollama — sem __version__
+[OK ] import chromadb — 1.5.9
+[OK ] import streamlit — 1.63.0
+[OK ] import pypdf — 6.18.1
+[OK ] import shap — 0.52.0
+[OK ] import ipykernel — 7.3.0
+[OK ] import numpy — 2.5.3
+[OK ] import pandas — 3.0.5
+[OK ] import matplotlib — 3.11.2
+[OK ] import httpx — 0.28.1
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+[OK ] Modelos baixados — bge-m3:latest, gemma4:26b, qwen2.5:1.5b, qwen2.5:3b
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+Ambiente pronto.
+exit=0
+
+Os quatro que a lista fixa não cobria aparecem com versão lida do módulo importado:
+ipykernel 7.3.0, pandas 3.0.5, matplotlib 3.11.2, httpx 0.28.1.
+
+--------------------------------------------------------------------------------
+## 2. O script reprova quando um pacote declarado falta
+
+Sem desinstalar nada: uma cópia do `requirements.txt` com um nome inexistente a mais, passada como
+argumento. O argumento existe para isto — está documentado no cabeçalho do script, e sem ele o
+arquivo é sempre o `requirements.txt` do projeto.
+
+Comando:
+  cp requirements.txt <tmp>/requirements_com_pacote_inexistente.txt
+  echo "pacote-que-nao-existe-t33==1.0.0" >> <tmp>/requirements_com_pacote_inexistente.txt
+  .venv/Scripts/python scripts/00_checar_ambiente.py <tmp>/requirements_com_pacote_inexistente.txt
+
+Saída (fim):
+
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[OK ] requirements_com_pacote_inexistente.txt existe — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\requirements_com_pacote_inexistente.txt
+11 pacotes declarados em requirements_com_pacote_inexistente.txt: ollama, chromadb, streamlit, pypdf, shap, ipykernel, numpy, pandas, matplotlib, httpx, pacote-que-nao-existe-t33
+[OK ] requirements_com_pacote_inexistente.txt declara pelo menos uma dependência — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\requirements_com_pacote_inexistente.txt
+[OK ] Todas as linhas de requisito foram reconhecidas
+[OK ] import ollama — sem __version__
+[OK ] import chromadb — 1.5.9
+[OK ] import streamlit — 1.63.0
+[OK ] import pypdf — 6.18.1
+[OK ] import shap — 0.52.0
+[OK ] import ipykernel — 7.3.0
+[OK ] import numpy — 2.5.3
+[OK ] import pandas — 3.0.5
+[OK ] import matplotlib — 3.11.2
+[OK ] import httpx — 0.28.1
+[FALHOU] import pacote-que-nao-existe-t33 (módulo pacote_que_nao_existe_t33) — No module named 'pacote_que_nao_existe_t33'
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+[OK ] Modelos baixados — bge-m3:latest, gemma4:26b, qwen2.5:1.5b, qwen2.5:3b
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+1 verificação(ões) falharam: import pacote-que-nao-existe-t33 (módulo pacote_que_nao_existe_t33)
+exit=1
+
+Reprova com exit=1 e nomeia o pacote. O ambiente real não foi tocado: nenhum `pip uninstall`,
+nenhum arquivo do `site-packages` alterado.
+
+--------------------------------------------------------------------------------
+## 3. Os caminhos de borda do parser, exercitados
+
+Um parser de `requirements.txt` que descarta em silêncio a linha que não entende reproduz o próprio
+defeito que este ticket corrige. Os dois casos foram construídos e rodados:
+
+=== caso A: arquivo inexistente ===
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[FALHOU] nao_existe.txt existe — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\nao_existe.txt
+0 pacotes declarados em nao_existe.txt: 
+[FALHOU] nao_existe.txt declara pelo menos uma dependência — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\nao_existe.txt
+[OK ] Todas as linhas de requisito foram reconhecidas
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+exit=1
+
+=== caso B: linha nao reconhecida (-r) + marcador de ambiente (;) ===
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+[OK ] requirements_linha_estranha.txt existe — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\requirements_linha_estranha.txt
+10 pacotes declarados em requirements_linha_estranha.txt: ollama, chromadb, streamlit, pypdf, shap, ipykernel, numpy, pandas, matplotlib, httpx
+[OK ] requirements_linha_estranha.txt declara pelo menos uma dependência — C:\Users\roger\AppData\Local\Temp\claude\D--webinarioOllamaRAG\df795235-5b65-4076-8f1c-abbb6e3299c6\scratchpad\requirements_linha_estranha.txt
+[FALHOU] Todas as linhas de requisito foram reconhecidas — não reconhecidas: linha 11: -r requirements-dev.txt
+[INFO] requisito com marcador de ambiente, não checado — linha 12: tomli==2.0.1; python_version<"3.11"
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+[OK ] Modelos baixados — bge-m3:latest, gemma4:26b, qwen2.5:1.5b, qwen2.5:3b
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+1 verificação(ões) falharam: Todas as linhas de requisito foram reconhecidas
+exit=1
+
+  - **arquivo inexistente**: reprova com `[FALHOU] … existe` e exit 1, em vez do `FileNotFoundError`
+    cru que a 1ª versão levantava;
+  - **linha não reconhecida** (`-r requirements-dev.txt`): reprova nomeando a linha, em vez de
+    sumir com ela;
+  - **marcador de ambiente** (`tomli==2.0.1; python_version<"3.11"`): sai como `[INFO] … não
+    checado`, sem reprovar — o pacote pode legitimamente não estar instalado neste Python, e
+    reprovar daria falso negativo. Fica visível, que é o ponto.
+
+--------------------------------------------------------------------------------
+## 4. Um erro que a 1ª versão desta correção cometeu, e como foi pego
+
+Traduzir "nome no requirements.txt" para "nome do módulo" não é trivial (`pillow` importa como
+`PIL`). A 1ª versão usou `importlib.metadata.packages_distributions()` e pegou o **primeiro** módulo
+mapeado para cada distribuição. Saída dessa versão:
+
+Python 3.12.10 em D:\webinarioOllamaRAG\.venv
+[OK ] Python 3.10+ — 3.12.10
+[OK ] Rodando dentro de um ambiente virtual — D:\webinarioOllamaRAG\.venv
+10 pacotes declarados em requirements.txt: ollama, chromadb, streamlit, pypdf, shap, ipykernel, numpy, pandas, matplotlib, httpx
+[OK ] requirements.txt declara pelo menos uma dependência — D:\webinarioOllamaRAG\requirements.txt
+[OK ] import ollama — sem __version__
+[OK ] import chromadb (módulo schemas) — sem __version__
+[OK ] import streamlit — 1.63.0
+[OK ] import pypdf — 6.18.1
+[OK ] import shap — 0.52.0
+[OK ] import ipykernel (módulo __pycache__) — sem __version__
+[OK ] import numpy — 2.5.3
+[OK ] import pandas — 3.0.5
+[OK ] import matplotlib (módulo __pycache__) — sem __version__
+[OK ] import httpx — 0.28.1
+[OK ] Servidor Ollama respondendo — http://localhost:11434 (versão 0.34.0)
+[OK ] Modelos baixados — bge-m3:latest, gemma4:26b, qwen2.5:1.5b, qwen2.5:3b
+[INFO] OLLAMA_MODELS = D:\webinarioOllamaRAG\Ollama\models
+
+Ambiente pronto.
+exit=0
+
+[exited with code 0]
+
+Repare nas linhas 7, 11 e 14: `chromadb` virou o módulo `schemas`, e `ipykernel` e `matplotlib`
+viraram `__pycache__`. Todas deram `[OK ]`. O script saiu 0 **sem ter importado nenhum dos três** —
+a mesma classe de checagem muda que a auditoria condenou no eixo A2.
+
+Por que acontece — nomes de topo que cada distribuição declara nesta `.venv`:
+
+--- por que o mapeamento ingenuo falha: nomes de topo por distribuicao ---
+  chromadb     -> ['chromadb', 'chromadb_rust_bindings', 'schemas']
+  ipykernel    -> ['__pycache__', 'ipykernel', 'ipykernel_launcher']
+  matplotlib   -> ['__pycache__', 'matplotlib', 'mpl_toolkits', 'pylab']
+  ollama       -> ['ollama']
+  pypdf        -> ['pypdf']
+  shap         -> ['shap']
+  numpy        -> ['numpy']
+  pandas       -> ['pandas']
+  streamlit    -> ['streamlit']
+  httpx        -> ['httpx']
+
+  import __pycache__ NAO levanta erro; __file__ = None
+  (namespace package: diretorio sem arquivos importa em silencio -- e o modo de falha do A1-00)
+
+--- pip check ---
+No broken requirements found.
+exit=0
+
+Correção: a escolha do módulo prefere o candidato cujo nome bate com o da distribuição, e só depois
+um candidato que não comece com sublinhado (`_`). É isso que faz `chromadb`, `ipykernel` e
+`matplotlib` aparecerem com a versão certa na seção 1.
+
+Há ainda um aviso de última linha para módulo importado como **namespace package**
+(`__file__ is None`), que é o que torna `import __pycache__` um falso OK. Ele **avisa e não
+reprova**, de propósito: existe namespace package legítimo (`google`, de protobuf; `opentelemetry`),
+e reprovar um deles mandaria reinstalar um pacote sadio. A detecção de verdade do modo de falha do
+A1-00 — `RECORD` apontando para arquivos que sumiram — é o ticket T37/#44.
+
+--------------------------------------------------------------------------------
+## 5. Um defeito pré-existente, corrigido de passagem
+
+A linha seguinte ao laço de imports era:
+
+    if "ollama" not in falhas:
+
+`falhas` guarda o **rótulo** da checagem (`"import ollama"`), nunca o nome do pacote, então a
+condição era sempre verdadeira: com o import do `ollama` quebrado, o script seguia para o bloco do
+servidor e trocava uma falha clara por um erro de import mais adiante. Agora `checar()` devolve o
+resultado, o laço guarda os nomes em `imports_quebrados`, e a condição usa esse conjunto.
+
+--------------------------------------------------------------------------------
+## 6. O que este ticket NÃO resolve
+
+O critério 0.8 afirma que o script "cobre 0.1–0.6". O achado **A6-01** (crítico) mostrou que ele não
+cobre 0.2 (`OLLAMA_MODELS` só aparece num `print("[INFO] …")`, sem reprovar) nem a parte de 0.5 que
+exige versões fixadas com `==` e `pip check` limpo. Este ticket fecha a outra metade de 0.5 — "e
+instaladas" — e fecha 0.6 por inteiro, mas **0.8 segue contestado e não foi reverificado aqui**; a
+correção é o T34/#42, que está bloqueado por este ticket justamente por mexer na mesma função.
+
+`pip check` foi rodado à mão nesta reverificação (seção 4, "No broken requirements found.",
+exit=0), mas continua fora do script até o #42.
+
+--------------------------------------------------------------------------------
+## 7. Regressão pega logo depois, por uma checagem do próprio repositório
+
+Rodando `ferramentas/verificar.py e7_duplicadas` no ticket seguinte (T31), a checagem reprovou
+(exit=1) com:
+
+    7.4 funções de rag.py também definidas em outro arquivo:
+        {'_normalizar': ['rag.py', 'scripts/00_checar_ambiente.py']}
+
+A função auxiliar introduzida aqui se chamava `_normalizar`, homônima de `rag._normalizar()` — que
+normaliza espaços em texto de metadados, outra regra e outro propósito. Renomeada para
+`_normalizar_nome_pacote`; `e7_duplicadas` voltou a exit=0. Vale registrar que o defeito foi achado
+pela checagem automática, não por leitura: é o tipo de coisa que a auditoria queria que as checagens
+pegassem.
+
+--------------------------------------------------------------------------------
+## Critérios
+
+0.6 — ✅, agora com cobertura de todos os pacotes declarados, não de uma lista fixa de 6.
+0.5 — ✅; a metade "e instaladas" passou a ser automática. Fixação com `==` e `pip check` seguem
+      conferidos à mão, e entram no script no #42.
+0.8 — **não reverificado**. Segue ✅ pelo que o critério mede hoje (o script sai 0), e segue
+      contestado por A6-01. Não pode ser dado como fechado antes do #42.
+
+Nada reindexado. `scripts/02_indexar.py` NÃO foi rodado.
