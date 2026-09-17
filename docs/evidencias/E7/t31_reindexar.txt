@@ -1,0 +1,261 @@
+================================================================================
+T31 / issue #40 — REINDEXAR volta a ser a única chave que autoriza reindexar
+Data: 2026-09-17 · Máquina de demo (i5-8250U, 7,9 GB RAM, GPU integrada)
+Origem: achado A3-03 (alta) da RODADA-1 — bloqueador B1 · Critérios: 7.1–7.6, 9.4
+================================================================================
+
+## O que estava errado
+
+`ferramentas/construir_notebook.py:149` gerava a célula de indexação com:
+
+    if REINDEXAR or colecao.count() != len(chunks):
+
+O `or` fazia `REINDEXAR = False` **não impedir** a reindexação: bastava a contagem da coleção
+divergir do número de chunks para o notebook reindexar ao vivo, 1420 s (23,7 min), no bloco 2 do
+cronograma, sob transmissão. E a linha 52 prometia "alguns minutos".
+
+Correção: `REINDEXAR` decide sozinho. Divergência de contagem vira **aviso** com instrução, não ação.
+
+--------------------------------------------------------------------------------
+## 1. A prova de que a condição nova faz o que promete
+
+Não dá para provar isso reexecutando o notebook: a coleção está íntegra (659/659), a contagem bate e
+o ramo nunca é exercitado. Então o teste extrai a **própria célula** do `webinario_rag.ipynb` salvo
+— não uma cópia do código — e a roda contra uma coleção dublê com contagem divergente, com
+`rag.indexar` substituído por uma função que levanta exceção se for chamada.
+
+Script: `docs/evidencias/E7/t31_prova_reindexar.py`
+Comando: `.venv/Scripts/python docs/evidencias/E7/t31_prova_reindexar.py`
+
+--- codigo sob teste, extraido de webinario_rag.ipynb ---
+colecao = rag.abrir_colecao()
+if REINDEXAR:
+    inicio = time.perf_counter()
+    colecao = rag.indexar(chunks)
+    print(f"Indexação em {time.perf_counter() - inicio:.0f}s")
+elif colecao.count() != len(chunks):
+    print(f"[AVISO] a coleção tem {colecao.count()} vetores e os PDFs geram {len(chunks)} chunks.\n"
+          f"        O índice está defasado, mas NÃO vou reindexar agora (leva ~24 min em CPU).\n"
+          f"        Rode `python scripts/02_indexar.py` fora da aula, ou ponha REINDEXAR = True acima.")
+
+
+--- caso 1: REINDEXAR = False com contagem divergente (600 x 659) ---
+[AVISO] a coleção tem 600 vetores e os PDFs geram 659 chunks.
+        O índice está defasado, mas NÃO vou reindexar agora (leva ~24 min em CPU).
+        Rode `python scripts/02_indexar.py` fora da aula, ou ponha REINDEXAR = True acima.
+RESULTADO: nao reindexou e avisou, nomeando scripts/02_indexar.py
+
+--- caso 2: REINDEXAR = True e a mesma divergencia (a chave manda) ---
+RESULTADO: chamou rag.indexar(), como o criterio pede
+
+--- caso 3: a condicao ANTIGA, para mostrar o que ela fazia ---
+RESULTADO: com REINDEXAR = False, a versao antiga chamou rag.indexar()
+
+Os tres casos passaram. Nenhuma reindexacao real aconteceu: rag.indexar foi substituido
+por uma funcao que so levanta IndexarChamado, e a colecao usada e uma duble em memoria.
+exit=0
+
+Os três casos cobrem o que importa: a chave em `False` não reindexa mesmo com contagem divergente
+**e avisa, nomeando `scripts/02_indexar.py`** (caso 1); a chave em `True` reindexa (caso 2, para a
+correção não ter matado a funcionalidade); e a condição antiga, rodada lado a lado, reindexa com a
+chave em `False` (caso 3) — o defeito original demonstrado, não apenas descrito.
+
+Duas armadilhas que a 1ª versão desta sonda tinha, apontadas pelo `/code-review` e corrigidas:
+
+  - o caso 1 "passava" só por não levantar exceção, sem nunca verificar que o ramo do aviso rodou.
+    Agora a saída é capturada e o teste reprova se `[AVISO]` ou `scripts/02_indexar.py` não
+    aparecerem nela;
+  - o recorte da célula é acoplado ao texto dela. Agora há guardas explícitas: se `if REINDEXAR:`,
+    `elif colecao.count() != len(chunks):`, `rag.indexar(chunks)` ou a marca de fim do trecho
+    sumirem, a sonda reprova em vez de passar sem exercitar nada.
+
+Nenhuma reindexação real aconteceu: a coleção é uma dublê em memória e `rag.indexar` nunca chega a
+rodar.
+
+--------------------------------------------------------------------------------
+## 2. O aviso não podia deixar a célula seguir para uma quebra pior
+
+Primeira versão desta correção apenas avisava e seguia. Com o índice defasado, a linha seguinte
+
+    amostra = colecao.get(ids=["es2023_ragas-p001-c00"], include=["metadatas", "embeddings"])
+    print(f"{colecao.count()} vetores | dimensão {len(amostra['embeddings'][0])}")
+
+pode voltar vazia e a célula morreria num `IndexError: list index out of range` logo depois do
+aviso — ao vivo, com traceback opaco que não menciona o índice defasado. Trocar 24 minutos por um
+crash no bloco 2 não é correção.
+
+A célula agora confere a amostra antes de usá-la, e diz o que houve:
+
+    if not amostra["ids"]:
+        print(f"{colecao.count()} vetores | o chunk de exemplo não está no índice — reindexe fora da aula")
+
+--------------------------------------------------------------------------------
+## 3. Notebook regenerado e reexecutado AO VIVO
+
+O invariante do projeto é que o notebook não se edita à mão: `construir_notebook.py` o gera sem
+saídas e `executar_notebook.py` as preenche. Regenerar sem executar apagaria as saídas versionadas —
+regressão que já aconteceu no T03.
+
+Comandos:
+  .venv/Scripts/python ferramentas/construir_notebook.py      → 40 células escritas
+  .venv/Scripts/python ferramentas/executar_notebook.py
+
+D:\webinarioOllamaRAG\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+células de código: 21 | executadas: 21 | com erro: 0 | sem saída: [0] | tempo total: 439s
+  [1] 'import json' → []
+  [2] 'instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, ' → ['stream']
+  [3] 'metadados = rag.carregar_metadados()' → ['execute_result']
+  [4] 'paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pd' → ['stream']
+  [5] 'chunks = rag.gerar_chunks()' → ['execute_result', 'stream']
+  [6] 'colecao = rag.abrir_colecao()' → ['execute_result', 'stream']
+  [7] 'artigo = "es2023_ragas.pdf"' → ['execute_result', 'stream']
+  [8] 'primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_mi' → ['stream']
+  [9] 'pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG' → ['display_data']
+  [10] 'pergunta = "Como funciona a recuperação de passagens?"' → ['display_data']
+  [11] 'for texto in ("O desempenho cai quando a informação relevante está no ' → ['display_data']
+  [12] 'def comparar_buscas(pergunta):' → ['display_data']
+  [13] 'comparar_buscas("Recuperar mais documentos sempre melhora a resposta d' → ['display_data']
+  [14] 'import shap' → ['display_data', 'stream']
+  [15] 'shapley = carregar_resultado("shapley_chunks.json")' → ['execute_result', 'stream']
+  [16] '# TODO(autor): trocar pela pergunta-teste definitiva.' → ['stream']
+  [17] 'if LLM_AO_VIVO:' → ['display_data']
+  [18] 'pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta",' → ['execute_result']
+  [19] 'pergunta = "Como o Self-RAG decide quando buscar documentos?"' → ['display_data', 'stream']
+  [20] 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding=' → ['display_data']
+  [21] 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"' → ['display_data']
+exit=0
+
+21/21 células executadas, 0 erros, 439 s. A célula [6] é a da indexação: saiu com
+`['execute_result', 'stream']`, sem aviso, porque a contagem bate (659 = 659) — o ramo de aviso só
+dispara quando o índice está mesmo defasado, como a seção 1 mostra.
+
+--------------------------------------------------------------------------------
+## 4. Caminho --offline
+
+Comando:
+  .venv/Scripts/python ferramentas/executar_notebook.py --offline
+
+D:\webinarioOllamaRAG\.venv\Lib\site-packages\zmq\_future.py:718: RuntimeWarning: Proactor event loop does not implement add_reader family of methods required for zmq. Registering an additional selector thread for add_reader support via tornado. Use `asyncio.set_event_loop_policy(WindowsSelectorEventLoopPolicy())` to avoid this warning.
+  self._get_loop()
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+células de código: 21 | executadas: 21 | com erro: 0 | sem saída: [0] | tempo total: 154s
+  [1] 'import json' → []
+  [2] 'instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING, ' → ['stream']
+  [3] 'metadados = rag.carregar_metadados()' → ['execute_result']
+  [4] 'paginas = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pd' → ['stream']
+  [5] 'chunks = rag.gerar_chunks()' → ['execute_result', 'stream']
+  [6] 'colecao = rag.abrir_colecao()' → ['execute_result', 'stream']
+  [7] 'artigo = "es2023_ragas.pdf"' → ['execute_result']
+  [8] 'primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_mi' → ['stream']
+  [9] 'pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG' → ['display_data']
+  [10] 'pergunta = "Como funciona a recuperação de passagens?"' → ['display_data']
+  [11] 'for texto in ("O desempenho cai quando a informação relevante está no ' → ['display_data']
+  [12] 'def comparar_buscas(pergunta):' → ['display_data']
+  [13] 'comparar_buscas("Recuperar mais documentos sempre melhora a resposta d' → ['display_data']
+  [14] 'import shap' → ['display_data', 'stream']
+  [15] 'shapley = carregar_resultado("shapley_chunks.json")' → ['execute_result', 'stream']
+  [16] '# TODO(autor): trocar pela pergunta-teste definitiva.' → ['stream']
+  [17] 'if LLM_AO_VIVO:' → ['display_data']
+  [18] 'pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta",' → ['execute_result']
+  [19] 'pergunta = "Como o Self-RAG decide quando buscar documentos?"' → ['display_data']
+  [20] 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding=' → ['display_data']
+  [21] 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"' → ['display_data']
+exit=0
+
+21/21, 0 erros, 154 s.
+
+--------------------------------------------------------------------------------
+## 5. Checagens de E7 e E9
+
+=== verificar.py e7_estrutura ===
+7.3 títulos de bloco no notebook:
+    ## Bloco 1 — Recapitulando o pipeline RAG
+    ## Bloco 2 — Indexação
+    ## Bloco 3 — Retrieval top-k na prática
+    ## Bloco 3b — Busca em dois estágios
+    ## Bloco 4 — SHAP: explicando o retrieval
+    ## Bloco 5 — Prompt augmentation: com e sem contexto
+    ## Bloco 6 — Integração com LLM local usando Ollama
+    ## Bloco 7 — Chatbot com Streamlit
+    ## Bloco 8 — Avaliação, reranking e próximos passos
+7.6 células que carregam resultado pré-computado ou têm chave para rodar ao vivo:
+    [1] import json
+    [6] colecao = rag.abrir_colecao()
+    [7] artigo = "es2023_ragas.pdf"
+    [8] primeira = rag.extrair_paginas(config.PASTA_ARTIGOS / "liu2023_lost_middle.pdf", limpar=Fa
+    [14] import shap
+    [15] shapley = carregar_resultado("shapley_chunks.json")
+    [17] if LLM_AO_VIVO:
+    [18] pd.DataFrame(carregar_resultado("com_sem_contexto.json"))[["pergunta", "sem_contexto", "co
+    [19] pergunta = "Como o Self-RAG decide quando buscar documentos?"
+    [21] arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"
+[e7_estrutura em 0.0s]
+exit=0
+
+=== verificar.py e7_saidas ===
+    [36] saída=True | 'pergunta = "Como o Self-RAG decide quando buscar documentos?"'
+    [38] saída=True | 'display(Markdown("```python\\n" + (RAIZ / "app.py").read_text(encoding='
+    [40] saída=True | 'arquivo = config.PASTA_RESULTADOS / "avaliacao_estilo_ragas.json"'
+
+7.2/9.1 tempos extraídos do notebook atual (para comparar com docs/medicoes.md e afins):
+    [célula 13] extração: Extração em 98.5s
+    [célula 15] resumo ao vivo: RESUMO AO VIVO (10.8s)
+    [célula 27] shap: SHAP em 43s
+    [célula 36] resposta bloco 6: [18.6s com qwen2.5:1.5b]
+[e7_saidas em 0.0s]
+exit=0
+
+=== verificar.py e7_duplicadas ===
+7.4 funções de rag.py também definidas em outro arquivo: nenhuma
+7.4 padrões de cópia de lógica do pipeline fora de rag.py: nenhum
+[e7_duplicadas em 1.5s]
+exit=0
+
+=== verificar.py e9_numeros ===
+9.1 números 'na última execução do notebook' em docs/medicoes.md: ['190,7', '50', '17,9']
+9.1 números sem confirmação em docs/evidencias/E7/saidas_notebook.txt: nenhum
+[e9_numeros em 0.4s]
+exit=0
+
+`e7_estrutura` lista os 9 blocos do cronograma na ordem e as 10 células com rede de segurança
+(critério 7.6) — a célula [6] continua na lista, agora pela chave `REINDEXAR` sozinha.
+`e7_duplicadas` sai exit=0: a saída acima é desta rodada, não uma afirmação.
+
+Nota de percurso: numa rodada anterior deste mesmo ticket, `e7_duplicadas` reprovou (exit=1)
+apontando `_normalizar` definida em `rag.py` e em `scripts/00_checar_ambiente.py` — homonímia
+introduzida pelo ticket anterior (T33) e corrigida no commit 7dfaf1a. Vale registrar porque o
+defeito foi achado pela checagem automática, não por leitura.
+
+--------------------------------------------------------------------------------
+## 6. Os tempos mudaram, e isso é de outro ticket
+
+`e7_saidas` extrai do notebook salvo os tempos da execução atual:
+
+    [célula 13] extração: Extração em 98.5s           (antes: 190,7 s)
+    [célula 15] resumo ao vivo: RESUMO AO VIVO (10.8s)     (antes: 8,9 s)
+    [célula 27] shap: SHAP em 43s                     (antes: 50 s)
+    [célula 36] resposta bloco 6: [18.6s com qwen2.5:1.5b] (antes: 17,9 s)
+
+A saída nova foi anexada a `docs/evidencias/E7/saidas_notebook.txt`, que é append-only por
+convenção. Consequência conhecida, e **não** resolvida aqui: como o arquivo guarda o histórico,
+`verificar.py e9_numeros` continua confirmando os números antigos de `docs/medicoes.md` (190,7 / 50
+/ 17,9) — é o achado A2-06, e a reconciliação de `medicoes.md` com uma checagem que não aceite valor
+histórico é o T36/#43, que está bloqueado por este ticket exatamente porque os tempos mudam aqui.
+
+--------------------------------------------------------------------------------
+## Critérios
+
+7.1 — ✅ 21/21 células, 0 erros, ao vivo e `--offline`.
+7.2 — ✅ saídas salvas no `.ipynb` versionado; `e7_saidas` exit=0.
+7.3 — ✅ os 9 blocos do cronograma, na ordem (`e7_estrutura`).
+7.4 — ✅ `e7_duplicadas` exit=0, saída na seção 5.
+7.5 — **não reverificado.** É a bateria `ferramentas/rodar_scripts.sh`, que roda
+      `scripts/02_indexar.py` e recriaria a coleção (23,7 min). Fica para quando houver janela fora
+      de medição; nada neste ticket toca os scripts.
+7.6 — ✅ a célula de indexação continua com rede de segurança, agora sem reindexar por conta própria.
+9.4 — **não reverificado.** Este ticket remove o risco de o bloco 2 estourar o cronograma por
+      acidente, mas não remede nem recalcula o orçamento dos blocos; os números são o T36/#43.
+
+`scripts/02_indexar.py` NÃO foi rodado.
