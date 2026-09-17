@@ -227,6 +227,21 @@ correção é o T34/#42, que está bloqueado por este ticket justamente por mexe
 exit=0), mas continua fora do script até o #42.
 
 --------------------------------------------------------------------------------
+## 7. Regressão pega logo depois, por uma checagem do próprio repositório
+
+Rodando `ferramentas/verificar.py e7_duplicadas` no ticket seguinte (T31), a checagem reprovou
+(exit=1) com:
+
+    7.4 funções de rag.py também definidas em outro arquivo:
+        {'_normalizar': ['rag.py', 'scripts/00_checar_ambiente.py']}
+
+A função auxiliar introduzida aqui se chamava `_normalizar`, homônima de `rag._normalizar()` — que
+normaliza espaços em texto de metadados, outra regra e outro propósito. Renomeada para
+`_normalizar_nome_pacote`; `e7_duplicadas` voltou a exit=0. Vale registrar que o defeito foi achado
+pela checagem automática, não por leitura: é o tipo de coisa que a auditoria queria que as checagens
+pegassem.
+
+--------------------------------------------------------------------------------
 ## Critérios
 
 0.6 — ✅, agora com cobertura de todos os pacotes declarados, não de uma lista fixa de 6.

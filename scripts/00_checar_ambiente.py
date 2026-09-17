@@ -61,7 +61,10 @@ def pacotes_declarados(arquivo):
     return nomes, condicionais, nao_reconhecidas
 
 
-def _normalizar(nome):
+def _normalizar_nome_pacote(nome):
+    # why: nome próprio, e não `_normalizar`, para não colidir com rag._normalizar(), que normaliza
+    # espaços em texto de metadados — outra regra, outro propósito (a checagem e7_duplicadas pegou
+    # a homonímia).
     return re.sub(r"[-_.]+", "-", nome).lower()
 
 
@@ -71,7 +74,7 @@ def _mapa_distribuicao_para_modulo():
     mapa = {}
     for modulo, distribuicoes in importlib.metadata.packages_distributions().items():
         for distribuicao in distribuicoes:
-            mapa.setdefault(_normalizar(distribuicao), []).append(modulo)
+            mapa.setdefault(_normalizar_nome_pacote(distribuicao), []).append(modulo)
     return mapa
 
 
@@ -85,10 +88,10 @@ def modulo_da_distribuicao(distribuicao, mapa):
     # script importar `__pycache__`, que existe como namespace package e importa sem erro: a
     # checagem passava sem tocar no pacote que devia checar. Por isso a preferência é o nome que
     # bate com o da distribuição, e nomes com sublinhado à frente ficam por último.
-    normalizado = _normalizar(distribuicao)
+    normalizado = _normalizar_nome_pacote(distribuicao)
     candidatos = mapa.get(normalizado, [])
     for candidato in candidatos:
-        if _normalizar(candidato) == normalizado:
+        if _normalizar_nome_pacote(candidato) == normalizado:
             return candidato
     publicos = [c for c in candidatos if not c.startswith("_")]
     return (publicos or candidatos or [distribuicao.replace("-", "_")])[0]
