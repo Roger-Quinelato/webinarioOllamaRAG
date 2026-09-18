@@ -493,6 +493,36 @@ def e9_numeros():
         sys.exit(1)
 
 
+# hazard (achado AUD-002): todo script que fala com o Ollama tem de envolver a execução em
+# rag.cli_seguro(), senão o Ollama fora vaza traceback cru na aula. e6_ollama_desligado_scripts
+# prova isso em runtime, mas seu glob 0[3-7] deixava 01 e 02 de fora — a lacuna exata do AUD-002.
+# Esta guarda é estática (só lê o texto): cobre todos os scripts e não roda o pipeline, porque
+# indexar() faz delete_collection() antes de embutir (rag.py) e rodar 02 com o Ollama fora zeraria
+# o índice. O heurístico de .chat(/.embed( pode dar falso positivo (como em e6_fontes), mas aí a
+# linha impressa aponta o arquivo para conferência, então nada passa despercebido.
+_ENTRADA_LLM = re.compile(
+    r"\brag\.(resumir_abstract|extrair_metadados_llm|indexar|buscar|buscar_dois_estagios|responder|gerar_embeddings)\("
+    r"|(?<!\brag)\.(chat|embed)\(|cliente_ollama\(|^\s*import ollama\b",
+    re.MULTILINE)
+
+
+def e6_cli_seguro():
+    alvos = [*sorted((RAIZ / "scripts").glob("*.py")), *sorted((RAIZ / "opcional").glob("*.py"))]
+    falhas = []
+    for script in alvos:
+        texto = script.read_text(encoding="utf-8")
+        usa_llm = bool(_ENTRADA_LLM.search(texto))
+        protegido = "rag.cli_seguro()" in texto
+        precisa = usa_llm and not protegido
+        print(f"AUD-002 {script.relative_to(RAIZ).as_posix():34s} usa_llm={usa_llm!s:5} "
+              f"cli_seguro={protegido!s:5} → {'FALTA' if precisa else 'ok'}")
+        if precisa:
+            falhas.append(script.relative_to(RAIZ).as_posix())
+    if falhas:
+        print(f"AUD-002 scripts que falam com o Ollama sem rag.cli_seguro(): {falhas}")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     inicio = time.perf_counter()
     globals()[sys.argv[1]]()
