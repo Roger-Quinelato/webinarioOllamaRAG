@@ -88,8 +88,9 @@ class ProviderOpenAITest(unittest.TestCase):
                 return iter([
                     SimpleNamespace(type="response.created"),
                     SimpleNamespace(type="response.output_text.delta", delta="Resposta"),
+                    SimpleNamespace(type="response.completed"),
                 ])
-            return SimpleNamespace(output_text="Resposta completa ")
+            return SimpleNamespace(status="completed", output_text="Resposta completa ")
 
         provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))
         mensagens = [{"role": "user", "content": "Pergunta"}]
@@ -123,6 +124,26 @@ class ProviderOpenAITest(unittest.TestCase):
 
         with self.assertRaises(ErroProviderOpenAI):
             next(provider.transmitir([{"role": "user", "content": "Pergunta"}]))
+
+    def test_geracao_incompleta_nao_retorna_texto_parcial_como_resposta(self):
+        def criar(**_kwargs):
+            return SimpleNamespace(status="incomplete", output_text="Trecho truncado")
+
+        provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))
+
+        with self.assertRaises(ErroProviderOpenAI):
+            provider.gerar([{"role": "user", "content": "Pergunta"}])
+
+    def test_streaming_sem_evento_de_conclusao_reporta_falha(self):
+        def criar(**_kwargs):
+            return iter([SimpleNamespace(type="response.output_text.delta", delta="Trecho truncado")])
+
+        provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))
+        fluxo = provider.transmitir([{"role": "user", "content": "Pergunta"}])
+
+        self.assertEqual(next(fluxo), "Trecho truncado")
+        with self.assertRaises(ErroProviderOpenAI):
+            next(fluxo)
 
 
 if __name__ == "__main__":

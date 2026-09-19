@@ -73,6 +73,8 @@ class ProviderOpenAI:
     def gerar(self, mensagens):
         try:
             resposta = self._client.responses.create(model=MODELO_GERACAO, input=mensagens)
+            if resposta.status != "completed":
+                raise RuntimeError("A resposta não foi concluída.")
         except Exception as erro:
             raise ErroProviderOpenAI(_mensagem_erro(erro)) from None
         return resposta.output_text.strip()
@@ -80,10 +82,15 @@ class ProviderOpenAI:
     def transmitir(self, mensagens):
         try:
             eventos = self._client.responses.create(model=MODELO_GERACAO, input=mensagens, stream=True)
+            concluida = False
             for evento in eventos:
                 if evento.type == "response.output_text.delta":
                     yield evento.delta
+                elif evento.type == "response.completed":
+                    concluida = True
                 elif evento.type in {"error", "response.failed", "response.incomplete"}:
                     raise RuntimeError("A resposta em streaming falhou.")
+            if not concluida:
+                raise RuntimeError("O streaming terminou sem conclusão.")
         except Exception as erro:
             raise ErroProviderOpenAI(_mensagem_erro(erro)) from None
