@@ -1,0 +1,15 @@
+Ticket #45 (T38) — 2026-09-19
+Comando: .venv\Scripts\python.exe ferramentas\testar_verificador_t38.py
+
+Resultado: exit 0
+
+e1_resumos sem metadados: REPROVOU como esperado
+e2 coleção vazia: REPROVOU como esperado
+e2_sobreposicao sem pares: REPROVOU como esperado
+e2_reabrir coleção vazia: REPROVOU como esperado
+e3 coleção vazia: REPROVOU como esperado
+e6_ollama_desligado quando chamadas não falham: REPROVOU como esperado
+e7_estrutura sem blocos: REPROVOU como esperado
+
+O harness simula somente a condição inválida de cada checagem. Não toca a
+coleção persistente nem os PDFs do corpus.

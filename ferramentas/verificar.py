@@ -11,6 +11,9 @@ sys.path.insert(0, str(RAIZ))
 import config  # noqa: E402
 import rag  # noqa: E402
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
+
 
 # why: dá ao autor um segundo sinal (idioma_csv × idioma_detectado, contagem de frases,
 # início do abstract) para a conferência manual do critério 1.6, sem que ele precise abrir
@@ -37,7 +40,12 @@ def _contar_frases(texto):
 
 
 def e1_resumos():
-    for meta in rag.carregar_metadados():
+    metadados = rag.carregar_metadados()
+    if not metadados:
+        print("1.6 FALHA: Nenhum metadado encontrado (nada para checar)")
+        sys.exit(1)
+    falhas = 0
+    for meta in metadados:
         resumo = meta["resumo"]
         idioma_detectado = _detectar_idioma(resumo) if resumo else "?"
         frases = _contar_frases(resumo) if resumo else 0
@@ -48,74 +56,136 @@ def e1_resumos():
               f"vazio={not resumo} frases={frases}")
         print(f"   abstract[:3 palavras]={primeiras_palavras!r}")
         print(f"   resumo={resumo}")
+        if not resumo:
+            print(f"1.6 FALHA: Resumo vazio para {meta['arquivo']}")
+            falhas += 1
+    if falhas:
+        sys.exit(1)
 
 
 def e2():
     colecao = rag.abrir_colecao()
     dados = colecao.get(include=["metadatas"])
     metas = dados["metadatas"]
+    contagem_antes = colecao.count()
+    if not metas or contagem_antes == 0:
+        print("2.2 FALHA: Coleção vazia (nada para checar)")
+        sys.exit(1)
+    if len(metas) != contagem_antes:
+        print(f"2.2 FALHA: contagem diverge (get={len(metas)}, count={contagem_antes})")
+        sys.exit(1)
     print(f"2.2 total de chunks: {len(metas)}")
     obrigatorios = set(config.COLUNAS_METADADOS) | {"pagina", "chunk_id", "tipo_chunk"}
     incompletos = [m.get("chunk_id") for m in metas if not obrigatorios <= set(m)]
-    print(f"2.2 chunks sem algum metadado obrigatório: {len(incompletos)} {incompletos[:5]}")
+    if incompletos:
+        print(f"2.2 FALHA: chunks sem algum metadado obrigatório: {len(incompletos)} {incompletos[:5]}")
+        sys.exit(1)
     print(f"2.2 amostra: {metas[0]}")
     tipos = Counter(m["tipo_chunk"] for m in metas)
     resumos_por_artigo = Counter(m["arquivo"] for m in metas if m["tipo_chunk"] == "resumo")
     print(f"2.3 por tipo_chunk: {dict(tipos)} | resumos por artigo: {dict(resumos_por_artigo)}")
     print(f"2.4 metadata da coleção: {colecao.metadata}")
     amostra = colecao.get(limit=50, include=["embeddings"])
-    print(f"2.4 dimensões distintas em 50 vetores: {sorted({len(v) for v in amostra['embeddings']})}")
-    contagem_antes = colecao.count()
+    dimensoes = sorted({len(v) for v in amostra['embeddings']})
+    print(f"2.4 dimensões distintas em 50 vetores: {dimensoes}")
+    if len(dimensoes) != 1:
+        print(f"2.4 FALHA: Mais de um modelo de embedding na coleção (dimensões distintas: {dimensoes})")
+        sys.exit(1)
     print(f"2.6 contagem neste processo novo (reabrindo chroma_db/): {contagem_antes}")
 
 
 def e2_sobreposicao():
     pagina = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pdf")[2]
     pedacos = rag.dividir_texto(pagina)
-    print(f"2.1 página 3 de lewis2020_rag.pdf: {len(pagina)} caracteres → {len(pedacos)} chunks "
+    if len(pedacos) < 2:
+        print("2.1 FALHA: Nada para checar (página não dividida em múltiplos chunks)")
+        sys.exit(1)
+    print(f"2.1 página 3 de lewis2020_rag.pdf: {len(pagina)} caracteres -> {len(pedacos)} chunks "
           f"de tamanhos {[len(p) for p in pedacos]} (limite {config.TAMANHO_CHUNK})")
+    falhas = 0
     for i, (atual, proximo) in enumerate(zip(pedacos, pedacos[1:])):
         inicio_proximo = proximo[:80]
         posicao = atual.find(inicio_proximo)
         print(f"2.1 início do chunk {i + 1} aparece no fim do chunk {i}: {posicao != -1} "
-              f"(sobreposição de {len(atual) - posicao if posicao != -1 else 0} caracteres) → {inicio_proximo!r}")
+              f"(sobreposição de {len(atual) - posicao if posicao != -1 else 0} caracteres) -> {inicio_proximo!r}")
+        if posicao == -1:
+            falhas += 1
+    if falhas:
+        print("2.1 FALHA: sobreposição ausente")
+        sys.exit(1)
 
 
 def e2_reabrir():
+    colecao = rag.abrir_colecao()
+    contagem_antes = colecao.count()
+    if contagem_antes == 0:
+        print("2.6 FALHA: Coleção vazia (nada para checar)")
+        sys.exit(1)
     codigo = "import rag; print(rag.abrir_colecao().count())"
     saida = subprocess.run([sys.executable, "-c", codigo], cwd=RAIZ, capture_output=True, text=True)
+    contagem_outro = int(saida.stdout.strip()) if saida.stdout.strip().isdigit() else -1
     print(f"2.6 contagem em outro processo: {saida.stdout.strip()} {saida.stderr.strip()[-200:]}")
+    if saida.returncode != 0 or contagem_outro != contagem_antes:
+        print("2.6 FALHA: reabrir em outro processo divergiu ou falhou")
+        sys.exit(1)
 
 
 def e3():
     colecao = rag.abrir_colecao()
+    if colecao.count() == 0:
+        print("3.1 FALHA: Nada para checar (coleção vazia)")
+        sys.exit(1)
     pergunta = "Quais métricas o Ragas usa para avaliar um pipeline de RAG?"
+    falhas = 0
     for k in (1, 4, 8):
         resultados = rag.buscar(pergunta, k=k, colecao=colecao)
         distancias = [r["distancia"] for r in resultados]
         campos = all({"texto", "distancia", "arquivo", "pagina"} <= set(r) for r in resultados)
         print(f"3.1/3.2 k={k}: {len(resultados)} resultados | ordenado={distancias == sorted(distancias)} "
               f"| campos texto/distancia/arquivo/pagina={campos}")
+        if len(resultados) != k or distancias != sorted(distancias) or not campos:
+            falhas += 1
+            print(f"FALHA na busca simples para k={k}")
     resultados = rag.buscar(pergunta, k=4, colecao=colecao)
     posicoes = [r["posicao"] for r in resultados if r["arquivo"] == "es2023_ragas.pdf"]
     print(f"3.3 pergunta: {pergunta!r} | esperado es2023_ragas.pdf | posições no top-4: {posicoes}")
+    if not posicoes:
+        falhas += 1
+        print("FALHA: artigo es2023_ragas.pdf não retornou no top-k")
     filtros = {"ano >= 2023": ({"ano": {"$gte": 2023}}, lambda r: r["ano"] >= 2023),
                "tema = retrieval": ({"tema": "retrieval"}, lambda r: r["tema"] == "retrieval"),
                "idioma = en": ({"idioma": "en"}, lambda r: r["idioma"] == "en")}
     for nome, (filtro, regra) in filtros.items():
         resultados = rag.buscar("Como funciona a recuperação de passagens?", k=8, where=filtro, colecao=colecao)
-        print(f"3.4 {nome}: {len(resultados)} resultados, todos obedecem = {all(map(regra, resultados))}")
+        obedece = all(map(regra, resultados))
+        print(f"3.4 {nome}: {len(resultados)} resultados, todos obedecem = {obedece}")
+        if not resultados or not obedece:
+            falhas += 1
+            print(f"FALHA no filtro {nome}")
     pergunta_pt = "O desempenho cai quando a informação relevante está no meio de um contexto longo?"
     resultados = rag.buscar(pergunta_pt, k=3, colecao=colecao)
-    print(f"3.5 cross-lingual: {pergunta_pt!r} → {[(r['arquivo'], r['pagina'], r['idioma']) for r in resultados]}")
-    print(f"    trecho do 1º: {resultados[0]['texto'][:200]}")
+    print(f"3.5 cross-lingual: {pergunta_pt!r} -> {[(r['arquivo'], r['pagina'], r['idioma']) for r in resultados]}")
+    if resultados:
+        print(f"    trecho do 1º: {resultados[0]['texto'][:200]}")
+    else:
+        falhas += 1
     # T12/#12: idioma=pt passou a ter 2 artigos reais (rocha2025_ragsft, medeiros2025_embeddings_pt);
     # o filtro que garante zero resultados sem depender do idioma agora é um ano fora do corpus.
     vazio = rag.buscar("O que é RAG?", k=4, where={"ano": {"$gte": 2030}}, colecao=colecao)
     print(f"3.6 filtro ano>=2030 (sem artigos): {len(vazio)} resultados, sem erro")
+    if len(vazio) > 0:
+        falhas += 1
+        print("FALHA: Filtro para ano>=2030 encontrou resultados")
     com_pt = rag.buscar("O que é RAG?", k=4, where={"idioma": "pt"}, colecao=colecao)
+    obedece_pt = all(r['idioma'] == 'pt' for r in com_pt)
     print(f"3.6b filtro idioma=pt (com artigos, T12/#12): {len(com_pt)} resultados, "
-          f"todos pt = {all(r['idioma'] == 'pt' for r in com_pt)}")
+          f"todos pt = {obedece_pt}")
+    if not com_pt or not obedece_pt:
+        falhas += 1
+        print("FALHA: Filtro idioma=pt retornou 0 ou violou a regra")
+
+    if falhas:
+        sys.exit(1)
 
 
 def e4():
@@ -236,13 +306,18 @@ def e4_limiar():
 def e6_ollama_desligado():
     rag._cliente = None
     config.OLLAMA_HOST = "http://localhost:11999"
+    falhas = 0
     for nome, chamada in {"gerar_embeddings": lambda: rag.gerar_embeddings(["teste"]),
                           "responder": lambda: list(rag.responder("teste", []))}.items():
         try:
             chamada()
             print(f"6.7 {nome}: NÃO levantou erro")
+            falhas += 1
         except rag.OllamaIndisponivel as erro:
-            print(f"6.7 {nome}: OllamaIndisponivel → {erro}")
+            print(f"6.7 {nome}: OllamaIndisponivel -> {erro}")
+    if falhas:
+        print("6.7 FALHA: chamada que deveria levantar OllamaIndisponivel não levantou")
+        sys.exit(1)
 
 
 def e6_ollama_desligado_scripts():
@@ -401,12 +476,21 @@ def e7_estrutura():
     print("7.3 títulos de bloco no notebook:")
     for titulo in titulos:
         print(f"    {titulo}")
+    if len(titulos) < 5:
+        print("7.3 FALHA: Faltam blocos principais do cronograma no notebook")
+        sys.exit(1)
+
     print("7.6 células que carregam resultado pré-computado ou têm chave para rodar ao vivo:")
+    pre_computadas = 0
     for celula in notebook["cells"]:
         fonte = "".join(celula["source"])
         if celula["cell_type"] == "code" and ("carregar_resultado" in fonte or "_AO_VIVO" in fonte
                                               or "REINDEXAR" in fonte):
             print(f"    [{celula.get('execution_count')}] {fonte.splitlines()[0][:90]}")
+            pre_computadas += 1
+    if pre_computadas < 3:
+        print("7.6 FALHA: Células com saída pré-computada de etapas lentas ausentes (deveriam ser pelo menos 3)")
+        sys.exit(1)
 
 
 # hazard (achado 5a.1/7.2/9.1, T08): números de evidência (ex.: tempo do SHAP) citados em docs/
