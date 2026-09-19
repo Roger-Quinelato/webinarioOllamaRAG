@@ -57,6 +57,19 @@ boxes, persistência de upload, SHAP/RAGAS ou revisão ampla de UX no P0.
    reproduzíveis em `docs/evidencias/`.
 6. Faça um commit por issue, com o número da issue, depois da revisão.
 
+## Operação por subagentes
+
+O [TDD](docs/tdd/migracao-openai-rag.md#operação-por-subagentes) define os
+papéis, modelos, esforços e gates. Use os prompts versionados em
+`.agent/subagents/`. Um implementador trabalha sozinho por issue; tarefas
+mecânicas não concorrem com alterações de código; o CTO é somente-leitura e atua
+nos gates de MIG-01, MIG-03, MIG-05 e do ensaio.
+
+Para cada gate, revise o diff e os critérios da issue, depois siga o fluxo de
+dados pelos componentes relacionados. A revisão de embeddings, por exemplo,
+cobre provider, reindexação, compatibilidade de coleção, retrieval, metadados,
+fontes, configuração, testes e rollback — não apenas o módulo editado.
+
 ## Segurança e verificação
 
 - Leia `OPENAI_API_KEY` de secrets ou ambiente. Nunca versione, exiba ou registre

@@ -63,6 +63,34 @@ flowchart LR
 3. Alternar a aplicação para a nova coleção após os testes do ensaio.
 4. Reverter para a tag `legacy-pre-openai` se o provider ou a reindexação falhar.
 
+## Operação por subagentes
+
+| Papel | Modelo | Esforço | Escopo | Momento |
+| --- | --- | --- | --- | --- |
+| Implementador | `gpt-5.6-terra` | `high` | Uma issue, teste-first, implementação e evidência | MIG-01 a MIG-08, sequencialmente |
+| Executor mecânico | `gpt-5.6-luna` | `medium` | Inventário, links, referências Ollama, execução de testes e revisão documental isolada | Quando não disputa arquivos com o implementador |
+| Revisor/CTO | `gpt-6-astra` | `high` | Gate independente, somente-leitura, sem editar ou aprovar sem evidência | Após MIG-01, MIG-03, MIG-05 e antes do ensaio |
+
+O implementador é o único papel que altera código de produto. Não paralelize
+escritas no mesmo worktree. O executor mecânico entrega uma lista verificável ou
+saída de comando e não muda decisões arquiteturais.
+
+Cada gate do CTO segue estes passos:
+
+1. Leia ADR, PRD, TDD, issue, diff, testes e evidências desde o último gate.
+2. Verifique os critérios de aceite e os riscos de segurança, grounding,
+   isolamento de sessão e rollback.
+3. Rastreie cada mudança pelos componentes relacionados, não apenas pelo arquivo
+   editado. Para embeddings, cubra provider, reindexação, compatibilidade de
+   coleção, retrieval, metadados, fontes, configuração, testes e rollback.
+4. Execute ou peça a execução das verificações reproduzíveis relevantes.
+5. Emita `APROVADO`, `APROVADO COM RESSALVAS` ou `ALTERAÇÕES NECESSÁRIAS`, com
+   achados localizáveis, severidade e evidência.
+
+O próximo bloco dependente só começa após `APROVADO` ou após as ressalvas terem
+um plano explícito que não comprometa o P0. `ALTERAÇÕES NECESSÁRIAS` devolve a
+issue ao implementador; o CTO mantém a revisão somente-leitura.
+
 ## Riscos
 
 - API indisponível ou credencial inválida: mensagem clara, evidência e rollback.
