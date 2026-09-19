@@ -100,6 +100,29 @@ def modulo_da_distribuicao(distribuicao, mapa):
     return (publicos or candidatos or [distribuicao.replace("-", "_")])[0]
 
 
+def checar_integridade(pacote):
+    try:
+        dist = importlib.metadata.distribution(pacote)
+        record = dist.read_text("RECORD")
+        if not record:
+            return True, ""
+        
+        base = Path(dist.locate_file(""))
+        for linha in record.splitlines():
+            if not linha:
+                continue
+            caminho_relativo = linha.split(",")[0]
+            if ".dist-info" in caminho_relativo:
+                continue
+            if not (base / caminho_relativo).exists():
+                return False, f"faltam arquivos de código (ex: {caminho_relativo})"
+        return True, ""
+    except importlib.metadata.PackageNotFoundError:
+        return False, "pacote não encontrado nos metadados"
+    except Exception as e:
+        return False, f"erro ao ler RECORD: {e}"
+
+
 def variavel_ollama_models():
     valor = os.environ.get("OLLAMA_MODELS")
     if valor or sys.platform != "win32":
@@ -135,6 +158,13 @@ mapa_modulos = _mapa_distribuicao_para_modulo()
 for pacote in pacotes:
     modulo_esperado = modulo_da_distribuicao(pacote, mapa_modulos)
     rotulo = f"import {pacote}" + (f" (módulo {modulo_esperado})" if modulo_esperado != pacote else "")
+    
+    integro, msg_integridade = checar_integridade(pacote)
+    if not integro:
+        checar(rotulo, False, f"corrompido: {msg_integridade}. Reinstale com `pip install --force-reinstall --no-deps -r requirements.lock`")
+        imports_quebrados.add(pacote)
+        continue
+
     try:
         modulo = importlib.import_module(modulo_esperado)
         checar(rotulo, True, getattr(modulo, "__version__", "sem __version__"))

@@ -41,6 +41,10 @@ Cada entrada abaixo aconteceu de verdade durante a montagem e a verificação do
 - **Causa:** o PowerShell interpreta as aspas e as chaves de f-strings.
 - **Resposta:** "Use os scripts da pasta `scripts/` em vez de `python -c`."
 
+### O ambiente diz que o pacote está instalado, mas o import falha ou acusa integridade corrompida
+- **Causa:** os diretórios de código de algumas bibliotecas sumiram do `.venv`, mas as pastas `.dist-info` continuaram intactas (incidente A1-00). Ferramentas como o `pip` acham que os pacotes ainda estão lá.
+- **Resposta:** "Ocorreu uma corrupção no ambiente virtual (arquivos ausentes). Para reparar, rode o comando: `pip install --force-reinstall --no-deps -r requirements.lock`. Ele força a reinstalação de todos os pacotes listados, sem tocar no pip e ferramentas base."
+
 ## Indexação e busca
 
 ### A indexação demora mais de 20 minutos
