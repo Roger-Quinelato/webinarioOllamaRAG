@@ -2,6 +2,7 @@ import importlib
 import importlib.metadata
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -42,7 +43,7 @@ def pacotes_declarados(arquivo):
     # `pacote @ https://…`) reproduziria o próprio defeito que este ticket corrige — o script
     # diria "Ambiente pronto." sem ter checado tudo. Por isso o que não é reconhecido volta
     # separado, para virar uma falha visível, em vez de sumir.
-    nomes, condicionais, nao_reconhecidas = [], [], []
+    nomes, condicionais, nao_reconhecidas, sem_versao_fixa = [], [], [], []
     for numero, bruta in enumerate(arquivo.read_text(encoding="utf-8").splitlines(), start=1):
         linha = bruta.split("#")[0].strip()
         if not linha:
@@ -56,9 +57,11 @@ def pacotes_declarados(arquivo):
         achado = _REQUISITO_RE.match(linha)
         if achado:
             nomes.append(achado.group("nome"))
+            if "==" not in linha:
+                sem_versao_fixa.append(f"linha {numero}: {linha}")
         else:
             nao_reconhecidas.append(f"linha {numero}: {linha}")
-    return nomes, condicionais, nao_reconhecidas
+    return nomes, condicionais, nao_reconhecidas, sem_versao_fixa
 
 
 def _normalizar_nome_pacote(nome):
@@ -115,12 +118,14 @@ checar("Python 3.10+", sys.version_info >= (3, 10), sys.version.split()[0])
 checar("Rodando dentro de um ambiente virtual", sys.prefix != sys.base_prefix, sys.prefix)
 
 if checar(f"{ARQUIVO_REQUISITOS.name} existe", ARQUIVO_REQUISITOS.is_file(), str(ARQUIVO_REQUISITOS)):
-    pacotes, condicionais, nao_reconhecidas = pacotes_declarados(ARQUIVO_REQUISITOS)
+    pacotes, condicionais, nao_reconhecidas, sem_versao_fixa = pacotes_declarados(ARQUIVO_REQUISITOS)
 else:
-    pacotes, condicionais, nao_reconhecidas = [], [], []
+    pacotes, condicionais, nao_reconhecidas, sem_versao_fixa = [], [], [], []
 print(f"{len(pacotes)} pacotes declarados em {ARQUIVO_REQUISITOS.name}: {', '.join(pacotes)}")
 checar(f"{ARQUIVO_REQUISITOS.name} declara pelo menos uma dependência", bool(pacotes),
        str(ARQUIVO_REQUISITOS))
+checar("Todas as dependências estão fixadas com ==", not sem_versao_fixa,
+       "sem versão fixa: " + "; ".join(sem_versao_fixa) if sem_versao_fixa else "")
 checar("Todas as linhas de requisito foram reconhecidas", not nao_reconhecidas,
        "não reconhecidas: " + "; ".join(nao_reconhecidas) if nao_reconhecidas else "")
 for condicional in condicionais:
@@ -165,7 +170,14 @@ if "ollama" not in imports_quebrados:
                f"{erro}. Abra o aplicativo Ollama ou rode `ollama serve`.")
 
 pasta_modelos = variavel_ollama_models()
-print(f"[INFO] OLLAMA_MODELS = {pasta_modelos or 'não definida (o Ollama usa a pasta padrão ~/.ollama/models)'}")
+pasta_esperada = str(RAIZ / "Ollama" / "models")
+checar("OLLAMA_MODELS aponta para a pasta do projeto",
+       bool(pasta_modelos) and Path(pasta_modelos).resolve() == Path(pasta_esperada).resolve(),
+       f"atual: {pasta_modelos or 'não definida'}, esperada: {pasta_esperada}")
+
+resultado_pip = subprocess.run([sys.executable, "-m", "pip", "check"], capture_output=True, text=True)
+checar("pip check não acusa conflitos", resultado_pip.returncode == 0,
+       resultado_pip.stdout.strip() if resultado_pip.returncode != 0 else "OK")
 
 print()
 if falhas:
