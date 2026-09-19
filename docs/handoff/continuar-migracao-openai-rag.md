@@ -56,7 +56,7 @@ dependências. Não instale LangChain, FAISS ou SentenceTransformers.
 - `gpt-5.6-terra`, esforço `high`: implementa uma issue por vez.
 - `gpt-5.6-luna`, esforço `medium`: tarefas mecânicas isoladas, sem código de
   produto.
-- `gpt-6-astra`, esforço `high`, somente leitura: gate após MIG-01, MIG-03,
+- `gpt-6-astra`, esforço `medium`, somente leitura: gate após MIG-01, MIG-03,
   MIG-05 e antes do ensaio.
 
 Não faça escritas paralelas no mesmo worktree. O gate do CTO revisa o diff e o

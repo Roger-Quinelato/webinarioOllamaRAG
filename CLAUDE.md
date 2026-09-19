@@ -1,89 +1,84 @@
 # CLAUDE.md
 
-Orientação para agentes que trabalham nesta branch de migração.
+Orientação para agentes nesta branch de migração.
 
-## Estado da branch
+## Estado
 
-Esta é a branch `feat/openai-rag-migration`. A arquitetura-alvo está aceita, mas
-o código ainda contém o caminho legado com Ollama até as issues `MIG-01` a
-`MIG-08` serem concluídas. Não descreva, teste ou apresente o caminho OpenAI como
-implementado antes da issue correspondente passar seus critérios de aceite.
+Branch `feat/openai-rag-migration`. Arquitetura-alvo aceita; código ainda usa
+Ollama até `MIG-01`–`MIG-08` concluídas. Não descreva, teste ou apresente OpenAI
+como implementado antes do aceite da issue correspondente.
 
-A tag `legacy-pre-openai` aponta para o rollback do estado anterior. Preserve-a e
-não apague a coleção Chroma legada durante a migração.
+Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma legada.
 
 ## Fontes canônicas
 
-- [ADR-001](docs/adr/001-openai-direto-e-chroma-separado.md): decisão aceita.
-- [PRD](docs/prd/migracao-openai-rag.md): escopo P0 e critérios do webinário.
-- [TDD](docs/tdd/migracao-openai-rag.md): componentes, fluxo, riscos e rollback.
+- [ADR-001](docs/adr/001-openai-direto-e-chroma-separado.md): decisão.
+- [PRD](docs/prd/migracao-openai-rag.md): escopo P0 e critérios.
+- [TDD](docs/tdd/migracao-openai-rag.md): componentes, fluxo, riscos, rollback.
 - [Estratégia test-first](docs/testing/estrategia-test-first-openai-rag.md):
-  seams e cenários obrigatórios.
-- [Glossário](CONTEXT.md): termos de domínio obrigatórios.
-- [Milestone no GitHub](https://github.com/Roger-Quinelato/webinarioOllamaRAG/milestone/1):
-  ordem operacional das issues.
+  seams e cenários.
+- [Glossário](CONTEXT.md): termos obrigatórios.
+- [Milestone GitHub](https://github.com/Roger-Quinelato/webinarioOllamaRAG/milestone/1):
+  ordem das issues.
 
-Em caso de conflito, ADR e PRD prevalecem sobre documentação histórica do
-caminho Ollama.
+Conflito: ADR e PRD prevalecem sobre documentação histórica Ollama.
 
-## Arquitetura-alvo P0
+## Arquitetura P0
 
-- Use SDK OpenAI diretamente: `text-embedding-3-small` para embeddings e
+- Use SDK OpenAI direto: `text-embedding-3-small` para embeddings;
   `gpt-5.6-luna` para geração.
-- Mantenha Chroma: uma coleção persistente para o **Corpus Oficial** e uma coleção
-  efêmera por sessão para o **Índice de Sessão**.
-- Consulte uma única **Base Ativa** por pergunta. Nunca combine corpus e upload.
-- Restrinja a resposta aos chunks enviados. Sem evidência suficiente, devolva a
-  **Recusa** padronizada, sem conhecimento externo.
-- Mostre **Fonte Citada** apenas quando a resposta usar um marcador válido;
-  resultado recuperado sem marcador é fallback, não citação.
-- Limite uploads a três PDFs de 20 MB, sem OCR no P0. O ano é opcional.
-- Use as duas últimas turnos apenas para geração; retrieval usa a pergunta atual.
-- Faça no máximo uma repetição antes do primeiro token. Depois disso, preserve e
-  identifique a **Resposta Parcial**.
+- Preserve Chroma: coleção persistente para **Corpus Oficial**; coleção efêmera
+  por sessão para **Índice de Sessão**.
+- Cada pergunta consulta uma **Base Ativa**. Nunca misture corpus e upload.
+- Responda apenas com chunks enviados. Evidência insuficiente: **Recusa**,
+  sem conhecimento externo.
+- Mostre **Fonte Citada** só com marcador válido. Chunk recuperado sem marcador:
+  fallback, não citação.
+- Upload: até três PDFs, 20 MB cada; ano opcional; sem OCR no P0.
+- Geração recebe as duas últimas turnos; retrieval recebe só pergunta atual.
+- Faça no máximo uma repetição antes do primeiro token. Depois, preserve e
+  identifique **Resposta Parcial**.
 
-Não adote LangChain, FAISS, SentenceTransformers locais, OCR/Tesseract, bounding
-boxes, persistência de upload, SHAP/RAGAS ou revisão ampla de UX no P0.
+Não use LangChain, FAISS, SentenceTransformers locais, OCR/Tesseract, bounding
+boxes, upload persistente, SHAP/RAGAS ou revisão ampla de UX no P0.
 
 ## Fluxo por issue
 
-1. Trabalhe uma issue por vez, na ordem `MIG-01` a `MIG-08`.
-2. Antes de editar, leia a issue, o ADR, o PRD, o TDD e os termos relevantes do
-   `CONTEXT.md`.
-3. Defina ou atualize primeiro o teste no seam acordado; use mocks apenas na
-   fronteira OpenAI.
-4. Implemente a menor mudança que faz o teste passar.
-5. Rode testes, revisão de código e verificações da issue. Salve evidências
-   reproduzíveis em `docs/evidencias/`.
-6. Faça um commit por issue, com o número da issue, depois da revisão.
+1. Escolha uma issue; siga `MIG-01`–`MIG-08` em ordem.
+2. Leia issue, ADR, PRD, TDD e termos relevantes de `CONTEXT.md`.
+3. Escreva/atualize teste no seam acordado; mock apenas fronteira OpenAI.
+4. Faça menor mudança que passa teste.
+5. Rode testes, revisão e verificações; salve evidências reproduzíveis em
+   `docs/evidencias/`.
+6. Após revisão, faça um commit por issue com número da issue.
 
-## Operação por subagentes
+## Subagentes
 
-O [TDD](docs/tdd/migracao-openai-rag.md#operação-por-subagentes) define os
-papéis, modelos, esforços e gates. Use os prompts versionados em
-`.agent/subagents/`. Um implementador trabalha sozinho por issue; tarefas
-mecânicas não concorrem com alterações de código; o CTO é somente-leitura e atua
-nos gates de MIG-01, MIG-03, MIG-05 e do ensaio.
+[TDD](docs/tdd/migracao-openai-rag.md#operação-por-subagentes) define papéis,
+modelos, esforços e gates. Use prompts em `.agent/subagents/`.
 
-Para cada gate, revise o diff e os critérios da issue, depois siga o fluxo de
-dados pelos componentes relacionados. A revisão de embeddings, por exemplo,
-cobre provider, reindexação, compatibilidade de coleção, retrieval, metadados,
-fontes, configuração, testes e rollback — não apenas o módulo editado.
+- Implementador: uma issue, sozinho.
+- Executor mecânico: não concorre com código; não altera produto.
+- CTO: somente leitura; gates após `MIG-01`, `MIG-03`, `MIG-05` e antes do ensaio.
+
+Gate: revise diff e critérios; rastreie dados por componentes; cubra provider,
+reindexação, compatibilidade Chroma, retrieval, metadados, fontes, configuração,
+testes e rollback. Não paralelize escritas no mesmo worktree.
 
 ## Segurança e verificação
 
-- Leia `OPENAI_API_KEY` de secrets ou ambiente. Nunca versione, exiba ou registre
-  a chave; MIG-01 deve ignorar `.env` e `.streamlit/secrets.toml` antes de o
-  provider ser configurado.
+- Leia `OPENAI_API_KEY` de secrets/ambiente. Nunca versione, exiba ou registre a
+  chave. `MIG-01` ignora `.env` e `.streamlit/secrets.toml` antes de configurar
+  provider.
 - Registre modelo, Base Ativa, quantidade de chunks, latência, tentativa, recusa
-  e resposta parcial, sem registrar a chave ou o conteúdo integral de uploads.
-- A matriz de cinco perguntas deve cobrir recuperação, citação, recusa, filtro e
-  upload antes do ensaio.
-- `docs/VERIFICACAO.md` e os comandos que dependem de Ollama são evidência do
-  legado. Não marque critérios OpenAI como verificados com essas saídas.
+  e resposta parcial; nunca chave nem conteúdo integral de upload.
+- Antes do ensaio, matriz de cinco perguntas deve cobrir recuperação, citação,
+  recusa, filtro e upload.
+- `docs/VERIFICACAO.md` e comandos dependentes de Ollama comprovam legado.
+  Não marque critério OpenAI verificado com essa saída.
 
 ## Legado
 
-O código, notebook e scripts atuais são referência de migração e rollback. Não
-remova o legado por limpeza incidental. Alterações destrutivas exigem uma issue
-que tenha plano de migração, prova de compatibilidade e rollback explícito.
+Código, notebook e scripts são referência de migração/rollback. Não remova legado
+por limpeza incidental. Mudança destrutiva exige issue com migração, compatibilidade
+e rollback explícitos.

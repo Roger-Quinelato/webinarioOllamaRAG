@@ -1,40 +1,35 @@
 # Estratégia test-first: OpenAI RAG
 
-## Seams acordados
+## Seams
 
-- **Provider**: contrato público de embeddings e streaming contra um cliente OpenAI
+- **Provider**: contrato público de embeddings/streaming contra cliente OpenAI
   simulado na fronteira externa.
-- **Fachada RAG**: busca, grounding, fontes e retry observados pela resposta e seus
-  metadados, sem testar funções privadas.
-- **Aplicação Streamlit**: interação observada por AppTest para estado, upload,
-  fontes e erros.
+- **Fachada RAG**: busca, grounding, fontes e retry observados por resposta e
+  metadados; não teste funções privadas.
+- **Streamlit**: AppTest observa estado, upload, fontes e erros.
 
 ## Ciclos red-green
 
-1. Escrever um teste que falha para chave ausente; implementar apenas a mensagem
-   acionável.
-2. Escrever um teste que falha para coleção com modelo incompatível; implementar a
-   recusa de uso e a reindexação explícita.
-3. Escrever um teste que falha para fonte recuperada sem marcador; classificá-la
-   como fallback, não como citação.
-4. Escrever um teste que falha para pergunta sem evidência; devolver a Recusa sem
-   gerar conteúdo externo.
-5. Escrever um teste que falha para erro antes e depois do primeiro token;
-   implementar retry único e Resposta Parcial.
-6. Escrever um teste que falha para upload visível em outra sessão; isolar o Índice
-   de Sessão e limpar seus recursos.
+1. Chave ausente: teste falha; implemente só mensagem acionável.
+2. Modelo incompatível: teste falha; implemente recusa de uso + reindexação
+   explícita.
+3. Fonte sem marcador: teste falha; classifique fallback, não citação.
+4. Pergunta sem evidência: teste falha; devolva **Recusa**, sem conteúdo externo.
+5. Erro antes/depois do primeiro token: teste falha; implemente retry único +
+   **Resposta Parcial**.
+6. Upload visível em outra sessão: teste falha; isole **Índice de Sessão** e
+   limpe recursos.
 
 ## Casos obrigatórios
 
-- Embeddings e geração usam os modelos configurados, sem Ollama.
-- Corpus Oficial e Índice de Sessão não se misturam numa consulta.
-- Filtros e metadados de arquivo, página e ano chegam à fonte apresentada.
-- Histórico contém duas turnos na geração, mas não altera o retrieval.
-- AppTest cobre streaming, limpeza, erro de credencial, recusa e fontes.
-- A matriz de ensaio cobre recuperação, citação, recusa, filtro e upload.
+- Embeddings e geração usam modelos configurados, sem Ollama.
+- **Corpus Oficial** e **Índice de Sessão** não se misturam numa consulta.
+- Filtros/metadados de arquivo, página e ano chegam à fonte apresentada.
+- Geração recebe duas turnos de histórico; retrieval não muda.
+- AppTest cobre streaming, limpeza, credencial, recusa e fontes.
+- Matriz de ensaio cobre recuperação, citação, recusa, filtro e upload.
 
-## Critério de qualidade
+## Qualidade
 
-Cada teste afirma um comportamento observável, usa valores esperados independentes
-e simula apenas a fronteira OpenAI. Nenhum teste depende de detalhes privados da
-implementação.
+Cada teste afirma comportamento observável, usa valores esperados independentes e
+simula apenas fronteira OpenAI. Nenhum depende de detalhe privado.
