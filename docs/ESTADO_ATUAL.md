@@ -1,6 +1,6 @@
 # Estado atual do repositório
 
-**Data do levantamento:** 2026-09-16 · **Branch:** `chore/agent-skills-setup` · **HEAD:** `4d6a16b`
+**Data do levantamento:** 2026-09-16 · **Branch:** (veja `git status`) · **HEAD:** (veja `git log`)
 
 Este documento é o retrato do repositório **como ele está**, não como deveria estar. Ele existe para
 dar contexto de partida a quem audita o material (ver [`auditoria/PROTOCOLO_AUDITORIA.md`](auditoria/PROTOCOLO_AUDITORIA.md))
@@ -139,7 +139,7 @@ como falha, não como sucesso silencioso).
 | Etapa | Status declarado | Pendências |
 |---|---|---|
 | E0 Ambiente | ✅ | — |
-| E1 Corpus e metadados | ✅ | — (1.8 fechada pelo T12) |
+| E1 Corpus e metadados | ✅ (1.8 ⏸️) | — (1.8 fechada pelo T12, mas reverificação pendente em docs) |
 | E2 Indexação | ✅ | — |
 | E3 Retrieval top-k e filtros | ✅ | — |
 | E4 Dois estágios | ✅ | — (4.4 fechada por T06/T07) |
@@ -148,7 +148,7 @@ como falha, não como sucesso silencioso).
 | E7 Notebook e scripts | ✅ | — |
 | E8 Streamlit | ✅ | 8.2/8.4/8.5/8.7 contestados: evidência era só texto; capturas geradas mas **não commitadas** (issues #15, #25) |
 | E9 Medições | ✅ (9.3 ⏸️) | 9.3 depende de decisão do autor no ensaio de 21/09 |
-| E10 Documentação | ⏸️ parcial | 10.1 verificado só no Windows; macOS/Linux sem máquina (issue #17) |
+| E10 Documentação | ✅ (10.1 ⏸️ macOS/Linux) | 10.1 verificado só no Windows; macOS/Linux sem máquina (issue #17) |
 
 O `Registro de execuções` do `VERIFICACAO.md` tem ~30 linhas datadas, uma por tarefa — é o histórico
 canônico e deve ser a primeira leitura de qualquer auditor.
