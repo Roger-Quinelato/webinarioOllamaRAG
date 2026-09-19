@@ -61,7 +61,7 @@ tempos; nunca chave nem conteúdo integral do PDF.
 
 ## Operação por subagentes
 
-- **Implementador**: `gpt-5.6-terra`, `high`; uma issue, teste-first,
+- **Implementador**: `gpt-5.6-terra`, `medium`; uma issue, teste-first,
   implementação e evidência; `MIG-01`–`MIG-08`, sequencial.
 - **Executor mecânico**: `gpt-5.6-luna`, `medium`; inventário, links, referências
   Ollama, testes e revisão documental isolada; não altera código de produto.

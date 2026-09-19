@@ -168,13 +168,16 @@ python ferramentas/gerar_plano_v11.py
 | `medir.py` | Mede os tempos desta máquina |
 | `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
 
-Critérios e evidências de cada etapa: [docs/VERIFICACAO.md](docs/VERIFICACAO.md).
+Critérios e evidências legadas foram removidos durante a migração OpenAI.
 
 ### Auditoria de código (E10)
 
-Além da verificação por etapa (E0–E9), o `docs/evidencias/E10/revisao_codigo.md` registra uma revisão em dois eixos — **Standards** (o código segue o `CLAUDE.md` e o `docs/VERIFICACAO.md`?) e **Spec** (o resultado bate com o que cada critério pede?) — feita por dois sub-agentes de só leitura, com os achados conferidos manualmente no código. As checagens estáticas que a acompanham estão em `docs/evidencias/E10/revisao_codigo_checagens.txt`, e uma versão navegável em `docs/evidencias/auditoria_plano.html`.
+O registro histórico `docs/evidencias/E10/revisao_codigo.md` mantém a auditoria
+legada em dois eixos. As checagens estáticas estão em
+`docs/evidencias/E10/revisao_codigo_checagens.txt`.
 
-A auditoria **não mudou nenhum ✅** de `docs/VERIFICACAO.md`: ela lista achados e um conjunto de critérios contestados (1.6, 4.4, 6.5, 6.7, 7.4, 8.2/8.4/8.5/8.7, 5a.1/7.2/9.1) para reverificar antes da próxima etapa, sem afrouxar nenhum critério para passar.
+A auditoria histórica lista achados e critérios contestados; ela não valida a
+migração OpenAI atual.
 
 ## Trocar para o modelo menor
 
@@ -182,4 +185,4 @@ Se as respostas estiverem lentas, mude `MODELO_CHAT` em `config.py` para `"qwen2
 
 ## Problemas comuns
 
-Veja [docs/troubleshooting.md](docs/troubleshooting.md).
+Consulte as issues e o handoff da migração para orientações atuais.

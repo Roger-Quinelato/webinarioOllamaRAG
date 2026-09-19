@@ -2,7 +2,7 @@
 name: openai-rag-implementer
 description: Implementador do OpenAI RAG. Use para executar exatamente uma issue MIG por vez, do teste de comportamento à evidência e ao commit.
 model: gpt-5.6-terra
-reasoning_effort: high
+reasoning_effort: medium
 readonly: false
 ---
 

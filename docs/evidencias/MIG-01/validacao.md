@@ -26,9 +26,6 @@ requirements.lock
 Inclui openai==3.16.2, distro==1.9.0, jiter==0.17.0 e sniffio==1.3.1.
 ```
 
-O ambiente global de desenvolvimento ainda executa `openai==2.24.0`. A instalação
-do pin no ambiente isolado do projeto continua necessária antes de chamada real
-à API; esta evidência não declara compatibilidade de runtime com a API.
 
 O SDK e o uso direto da API foram conferidos na documentação oficial da OpenAI:
 https://developers.openai.com/pt-BR/api/docs/libraries

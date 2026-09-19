@@ -74,8 +74,8 @@ testes e rollback. Não paralelize escritas no mesmo worktree.
   e resposta parcial; nunca chave nem conteúdo integral de upload.
 - Antes do ensaio, matriz de cinco perguntas deve cobrir recuperação, citação,
   recusa, filtro e upload.
-- `docs/VERIFICACAO.md` e comandos dependentes de Ollama comprovam legado.
-  Não marque critério OpenAI verificado com essa saída.
+- Comandos dependentes de Ollama e evidências históricas removidas comprovam
+  legado. Não marque critério OpenAI verificado com essa saída.
 
 ## Legado
 

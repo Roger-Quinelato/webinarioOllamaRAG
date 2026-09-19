@@ -30,7 +30,7 @@ Leia [o plano de execução no TDD](docs/tdd/migracao-openai-rag.md#operação-p
 antes de delegar. Use as definições versionadas em `.agent/subagents/`.
 
 - `openai-rag-implementer`: uma issue por vez; escreve código com
-  `gpt-5.6-terra` e esforço `high`.
+  `gpt-5.6-terra` e esforço `medium`.
 - `openai-rag-mechanical`: inventário, links, testes e documentação isolados;
   usa `gpt-5.6-luna` e esforço `medium`; não altera código de produto.
 - `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-6-astra` e esforço
