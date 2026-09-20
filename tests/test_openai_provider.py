@@ -61,14 +61,17 @@ class ProviderOpenAITest(unittest.TestCase):
     def test_erro_de_limite_tem_orientacao_de_espera(self):
         class ErroLimite(Exception):
             status_code = 429
+            headers = {"retry-after": "7"}
 
         def criar(**_kwargs):
             raise ErroLimite()
 
         provider = ProviderOpenAI(client=SimpleNamespace(embeddings=SimpleNamespace(create=criar)))
 
-        with self.assertRaisesRegex(ErroProviderOpenAI, "Aguarde"):
+        with self.assertRaisesRegex(ErroProviderOpenAI, "Aguarde") as contexto:
             provider.gerar_embeddings(["chunk recuperado"])
+        self.assertEqual(contexto.exception.status_code, 429)
+        self.assertEqual(contexto.exception.retry_after, 7.0)
 
     def test_erro_de_rede_tem_orientacao_de_conexao(self):
         def criar(**_kwargs):

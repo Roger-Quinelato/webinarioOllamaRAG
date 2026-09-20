@@ -2,6 +2,7 @@
 
 import json
 import os
+import random
 import tempfile
 import time
 from pathlib import Path
@@ -15,6 +16,8 @@ from openai_provider import MODELO_EMBEDDING
 COLECAO_OPENAI = "artigos_rag_openai"
 MANIFESTO_OPENAI = "openai_manifest.json"
 VERSAO_COLECAO = "openai-embeddings-v1"
+LOTE_EMBEDDING = 32
+LIMITE_TPM_ESTIMADO = 32_000
 _METADADOS_COLECAO = {
     "modelo_embedding": MODELO_EMBEDDING,
     "versao_colecao": VERSAO_COLECAO,
@@ -78,8 +81,49 @@ def _validar_corpus(chunks):
             raise ValueError(f"Chunk {chunk.get('id', '<sem id>')} sem metadados: {faltantes}")
 
 
+def _estimar_tokens(texto):
+    """Estimativa conservadora para manter o ritmo abaixo do limite de 40k TPM."""
+    return max(1, (len(texto) + 2) // 3)
+
+
+def _lotes_embeddings(chunks):
+    lote, tokens_lote = [], 0
+    for chunk in chunks:
+        tokens_chunk = _estimar_tokens(chunk["texto"])
+        if tokens_chunk > LIMITE_TPM_ESTIMADO:
+            raise ValueError("Um Chunk Recuperado excede o limite seguro de tokens para embeddings.")
+        if lote and (len(lote) == LOTE_EMBEDDING or tokens_lote + tokens_chunk > LIMITE_TPM_ESTIMADO):
+            yield lote, tokens_lote
+            lote, tokens_lote = [], 0
+        lote.append(chunk)
+        tokens_lote += tokens_chunk
+    if lote:
+        yield lote, tokens_lote
+
+
+def _retry_after(erro):
+    valor = getattr(erro, "retry_after", None)
+    try:
+        return max(0.0, float(valor)) if valor is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _e_limite_de_taxa(erro):
+    return getattr(erro, "status_code", None) == 429
+
+
 def reindexar_corpus_oficial(
-    provider, *, chunks=None, chroma_client=None, progresso=print, recriar=False
+    provider,
+    *,
+    chunks=None,
+    chroma_client=None,
+    progresso=print,
+    recriar=False,
+    max_tentativas_429=3,
+    esperar=time.sleep,
+    aleatorio=random.uniform,
+    agora=time.monotonic,
 ):
     """Indexa o corpus com OpenAI sem remover a coleção Chroma legada."""
     if chunks is None:
@@ -94,10 +138,28 @@ def reindexar_corpus_oficial(
     colecao = chroma_client.create_collection(name=nome_candidato, embedding_function=None,
                                               metadata={**_METADADOS_COLECAO, "status": "building"})
     inicio = time.perf_counter()
-    lote = 64
-    for posicao in range(0, len(chunks), lote):
-        parte = chunks[posicao:posicao + lote]
-        vetores = provider.gerar_embeddings([chunk["texto"] for chunk in parte])
+    inicio_janela, tokens_na_janela = agora(), 0
+    indexados = 0
+    for parte, tokens_parte in _lotes_embeddings(chunks):
+        tentativa = 0
+        while True:
+            tempo_decorrido = agora() - inicio_janela
+            if tempo_decorrido >= 60:
+                inicio_janela, tokens_na_janela = agora(), 0
+            if tokens_na_janela + tokens_parte > LIMITE_TPM_ESTIMADO:
+                esperar(max(0.0, 60 - tempo_decorrido))
+                inicio_janela, tokens_na_janela = agora(), 0
+            tokens_na_janela += tokens_parte
+            try:
+                vetores = provider.gerar_embeddings([chunk["texto"] for chunk in parte])
+                break
+            except Exception as erro:
+                if not _e_limite_de_taxa(erro) or tentativa >= max_tentativas_429:
+                    raise
+                espera_minima = _retry_after(erro)
+                atraso = espera_minima if espera_minima is not None else 2**tentativa + aleatorio(0, 1)
+                esperar(atraso)
+                tentativa += 1
         if len(vetores) != len(parte):
             raise ValueError("O Provider OpenAI devolveu quantidade de embeddings diferente da entrada.")
         colecao.add(
@@ -106,8 +168,9 @@ def reindexar_corpus_oficial(
             metadatas=[chunk["metadados"] for chunk in parte],
             embeddings=vetores,
         )
+        indexados += len(parte)
         if progresso:
-            progresso(f"  {min(posicao + lote, len(chunks))}/{len(chunks)} chunks indexados")
+            progresso(f"  {indexados}/{len(chunks)} chunks indexados")
     esperado = {chunk["id"] for chunk in chunks}
     if colecao.count() != len(esperado) or set(colecao.get(include=[])["ids"]) != esperado:
         raise ValueError("A coleção candidata não contém exatamente os chunks esperados.")

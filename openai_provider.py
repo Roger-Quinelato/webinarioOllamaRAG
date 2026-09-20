@@ -16,6 +16,11 @@ class ChaveOpenAIAusente(RuntimeError):
 class ErroProviderOpenAI(RuntimeError):
     """Falha externa apresentada ao usuário sem detalhes sensíveis."""
 
+    def __init__(self, mensagem, *, status_code=None, retry_after=None):
+        super().__init__(mensagem)
+        self.status_code = status_code
+        self.retry_after = retry_after
+
 
 def obter_chave_openai(secrets=None, environ=None):
     """Obtém a chave de ``st.secrets`` ou do ambiente, sem registrá-la."""
@@ -52,6 +57,27 @@ def _mensagem_erro(erro):
     return "A OpenAI não respondeu como esperado. Tente novamente em instantes."
 
 
+def _retry_after(erro):
+    cabecalhos = getattr(erro, "headers", None)
+    if cabecalhos is None:
+        cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
+    if not cabecalhos:
+        return None
+    try:
+        valor = cabecalhos.get("retry-after")
+        return max(0.0, float(valor)) if valor is not None else None
+    except (AttributeError, TypeError, ValueError):
+        return None
+
+
+def _erro_seguro(erro):
+    return ErroProviderOpenAI(
+        _mensagem_erro(erro),
+        status_code=getattr(erro, "status_code", None),
+        retry_after=_retry_after(erro),
+    )
+
+
 class ProviderOpenAI:
     """Contrato direto do SDK OpenAI, isolado do restante do pipeline RAG."""
 
@@ -67,7 +93,7 @@ class ProviderOpenAI:
         try:
             resposta = self._client.embeddings.create(model=MODELO_EMBEDDING, input=textos)
         except Exception as erro:
-            raise ErroProviderOpenAI(_mensagem_erro(erro)) from None
+            raise _erro_seguro(erro) from None
         return [item.embedding for item in resposta.data]
 
     def gerar(self, mensagens):
@@ -76,7 +102,7 @@ class ProviderOpenAI:
             if resposta.status != "completed":
                 raise RuntimeError("A resposta não foi concluída.")
         except Exception as erro:
-            raise ErroProviderOpenAI(_mensagem_erro(erro)) from None
+            raise _erro_seguro(erro) from None
         return resposta.output_text.strip()
 
     def transmitir(self, mensagens):
@@ -93,4 +119,4 @@ class ProviderOpenAI:
             if not concluida:
                 raise RuntimeError("O streaming terminou sem conclusão.")
         except Exception as erro:
-            raise ErroProviderOpenAI(_mensagem_erro(erro)) from None
+            raise _erro_seguro(erro) from None
