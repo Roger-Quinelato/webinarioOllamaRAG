@@ -2,8 +2,7 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
-import httpx
-
+import openai_provider
 from openai_provider import (
     ChaveOpenAIAusente,
     ErroProviderOpenAI,
@@ -33,54 +32,11 @@ class ObterChaveOpenAITest(unittest.TestCase):
 
 
 class ProviderOpenAITest(unittest.TestCase):
-    def test_embeddings_usam_modelo_configurado_na_fronteira_openai(self):
-        chamadas = []
+    def test_expoe_somente_geracao_e_streaming(self):
+        provider = ProviderOpenAI(client=object())
 
-        def criar(**kwargs):
-            chamadas.append(kwargs)
-            return SimpleNamespace(data=[SimpleNamespace(embedding=[0.1, 0.2])])
-
-        provider = ProviderOpenAI(client=SimpleNamespace(embeddings=SimpleNamespace(create=criar)))
-
-        self.assertEqual(provider.gerar_embeddings(["chunk recuperado"]), [[0.1, 0.2]])
-        self.assertEqual(chamadas, [{"model": "text-embedding-3-small", "input": ["chunk recuperado"]}])
-
-    def test_erro_de_autenticacao_tem_mensagem_acionavel_sem_detalhe_do_provider(self):
-        class ErroAutenticacao(Exception):
-            status_code = 401
-
-        def criar(**_kwargs):
-            raise ErroAutenticacao("sk-nao-exiba")
-
-        provider = ProviderOpenAI(client=SimpleNamespace(embeddings=SimpleNamespace(create=criar)))
-
-        with self.assertRaisesRegex(ErroProviderOpenAI, "chave OPENAI_API_KEY") as contexto:
-            provider.gerar_embeddings(["chunk recuperado"])
-        self.assertNotIn("sk-nao-exiba", str(contexto.exception))
-
-    def test_erro_de_limite_tem_orientacao_de_espera(self):
-        class ErroLimite(Exception):
-            status_code = 429
-            headers = {"retry-after": "7"}
-
-        def criar(**_kwargs):
-            raise ErroLimite()
-
-        provider = ProviderOpenAI(client=SimpleNamespace(embeddings=SimpleNamespace(create=criar)))
-
-        with self.assertRaisesRegex(ErroProviderOpenAI, "Aguarde") as contexto:
-            provider.gerar_embeddings(["chunk recuperado"])
-        self.assertEqual(contexto.exception.status_code, 429)
-        self.assertEqual(contexto.exception.retry_after, 7.0)
-
-    def test_erro_de_rede_tem_orientacao_de_conexao(self):
-        def criar(**_kwargs):
-            raise httpx.ConnectError("rede indisponível")
-
-        provider = ProviderOpenAI(client=SimpleNamespace(embeddings=SimpleNamespace(create=criar)))
-
-        with self.assertRaisesRegex(ErroProviderOpenAI, "conexão"):
-            provider.gerar_embeddings(["chunk recuperado"])
+        self.assertFalse(hasattr(provider, "gerar_embeddings"))
+        self.assertFalse(hasattr(openai_provider, "MODELO_EMBEDDING"))
 
     def test_geracao_e_streaming_usam_modelo_configurado(self):
         chamadas = []

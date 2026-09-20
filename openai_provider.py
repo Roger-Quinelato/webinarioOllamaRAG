@@ -1,11 +1,10 @@
-"""Limite OpenAI para embeddings, geração e streaming do RAG."""
+"""Limite OpenAI para geração e streaming do RAG."""
 
 import os
 
 import httpx
 
 
-MODELO_EMBEDDING = "text-embedding-3-small"
 MODELO_GERACAO = "gpt-5.6-luna"
 
 
@@ -79,7 +78,7 @@ def _erro_seguro(erro):
 
 
 class ProviderOpenAI:
-    """Contrato direto do SDK OpenAI, isolado do restante do pipeline RAG."""
+    """Contrato de geração do SDK OpenAI, isolado do restante do pipeline RAG."""
 
     def __init__(self, *, client=None, secrets=None, environ=None):
         if client is None:
@@ -88,13 +87,6 @@ class ProviderOpenAI:
 
             client = OpenAI(api_key=chave, max_retries=0)
         self._client = client
-
-    def gerar_embeddings(self, textos):
-        try:
-            resposta = self._client.embeddings.create(model=MODELO_EMBEDDING, input=textos)
-        except Exception as erro:
-            raise _erro_seguro(erro) from None
-        return [item.embedding for item in resposta.data]
 
     def gerar(self, mensagens):
         try:

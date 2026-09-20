@@ -10,9 +10,9 @@ from pathlib import Path
 import chromadb
 
 import config
-from openai_provider import MODELO_EMBEDDING
 
 
+MODELO_EMBEDDING = "text-embedding-3-small"
 COLECAO_OPENAI = "artigos_rag_openai"
 MANIFESTO_OPENAI = "openai_manifest.json"
 VERSAO_COLECAO = "openai-embeddings-v1"

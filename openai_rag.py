@@ -21,8 +21,10 @@ class BaseAtiva:
     nome: str
     colecao: object
     tipo: str = "Corpus Oficial"
-    modelo_embedding: str = "text-embedding-3-small"
-    versao: str = "openai-embeddings-v1"
+    provedor_embedding: str = "Ollama"
+    modelo_embedding: str = "bge-m3"
+    dimensao_embedding: int = 1024
+    versao_colecao: str = "bge-m3-v1"
     sessao_id: str | None = None
 
 
@@ -46,7 +48,7 @@ class FluxoResposta:
         texto, tentativa = "", 0
         while True:
             try:
-                for pedaco in self._rag.provider.transmitir(mensagens):
+                for pedaco in self._rag.generation_provider.transmitir(mensagens):
                     texto += pedaco
                     yield pedaco
                 self.resultado = self._rag._resultado(texto.strip(), chunks, self._args[1], status="completa")
@@ -66,18 +68,32 @@ class FluxoResposta:
 class OpenAIRAG:
     """Coordena retrieval, grounding, fontes e geração para uma Base Ativa."""
 
-    def __init__(self, provider):
-        self.provider = provider
+    def __init__(self, embedding_provider, generation_provider):
+        self.embedding_provider = embedding_provider
+        self.generation_provider = generation_provider
 
     def buscar(self, pergunta, base_ativa, *, k=MAX_CHUNKS_RETRIEVAL, where=None):
         if not isinstance(base_ativa, BaseAtiva):
             raise TypeError("A pergunta precisa receber exatamente uma Base Ativa.")
         metadados = getattr(base_ativa.colecao, "metadata", None) or {}
-        if metadados and (metadados.get("modelo_embedding") != base_ativa.modelo_embedding
-                          or metadados.get("status") not in {None, "ready"}):
-            raise ValueError("A Base Ativa não é compatível ou não está pronta para consulta.")
+        esperados = {
+            "provedor_embedding": base_ativa.provedor_embedding,
+            "modelo_embedding": base_ativa.modelo_embedding,
+            "dimensao_embedding": base_ativa.dimensao_embedding,
+            "versao_colecao": base_ativa.versao_colecao,
+            "status": "ready",
+        }
+        incompatibilidades = [
+            campo for campo, esperado in esperados.items() if metadados.get(campo) != esperado
+        ]
+        if incompatibilidades:
+            raise ValueError(
+                "A Base Ativa é incompatível ("
+                + ", ".join(incompatibilidades)
+                + "). Execute a reindexação explícita antes de consultar."
+            )
         k = min(max(k, 1), MAX_CHUNKS_RETRIEVAL)
-        vetor = self.provider.gerar_embeddings([pergunta])[0]
+        vetor = self.embedding_provider.gerar_embeddings([pergunta])[0]
         opcoes = {
             "query_embeddings": [vetor],
             "n_results": k,

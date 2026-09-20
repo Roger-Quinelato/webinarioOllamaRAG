@@ -21,9 +21,16 @@ def chunks():
 
 
 class ColecaoFake:
-    def __init__(self, resultados):
+    def __init__(self, resultados, metadata=None):
         self.resultados = resultados
         self.chamadas = []
+        self.metadata = metadata or {
+            "provedor_embedding": "Ollama",
+            "modelo_embedding": "bge-m3",
+            "dimensao_embedding": 1024,
+            "versao_colecao": "bge-m3-v1",
+            "status": "ready",
+        }
 
     def query(self, **kwargs):
         self.chamadas.append(kwargs)
@@ -56,11 +63,58 @@ class ProviderFake:
                 yield evento
 
 
+class EmbeddingProviderFake:
+    def __init__(self):
+        self.textos = []
+
+    def gerar_embeddings(self, textos):
+        self.textos.extend(textos)
+        return [[0.1, 0.2]]
+
+
+class GenerationProviderFake:
+    def __init__(self):
+        self.mensagens = []
+
+    def transmitir(self, mensagens):
+        self.mensagens.append(mensagens)
+        yield "Resposta [1]"
+
+
 class OpenAIRAGTest(unittest.TestCase):
     def criar_rag(self, provider=None, resultados=None):
         provider = provider or ProviderFake([["Resposta [1]", "__COMPLETO__"]])
         colecao = ColecaoFake(resultados if resultados is not None else chunks())
-        return OpenAIRAG(provider), BaseAtiva("Corpus Oficial", colecao), provider, colecao
+        return OpenAIRAG(provider, provider), BaseAtiva("Corpus Oficial", colecao), provider, colecao
+
+    def test_retrieval_e_geracao_usam_providers_distintos(self):
+        embedding_provider = EmbeddingProviderFake()
+        generation_provider = GenerationProviderFake()
+        colecao = ColecaoFake(chunks())
+        rag = OpenAIRAG(embedding_provider, generation_provider)
+
+        resultado = rag.responder("pergunta atual", BaseAtiva("Corpus Oficial", colecao))
+
+        self.assertEqual(embedding_provider.textos, ["pergunta atual"])
+        self.assertEqual(len(generation_provider.mensagens), 1)
+        self.assertEqual(resultado["texto"], "Resposta [1]")
+
+    def test_base_ativa_rejeita_cada_metadado_incompativel_e_orienta_reindexacao(self):
+        casos = {
+            "provedor_embedding": "OpenAI",
+            "modelo_embedding": "modelo-antigo",
+            "dimensao_embedding": 2,
+            "versao_colecao": "schema-antigo",
+            "status": "building",
+        }
+        for campo, valor in casos.items():
+            with self.subTest(campo=campo):
+                colecao = ColecaoFake(chunks())
+                colecao.metadata[campo] = valor
+                rag = OpenAIRAG(EmbeddingProviderFake(), GenerationProviderFake())
+
+                with self.assertRaisesRegex(ValueError, "reindexação"):
+                    rag.buscar("pergunta", BaseAtiva("Corpus Oficial", colecao))
 
     def test_retrieval_usa_somente_pergunta_atual_e_no_maximo_cinco_chunks(self):
         rag, base, provider, colecao = self.criar_rag()
@@ -124,6 +178,27 @@ class OpenAIRAGTest(unittest.TestCase):
 
         self.assertEqual(resultado["texto"], "Resposta [1]")
         self.assertEqual(len(provider.mensagens), 2)
+
+    def test_falha_openai_nao_aciona_geracao_local(self):
+        class GenerationProviderComFalha:
+            def __init__(self):
+                self.chamadas = 0
+
+            def transmitir(self, _mensagens):
+                self.chamadas += 1
+                raise RuntimeError("OpenAI indisponível")
+                yield
+
+        embedding_provider = EmbeddingProviderFake()
+        generation_provider = GenerationProviderComFalha()
+        rag = OpenAIRAG(embedding_provider, generation_provider)
+        base = BaseAtiva("Corpus Oficial", ColecaoFake(chunks()))
+
+        with self.assertRaisesRegex(RuntimeError, "antes do primeiro token"):
+            rag.responder("pergunta", base)
+
+        self.assertEqual(generation_provider.chamadas, 2)
+        self.assertEqual(embedding_provider.textos, ["pergunta"])
 
     def test_falha_depois_do_primeiro_token_preserva_e_marca_resposta_parcial(self):
         provider = ProviderFake([["Começo", RuntimeError("falha")]])
