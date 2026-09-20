@@ -9,14 +9,16 @@ anulam a arquitetura híbrida aceita nesta branch.
 
 ## Limites da entrega P0
 
-- Use `bge-m3` via Ollama para embeddings e OpenAI diretamente para geração, sem
-  LangChain, FAISS ou SentenceTransformers locais.
+- Use `bge-m3` via Ollama somente para embeddings. Use OpenAI, NVIDIA ou Gemini
+  para geração, na ordem configurada, sem LangChain, FAISS ou
+  SentenceTransformers locais.
 - Preserve Chroma, separando Corpus Oficial persistente e Índice de Sessão
   efêmero.
 - Uma pergunta usa uma Base Ativa. Não misture bases, sessões ou uploads.
 - A resposta é grounded: chunks insuficientes produzem Recusa, não conhecimento
   externo.
-- Upload é temporário, textual, limitado a três PDFs de 20 MB; OCR é pós-webinar.
+- Upload é temporário, textual, limitado a três PDFs de 20 MB; a UI do treino
+  mantém `UPLOADS_STREAMLIT_HABILITADOS=False`. OCR é pós-webinar.
 
 ## Método de trabalho
 
@@ -37,8 +39,7 @@ antes de delegar. Use as definições versionadas em `.agent/subagents/`.
   usa `gpt-5.6-luna` e esforço `medium`; não altera código de produto.
 - `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-5.6-sol` e esforço
   `medium`, após MIG-01, após a adaptação híbrida de MIG-02/MIG-03, após MIG-05
-  e antes do ensaio. Gate MIG-05 atual: `ALTERAÇÕES NECESSÁRIAS`; não iniciar
-  MIG-06 até novo gate.
+  e antes do ensaio. Gate continua obrigatório antes de MIG-07 e do ensaio.
 
 Não execute tarefas de escrita em paralelo no mesmo worktree. Um gate aprovado
 é necessário antes de iniciar a issue dependente; o revisor reporta achados, mas

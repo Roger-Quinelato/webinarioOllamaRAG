@@ -10,7 +10,7 @@ Comando executado no ambiente `.venv`:
 .venv\Scripts\python.exe -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-Resultado: **72 testes, sucesso**.
+Resultado registrado no PR #72: **68 testes, sucesso**.
 
 Cobertura adicionada:
 

@@ -9,8 +9,9 @@ provider remoto de geração configurados.
 
 ## Usuário e fluxo
 
-Facilitador seleciona base oficial ou envia até três PDFs; pergunta; acompanha
-streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI distingue
+Facilitador consulta o Corpus Oficial no treino. A capacidade de selecionar uma
+base ou enviar até três PDFs permanece prevista para a implementação futura;
+pergunta; acompanha streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI distingue
 **Recusa**, **Resposta Parcial** e interrupção. Não chama recuperação de citação.
 
 ## Escopo P0
@@ -20,7 +21,8 @@ streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI disting
 - Geração: OpenAI, NVIDIA e Gemini com streaming. Ordem padrão OpenAI, NVIDIA,
   Gemini; troca somente antes do primeiro token.
 - Grounding estrito, citações rastreáveis, recusa sem contexto suficiente.
-- Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão.
+- Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão. A flag
+  `UPLOADS_STREAMLIT_HABILITADOS=False` mantém upload fora da UI do treino.
 - Geração usa duas últimas turnos; retrieval usa apenas pergunta atual.
 - Ensaio: cinco perguntas para recuperação, citação, recusa, filtro e upload.
 

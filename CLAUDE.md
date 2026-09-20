@@ -4,10 +4,10 @@ Orientação para agentes nesta branch de migração.
 
 ## Estado
 
-Branch `feat/openai-rag-migration`. MIG-04 e MIG-05 têm implementação e testes;
-gate CTO de MIG-05 ainda exige cobertura AppTest adicional. MIG-06 e MIG-07 não
-foram iniciadas. Descreva OpenAI somente como geração híbrida implementada, sem
-afirmar aceite final enquanto a prova real de geração segue bloqueada por HTTP 429.
+Branch principal contém MIG-04 e MIG-05, incluindo fallback remoto OpenAI,
+NVIDIA e Gemini. AppTests adicionais e prova real dos providers ainda exigem
+gate CTO. MIG-06 permanece material de treinamento separado. Não afirme aceite
+final enquanto a prova real de geração segue bloqueada por HTTP 429.
 
 Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma legada.
 
@@ -31,7 +31,7 @@ somente a decisão de embeddings da ADR-001.
 ## Arquitetura P0
 
 - Use `bge-m3` via Ollama para embeddings do Corpus Oficial e do Índice de
-  Sessão; use SDK OpenAI direto com `gpt-5.6-luna` somente para geração.
+  Sessão; use providers remotos OpenAI, NVIDIA e Gemini somente para geração.
 - Preserve Chroma: coleção persistente para **Corpus Oficial**; coleção efêmera
   por sessão para **Índice de Sessão**.
 - Cada pergunta consulta uma **Base Ativa**. Nunca misture corpus e upload.
@@ -39,7 +39,8 @@ somente a decisão de embeddings da ADR-001.
   sem conhecimento externo.
 - Mostre **Fonte Citada** só com marcador válido. Chunk recuperado sem marcador:
   fallback, não citação.
-- Upload: até três PDFs, 20 MB cada; ano opcional; sem OCR no P0.
+- Upload: até três PDFs, 20 MB cada; ano opcional; a UI permanece desativada
+  durante o treino; sem OCR no P0.
 - Geração recebe as duas últimas turnos; retrieval recebe só pergunta atual.
 - Faça no máximo uma repetição antes do primeiro token. Depois, preserve e
   identifique **Resposta Parcial**.

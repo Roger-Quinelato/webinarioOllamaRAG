@@ -118,12 +118,15 @@ O script publica a coleção híbrida com `bge-m3` e preserva coleções existen
 
 ### 8. Consultar
 
+Use o aplicativo para consultar o Corpus Oficial:
+
 ```bash
-python scripts/03_consultar_hibrido.py
-python scripts/07_openai.py
+streamlit run app.py
 ```
 
-`03` demonstra somente retrieval com `bge-m3`; `07` transmite resposta grounded da OpenAI. Ambos consultam exclusivamente o **Corpus Oficial**.
+O material CLI híbrido pertence à MIG-06 e não está disponível nesta base até
+ser mergeado. Não use scripts legados de geração Ollama para validar a
+arquitetura atual.
 
 ### 9. Abrir o chatbot
 
@@ -153,7 +156,7 @@ O navegador abre em <http://localhost:8501>. Durante o treino, a UI consulta som
 | `config.py` | Modelos, caminhos, tamanho de chunk e `k` padrão |
 | `openai_rag.py` | Fachada grounded: Base Ativa, retrieval, fontes, recusa e streaming |
 | `hybrid_index.py` | Publicação e abertura do Corpus Oficial híbrido |
-| `metadados.csv` | Metadados escritos à mão (+ resumo gerado pelo LLM) |
+| `metadados.csv` | Metadados e resumos versionados do Corpus Oficial |
 | `scripts/` | Um script por bloco da aula, em ordem |
 | `webinario_rag.ipynb` | Notebook da aula (gerado por `ferramentas/construir_notebook.py`) |
 | `app.py` | Chatbot Streamlit |

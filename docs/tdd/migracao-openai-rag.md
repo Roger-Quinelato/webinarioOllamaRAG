@@ -5,11 +5,11 @@
 | Status | Aprovado |
 | Criado | 2026-09-19 |
 | Responsável | A definir |
-| Branch | `feat/openai-rag-migration` |
+| Branch | `main` |
 
 ## Plano operacional atualizado — 2026-09-20
 
-Branch de continuação: `codex/mig-06-07-08`.
+Base atual: `main`, após merge do PR #72 (fallback remoto) e PR #73 (CTO Sol).
 
 - MIG-04: código e testes concluídos em `f8ec561`. Índice de Sessão permanece
   contrato de domínio; Streamlit não o expõe durante treino.
@@ -19,7 +19,8 @@ Branch de continuação: `codex/mig-06-07-08`.
 - Gate CTO MIG-05: `ALTERAÇÕES NECESSÁRIAS`. AppTests pendentes, fallback,
   streaming, fontes, Recusa, Resposta Parcial e evidência real dos três
   providers precisam passar antes do aceite.
-- MIG-06: bloqueada até gate liberador de MIG-05.
+- MIG-06: material híbrido preparado em branch de trabalho; não confundir com
+  aceite do gate MIG-05.
 - MIG-07: bloqueada até MIG-05. Ensaio mantém recuperação, citação, Recusa e
   filtro. Caso upload fica adiado até flag Streamlit habilitar.
 - MIG-08: permanece dependente de MIG-07 e gate final.
@@ -97,7 +98,7 @@ chunks, tentativa, recusa e tempos; nunca chave nem conteúdo integral do PDF.
   implementação e evidência; `MIG-01`–`MIG-08`, sequencial.
 - **Executor mecânico**: `gpt-5.6-luna`, `medium`; inventário, links, referências
   Ollama, testes e revisão documental isolada; não altera código de produto.
-- **Revisor/CTO**: `gpt-6-astra`, `medium`; gate independente, somente leitura,
+- **Revisor/CTO**: `gpt-5.6-sol`, `medium`; gate independente, somente leitura,
   sem editar/aprovar sem evidência; após `MIG-01`, após a adaptação híbrida de
   `MIG-02`/`MIG-03`, após `MIG-05` e antes do ensaio.
 
