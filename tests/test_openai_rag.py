@@ -125,6 +125,23 @@ class OpenAIRAGTest(unittest.TestCase):
         self.assertEqual(len(recuperados), 5)
         self.assertEqual(colecao.chamadas[0]["n_results"], 5)
 
+    def test_retrieval_aceita_limite_positivo_e_recusa_limite_negativo_calibrados(self):
+        positivo = chunks()[0]
+        positivo["distancia"] = 0.44007039070129395
+        rag, base, _provider, _colecao = self.criar_rag(resultados=[positivo])
+
+        self.assertEqual(len(rag.buscar("pergunta positiva", base)), 1)
+
+        negativo = chunks()[0]
+        negativo["distancia"] = 0.5800204873085022
+        provider = ProviderFake([])
+        rag, base, _provider, _colecao = self.criar_rag(provider, resultados=[negativo])
+
+        resultado = rag.responder("pergunta negativa", base)
+
+        self.assertEqual(resultado["status"], "Recusa")
+        self.assertEqual(provider.mensagens, [])
+
     def test_retrieval_preserva_filtro_da_base_ativa(self):
         rag, base, _provider, colecao = self.criar_rag()
 

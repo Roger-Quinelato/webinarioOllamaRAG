@@ -9,7 +9,6 @@ from openai_provider import ErroProviderOpenAI
 
 MAX_CHUNKS_RETRIEVAL = 5
 MAX_CHUNKS_PROMPT = 3
-DISTANCIA_MAXIMA = 0.60
 _CITACAO_RE = re.compile(r"\[(\d+)\]")
 _MENSAGEM_RECUSA = config.RESPOSTA_NAO_ENCONTRADA
 
@@ -115,7 +114,7 @@ class OpenAIRAG:
             for posicao, (texto, metadado, distancia) in enumerate(
                 zip(documentos, metadados, distancias), start=1
             )
-            if distancia <= DISTANCIA_MAXIMA
+            if distancia <= config.DISTANCIA_MAXIMA_RETRIEVAL
         ]
 
     def responder(self, pergunta, base_ativa, *, historico=None, k=MAX_CHUNKS_RETRIEVAL, where=None):

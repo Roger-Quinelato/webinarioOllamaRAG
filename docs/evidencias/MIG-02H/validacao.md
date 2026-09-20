@@ -4,12 +4,11 @@ Data: 2026-09-20
 
 ## Estado do gate
 
-Implementação e testes automatizados concluídos. A prova runtime de reindexação
-e a calibração real estão **bloqueadas** neste host porque `ollama list` não
-retorna modelos instalados; em particular, `bge-m3` está ausente. Nenhuma
-contagem ou distância real foi inferida.
+Implementação, testes automatizados e prova runtime de reindexação concluídos.
+O `bge-m3` está instalado e a coleção híbrida foi publicada e calibrada. A
+correção do limiar medido está registrada na evidência da issue #68.
 
-MIG-04 permanece bloqueada até a reindexação, a calibração e o gate CTO conjunto.
+MIG-04 permanece bloqueada até o gate CTO conjunto.
 
 ## TDD
 
@@ -43,37 +42,49 @@ provider/modelo, IDs únicos, preservação atômica, idempotência por identida
 corpus, preservação das coleções legada e candidata OpenAI, erros acionáveis e
 validação determinística do limiar.
 
-## Prova runtime bloqueada
+## Prova runtime concluída
 
 Pré-condições locais:
 
 ```text
 > ollama list
-NAME    ID    SIZE    MODIFIED
+NAME             ID              SIZE
+bge-m3:latest    790764642607    1.2 GB
 > Get-ChildItem artigos -Filter *.pdf
 PDF_COUNT=8
 ```
 
-Comando reproduzível de reindexação:
+Resultado real de `.venv\Scripts\python.exe scripts\02_indexar_hibrido.py`:
 
 ```text
-> .venv\Scripts\python.exe scripts\02_indexar_hibrido.py
-ERRO: O modelo bge-m3 não está instalado. Execute `ollama pull bge-m3` e tente novamente.
-EXIT_CODE=2
+artigos=8
+chunks=661
+embeddings_gerados=661
+modelo_embedding=bge-m3
+dimensao_embedding=1024
+colecao=artigos_rag_hibrido_a280e65e16ee
+duracao_segundos=1318.342029499996
+EXIT_CODE=0
 ```
 
-Comando reproduzível de calibração, que depende da publicação anterior:
+O manifesto publicado aponta para a mesma coleção com provider `Ollama`, modelo
+`bge-m3`, dimensão `1024`, versão `bge-m3-v1`, corpus `Corpus Oficial` e estado
+`ready`.
+
+A calibração real inicial demonstrou que o antigo limiar `0.60` não separava a
+matriz: maior positiva `0.44007039070129395` e menor negativa
+`0.5800204873085022`. A issue #68 definiu o ponto médio
+`0.5100454390048981`, com margem igual `0.06997504830360413` dos dois lados.
+As 13 medições completas estão em
+[`../MIG-03C/validacao.md`](../MIG-03C/validacao.md).
 
 ```text
 > .venv\Scripts\python.exe scripts\calibrar_retrieval_hibrido.py
-ERRO: Corpus Oficial híbrido não publicado; execute a reindexação.
-CALIBRATION_EXIT_CODE=2
+limiar_validado=0.5100454390048981
+maior_distancia_positiva=0.44007039070129395
+menor_distancia_negativa=0.5800204873085022
+CALIBRATION_EXIT_CODE=0
 ```
-
-Depois de instalar `bge-m3`, execute os dois comandos acima nessa ordem e salve
-a saída. O segundo comando reutiliza as oito perguntas positivas e cinco
-negativas já versionadas e só aprova o limiar ativo se ele estiver no intervalo
-separador medido.
 
 ## Verificações
 

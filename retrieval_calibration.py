@@ -20,25 +20,36 @@ PERGUNTAS_NEGATIVAS = [
 ]
 
 
-def avaliar_limiar(distancias_positivas, distancias_negativas, *, limiar):
-    """Valida um limiar contra intervalos medidos, sem sugerir valor arbitrário."""
+def calcular_limiar_com_margem(distancias_positivas, distancias_negativas):
+    """Escolhe o ponto médio do intervalo separador, com margem igual nos dois lados."""
     maior_positiva = max(distancias_positivas)
     menor_negativa = min(distancias_negativas)
     if maior_positiva >= menor_negativa:
         raise ValueError(
             "As distâncias positivas e negativas se sobrepõem; o corpus não admite um limiar separador."
         )
+    limiar = (maior_positiva + menor_negativa) / 2
+    return {
+        "limiar_calculado": limiar,
+        "maior_distancia_positiva": maior_positiva,
+        "menor_distancia_negativa": menor_negativa,
+        "margem_positivas": limiar - maior_positiva,
+        "margem_negativas": menor_negativa - limiar,
+        "intervalo_seguro": [maior_positiva, menor_negativa],
+    }
+
+
+def avaliar_limiar(distancias_positivas, distancias_negativas, *, limiar):
+    """Valida o limiar ativo contra o intervalo e expõe a política determinística."""
+    resultado = calcular_limiar_com_margem(distancias_positivas, distancias_negativas)
+    maior_positiva = resultado["maior_distancia_positiva"]
+    menor_negativa = resultado["menor_distancia_negativa"]
     if limiar < maior_positiva or limiar >= menor_negativa:
         raise ValueError(
             f"O limiar {limiar} não separa perguntas positivas e negativas "
             f"no intervalo medido ({maior_positiva}, {menor_negativa})."
         )
-    return {
-        "limiar_validado": limiar,
-        "maior_distancia_positiva": maior_positiva,
-        "menor_distancia_negativa": menor_negativa,
-        "intervalo_seguro": [maior_positiva, menor_negativa],
-    }
+    return {"limiar_validado": limiar, **resultado}
 
 
 def medir_retrieval(colecao, provider, *, limiar):
