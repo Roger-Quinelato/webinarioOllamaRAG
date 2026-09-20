@@ -75,6 +75,23 @@ class ProviderOpenAITest(unittest.TestCase):
         with self.assertRaises(ErroProviderOpenAI):
             next(fluxo)
 
+    def test_normaliza_request_id_sem_expor_o_erro_externo(self):
+        class ErroHTTP(Exception):
+            status_code = 429
+            headers = {"x-request-id": "openai-123"}
+
+        provider = ProviderOpenAI(
+            client=SimpleNamespace(
+                responses=SimpleNamespace(create=lambda **_kwargs: (_ for _ in ()).throw(ErroHTTP()))
+            )
+        )
+
+        with self.assertRaises(ErroProviderOpenAI) as contexto:
+            provider.gerar([])
+
+        self.assertEqual(contexto.exception.request_id, "openai-123")
+        self.assertNotIn("ErroHTTP", str(contexto.exception))
+
     def test_streaming_reporta_resposta_incompleta_antes_de_emitir_delta(self):
         def criar(**_kwargs):
             return iter([SimpleNamespace(type="response.incomplete")])

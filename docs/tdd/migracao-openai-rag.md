@@ -7,11 +7,32 @@
 | Responsável | A definir |
 | Branch | `feat/openai-rag-migration` |
 
+## Plano operacional atualizado — 2026-09-20
+
+Branch de continuação: `codex/mig-06-07-08`.
+
+- MIG-04: código e testes concluídos em `f8ec561`. Índice de Sessão permanece
+  contrato de domínio; Streamlit não o expõe durante treino.
+- MIG-05: código anterior em `738cc0c` e `5de05e4`; agora inclui fallback
+  remoto OpenAI, NVIDIA e Gemini. Streamlit consulta somente Corpus Oficial.
+  `UPLOADS_STREAMLIT_HABILITADOS=False` reserva upload para futuro.
+- Gate CTO MIG-05: `ALTERAÇÕES NECESSÁRIAS`. AppTests pendentes, fallback,
+  streaming, fontes, Recusa, Resposta Parcial e evidência real dos três
+  providers precisam passar antes do aceite.
+- MIG-06: bloqueada até gate liberador de MIG-05.
+- MIG-07: bloqueada até MIG-05. Ensaio mantém recuperação, citação, Recusa e
+  filtro. Caso upload fica adiado até flag Streamlit habilitar.
+- MIG-08: permanece dependente de MIG-07 e gate final.
+
+Treino usa Corpus Oficial. Não publicar upload, OCR, consulta combinada ou
+geração local. `IndiceSessao` não deve ser removido; prepara implementação pós-
+apresentação.
+
 ## Contexto
 
 RAG atual acopla UI, indexação e geração ao Ollama. A arquitetura híbrida mantém
 `bge-m3` via Ollama somente para embeddings e move geração e streaming para
-OpenAI. Preserva Chroma, metadados e ensino do pipeline. Resposta não usa
+providers remotos. Preserva Chroma, metadados e ensino do pipeline. Resposta não usa
 conhecimento fora do contexto recuperado.
 
 ## Escopo
@@ -32,15 +53,16 @@ flowchart LR
   BASE --> OFICIAL[Chroma persistente]
   BASE --> SESSAO[Chroma efêmero]
   RAG --> EMB[Embeddings bge-m3 via Ollama]
-  RAG --> GEN[Geração OpenAI]
+  RAG --> GEN[Geração OpenAI, NVIDIA, Gemini]
   RAG --> FONTES[Classificador de fontes]
   FONTES --> UI
 ```
 
 - **Provider Ollama**: contrato de embeddings com `bge-m3` para as duas bases;
   indisponibilidade ou modelo ausente produz erro acionável.
-- **Provider OpenAI**: contratos de geração e streaming; chave de
-  `st.secrets`/ambiente; nunca exibir.
+- **Providers remotos**: OpenAI, NVIDIA e Gemini fornecem geração e streaming;
+  chaves de `st.secrets`/ambiente; nunca exibir. Roteador troca somente antes
+  do primeiro token.
 - **Índice**: valida provedor, modelo, dimensão e versão do esquema;
   incompatibilidade exige reindexação; upload nunca destrói coleção oficial.
 - **Retrieval**: recebe Base Ativa, aplica filtros, retorna até cinco chunks para
@@ -52,11 +74,11 @@ flowchart LR
 
 ## Falhas, segurança, observabilidade
 
-Ollama indisponível, `bge-m3` ausente, chave OpenAI ausente, autenticação,
-limite API e rede: mensagens acionáveis sem segredo ou traceback. Repita geração
-só se nenhum token chegou; depois preserve **Resposta Parcial**. Registre
-provider, modelo, Base Ativa, quantidade de chunks, tentativa, recusa e tempos;
-nunca chave nem conteúdo integral do PDF.
+Ollama indisponível, `bge-m3` ausente, chave de provider remoto ausente,
+autenticação, limite API e rede: mensagens acionáveis sem segredo ou traceback.
+Roteador pode avançar ao próximo provider somente sem token; depois preserve
+**Resposta Parcial**. Registre provider, modelo, Base Ativa, quantidade de
+chunks, tentativa, recusa e tempos; nunca chave nem conteúdo integral do PDF.
 
 ## Migração e rollback
 
@@ -66,8 +88,8 @@ nunca chave nem conteúdo integral do PDF.
 3. Adapte a fachada para consultar a coleção híbrida e faça o gate conjunto de
    reindexação e fachada antes de iniciar MIG-04.
 4. Alterne aplicação após testes do ensaio.
-5. Falha de provider/reindexação: reverta explicitamente para a tag
-   `legacy-pre-openai`; não faça fallback automático durante a execução.
+5. Falha de provider/reindexação: roteie entre providers remotos antes do
+   primeiro token; geração local só retorna pela tag `legacy-pre-openai`.
 
 ## Operação por subagentes
 

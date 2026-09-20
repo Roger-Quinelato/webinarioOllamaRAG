@@ -3,9 +3,9 @@
 ## Objetivo
 
 Entregar chatbot Streamlit didático que recupera contexto com `bge-m3` local,
-gera respostas com OpenAI, mostra fontes verificáveis e recusa perguntas sem
-suporte recuperado. Deve funcionar no ensaio de 21/09 com Ollama e OpenAI
-configurados.
+gera respostas com providers remotos, mostra fontes verificáveis e recusa perguntas sem
+suporte recuperado. Deve funcionar no ensaio de 21/09 com Ollama e ao menos um
+provider remoto de geração configurados.
 
 ## Usuário e fluxo
 
@@ -17,7 +17,8 @@ streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI disting
 
 - Corpus oficial e índice de sessão: `bge-m3` via Ollama, em espaços vetoriais
   compatíveis e coleções Chroma separadas.
-- Geração: `gpt-5.6-luna`, streaming, uma repetição antes do primeiro token.
+- Geração: OpenAI, NVIDIA e Gemini com streaming. Ordem padrão OpenAI, NVIDIA,
+  Gemini; troca somente antes do primeiro token.
 - Grounding estrito, citações rastreáveis, recusa sem contexto suficiente.
 - Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão.
 - Geração usa duas últimas turnos; retrieval usa apenas pergunta atual.
@@ -31,7 +32,8 @@ simultânea entre bases, upload persistente, SHAP/RAGAS e revisão visual de UX.
 
 ## Critérios de aceite
 
-- Sem `OPENAI_API_KEY`: explique configuração; não inicie consulta.
+- Sem credencial de provider remoto: explique como configurar OpenAI, NVIDIA ou
+  Gemini; não inicie consulta.
 - Sem Ollama ou `bge-m3`: explique configuração; não indexe nem consulte.
 - Coleção com provedor, modelo, dimensão ou esquema incompatível: recuse o uso e
   oriente reindexação explícita.
@@ -39,8 +41,8 @@ simultânea entre bases, upload persistente, SHAP/RAGAS e revisão visual de UX.
   sem citação deve receber rótulo de Chunk Recuperado.
 - Sem evidência: produza recusa definida, sem conhecimento externo.
 - Upload não aparece em outra sessão nem altera coleção oficial.
-- Falha antes do primeiro token: uma repetição. Falha posterior: preserve e marque
-  resposta parcial.
+- Falha antes do primeiro token: roteie para o próximo provider; `retry-after`
+  curto permite uma repetição. Falha posterior: preserve e marque resposta parcial.
 - Matriz de cinco perguntas passa ensaio e possui evidência versionada.
 - MIG-04 permanece bloqueada até o gate aprovar a reindexação híbrida e a
   fachada RAG adaptada.

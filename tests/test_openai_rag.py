@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import chromadb
 
+from generation_router import GenerationRouter
 from ollama_embedding_provider import ProviderEmbeddingsOllama
 from openai_provider import ErroProviderOpenAI
 from openai_rag import BaseAtiva, OpenAIRAG
@@ -102,6 +103,37 @@ class OpenAIRAGTest(unittest.TestCase):
         self.assertEqual(embedding_provider.textos, ["pergunta atual"])
         self.assertEqual(len(generation_provider.mensagens), 1)
         self.assertEqual(resultado["texto"], "Resposta [1]")
+
+    def test_resultado_registra_provider_que_concluiu_geracao(self):
+        class ProviderNVIDIAFake:
+            nome = "NVIDIA"
+            modelo = "modelo-nvidia"
+
+            def transmitir(self, _mensagens):
+                yield "Resposta [1]"
+
+        embedding_provider = EmbeddingProviderFake()
+        rag = OpenAIRAG(embedding_provider, GenerationRouter([ProviderNVIDIAFake()]))
+
+        resultado = rag.responder("pergunta", BaseAtiva("Corpus Oficial", ColecaoFake(chunks())))
+
+        self.assertEqual(resultado["generation_provider"], "NVIDIA")
+        self.assertEqual(resultado["generation_model"], "modelo-nvidia")
+        self.assertFalse(resultado["fallback_used"])
+        self.assertEqual(resultado["attempted_providers"], ["NVIDIA"])
+
+    def test_router_com_todos_os_providers_em_falha_nao_refaz_retrieval(self):
+        openai = ProviderFake([[ErroProviderOpenAI("limite", status_code=429)]])
+        nvidia = ProviderFake([[ErroProviderOpenAI("indisponível", status_code=503)]])
+        embedding_provider = EmbeddingProviderFake()
+        rag = OpenAIRAG(embedding_provider, GenerationRouter([openai, nvidia]))
+
+        with self.assertRaisesRegex(Exception, "Nenhum provider de geração"):
+            rag.responder("pergunta", BaseAtiva("Corpus Oficial", ColecaoFake(chunks())))
+
+        self.assertEqual(embedding_provider.textos, ["pergunta"])
+        self.assertEqual(len(openai.mensagens), 1)
+        self.assertEqual(len(nvidia.mensagens), 1)
 
     def test_base_ativa_rejeita_cada_metadado_incompativel_e_orienta_reindexacao(self):
         casos = {

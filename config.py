@@ -27,6 +27,7 @@ DISTANCIA_MAXIMA_ESTAGIO_1 = 0.60
 DISTANCIA_MAXIMA_RETRIEVAL = 0.5100454390048981
 TEMPERATURA = 0.1
 MAX_TOKENS_RESPOSTA = 400
+UPLOADS_STREAMLIT_HABILITADOS = False
 
 COLUNAS_METADADOS = ["arquivo", "titulo", "autores", "ano", "veiculo", "tema", "idioma", "resumo"]
 TEMAS = ["fundamentos", "retrieval", "avaliacao", "survey", "limitacoes"]

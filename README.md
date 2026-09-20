@@ -1,9 +1,9 @@
 # Assistente híbrido com RAG, Ollama e OpenAI
 
-Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recupera artigos localmente e gera respostas grounded com OpenAI:
+Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recupera artigos localmente e gera respostas grounded com providers remotos:
 
 - **Ollama** serve somente embeddings `bge-m3` (1024 dimensões).
-- **OpenAI** gera respostas com `gpt-5.6-luna` e streaming; configure `OPENAI_API_KEY`.
+- **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: OpenAI, NVIDIA, Gemini.
 - **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
 - **Streamlit** fornece a interface de chat.
 - **SHAP** explica o retrieval.
@@ -12,7 +12,7 @@ Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxer
 
 ## Arquitetura vigente
 
-`bge-m3` via Ollama cria e consulta vetores. SDK OpenAI gera texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
+`bge-m3` via Ollama cria e consulta vetores. Providers remotos geram texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. O roteador troca entre OpenAI, NVIDIA e Gemini somente antes do primeiro token. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
 
 ```
 PDFs → texto por página → chunks → embeddings → ChromaDB
@@ -24,8 +24,8 @@ pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM → 
 | Item | Mínimo |
 |---|---|
 | Python | 3.10 ou superior |
-| RAM | 8 GB (o LLM roda na CPU se não houver GPU) |
-| Disco | ~5 GB para os modelos + ~1 GB para o ambiente Python |
+| RAM | 8 GB |
+| Disco | Espaço para `bge-m3`, corpus e ambiente Python |
 | Editor | VS Code com as extensões *Python* e *Jupyter* (ou JupyterLab) |
 
 ## Passo a passo
@@ -95,7 +95,7 @@ A última linha deve ser `Ambiente pronto.`
 python scripts/01_preparar_corpus.py
 ```
 
-O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no repositório), valida o `metadados.csv` e gera com o LLM os resumos que estiverem vazios.
+O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
 
 | Arquivo | Artigo |
 |---|---|
@@ -119,25 +119,40 @@ O script publica a coleção híbrida com `bge-m3` e preserva coleções existen
 ### 8. Consultar
 
 ```bash
-streamlit run app.py
+python scripts/03_consultar_hibrido.py
+python scripts/07_openai.py
 ```
 
-Scripts CLI híbridos de consulta e streaming OpenAI entram em MIG-06; até lá use o app.
+`03` demonstra somente retrieval com `bge-m3`; `07` transmite resposta grounded da OpenAI. Ambos consultam exclusivamente o **Corpus Oficial**.
 
 ### 9. Abrir o chatbot
+
+Configure pelo menos uma chave antes de iniciar. A ordem padrão é OpenAI,
+NVIDIA e Gemini:
+
+```powershell
+$env:OPENAI_API_KEY = "..."
+$env:NVIDIA_API_KEY = "..."
+$env:NVIDIA_MODEL = "..."
+$env:NVIDIA_TIMEOUT = "30" # segundos; opcional
+$env:GEMINI_API_KEY = "..."
+$env:GEMINI_MODEL = "..."
+$env:GEMINI_TIMEOUT = "30" # segundos; opcional
+```
 
 ```bash
 streamlit run app.py
 ```
 
-O navegador abre em <http://localhost:8501>. Na barra lateral selecione uma única **Base Ativa**. Upload aceita até três PDFs de 20 MB. A interface separa **Fontes Citadas**, **Chunks Recuperados**, **Recusa** e **Resposta Parcial**.
+O navegador abre em <http://localhost:8501>. Durante o treino, a UI consulta somente o **Corpus Oficial**. `UPLOADS_STREAMLIT_HABILITADOS=False` mantém upload de PDFs para implementação futura. A interface separa **Fontes Citadas**, **Chunks Recuperados**, **Recusa** e **Resposta Parcial**. `NVIDIA_BASE_URL` pode apontar para outro endpoint NIM compatível.
 
 ## Estrutura
 
 | Caminho | Função |
 |---|---|
 | `config.py` | Modelos, caminhos, tamanho de chunk e `k` padrão |
-| `rag.py` | Todas as funções do pipeline, usadas pelo notebook, pelos scripts e pelo app |
+| `openai_rag.py` | Fachada grounded: Base Ativa, retrieval, fontes, recusa e streaming |
+| `hybrid_index.py` | Publicação e abertura do Corpus Oficial híbrido |
 | `metadados.csv` | Metadados escritos à mão (+ resumo gerado pelo LLM) |
 | `scripts/` | Um script por bloco da aula, em ordem |
 | `webinario_rag.ipynb` | Notebook da aula (gerado por `ferramentas/construir_notebook.py`) |
@@ -151,7 +166,7 @@ O navegador abre em <http://localhost:8501>. Na barra lateral selecione uma úni
 ```bash
 python -m pip install -r requirements-dev.txt
 python ferramentas/construir_notebook.py
-python ferramentas/executar_notebook.py
+python ferramentas/executar_notebook.py --offline
 bash ferramentas/rodar_scripts.sh
 python ferramentas/testar_app.py
 python ferramentas/medir.py nome_do_cenario
@@ -161,8 +176,8 @@ python ferramentas/gerar_plano_v11.py
 | Comando | O que faz |
 |---|---|
 | `construir_notebook.py` | Gera o `webinario_rag.ipynb` a partir do código-fonte das células |
-| `executar_notebook.py` | Executa o notebook em kernel limpo e salva as saídas (`--offline` testa as saídas pré-computadas) |
-| `rodar_scripts.sh` | Roda `scripts/00`–`07` em sequência, com log |
+| `executar_notebook.py` | Executa o notebook em kernel limpo; `--offline` não chama Ollama nem OpenAI |
+| `rodar_scripts.sh` | Roda apenas a lista explícita de comandos híbridos, com log |
 | `testar_app.py` | Testa o Streamlit com `AppTest` |
 | `medir.py` | Mede os tempos desta máquina |
 | `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
@@ -180,4 +195,4 @@ migração OpenAI atual.
 
 ## Problemas comuns
 
-Consulte as issues e o handoff da migração para orientações atuais.
+Consulte o [troubleshooting](docs/troubleshooting.md) e o handoff da migração.

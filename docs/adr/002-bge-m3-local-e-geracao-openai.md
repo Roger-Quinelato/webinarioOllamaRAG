@@ -59,7 +59,9 @@ Negativas:
 - A coleção candidata criada com embeddings OpenAI não pode ser reutilizada.
 - O gate precisa validar reindexação híbrida e a fachada antes de liberar
   MIG-04.
-- Indisponibilidade da OpenAI interrompe geração; não há fallback automático.
+- Indisponibilidade da OpenAI usa fallback remoto conforme a
+  [ADR-003](003-fallback-remoto-de-geracao.md); não há fallback automático
+  para geração local.
 
 ## Links
 
@@ -67,4 +69,5 @@ Negativas:
   [ADR-001: OpenAI direto; Chroma separado](001-openai-direto-e-chroma-separado.md)
 - [TDD da migração](../tdd/migracao-openai-rag.md)
 - [PRD da migração](../prd/migracao-openai-rag.md)
+- [ADR-003: fallback remoto de geração](003-fallback-remoto-de-geracao.md)
 - [Issue #61](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/61)
