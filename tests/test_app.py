@@ -50,5 +50,24 @@ class AppTestIntegracao(unittest.TestCase):
         self.assertFalse(at.exception)
         self.assertTrue(any("Crie um Índice de Sessão" in erro.value for erro in at.error))
 
+    @patch("openai_provider.obter_chave_openai", return_value="chave-do-ambiente")
+    @patch("openai_provider.ProviderOpenAI")
+    @patch("hybrid_index.abrir_colecao_hibrida")
+    def test_inicio_repassa_chave_resolvida_sem_ler_st_secrets(
+        self, mock_abrir_colecao, mock_provider, mock_obter_chave
+    ):
+        mock_abrir_colecao.return_value = MagicMock(metadata={
+            "provedor_embedding": "Ollama", "modelo_embedding": "bge-m3",
+            "dimensao_embedding": 1024, "versao_colecao": "bge-m3-v1", "status": "ready",
+        })
+        mock_provider.return_value = MagicMock()
+
+        at = AppTest.from_file("../app.py").run(timeout=30)
+
+        self.assertFalse(at.exception)
+        mock_provider.assert_called_once_with(
+            secrets={"OPENAI_API_KEY": "chave-do-ambiente"}, environ={}
+        )
+
 if __name__ == "__main__":
     unittest.main()

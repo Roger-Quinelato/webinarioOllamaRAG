@@ -7,6 +7,27 @@
 | Responsável | A definir |
 | Branch | `feat/openai-rag-migration` |
 
+## Plano operacional atualizado — 2026-09-20
+
+Branch de continuação: `codex/mig-06-07-08`.
+
+- MIG-04: código e testes concluídos em `f8ec561`. Índice de Sessão permanece
+  contrato de domínio; Streamlit não o expõe durante treino.
+- MIG-05: código em `738cc0c` e `5de05e4`. Streamlit consulta somente Corpus
+  Oficial. `UPLOADS_STREAMLIT_HABILITADOS=False` reserva upload para futuro.
+- Gate CTO MIG-05: `ALTERAÇÕES NECESSÁRIAS`. Startup por ambiente foi corrigido;
+  ainda faltam AppTests de falhas, streaming, histórico, fontes, Recusa e
+  Resposta Parcial.
+- MIG-06: usuário autorizou início apesar do gate. Registrar ressalva. Repetir
+  gate antes de MIG-07 e ensaio.
+- MIG-07: ensaio mantém recuperação, citação, Recusa e filtro. Caso upload fica
+  adiado até flag Streamlit habilitar. HTTP 429 mantém ensaio bloqueado.
+- MIG-08: permanece dependente de MIG-07 e gate final.
+
+Treino usa Corpus Oficial. Não publicar upload, OCR, consulta combinada ou
+geração local. `IndiceSessao` não deve ser removido; prepara implementação pós-
+apresentação.
+
 ## Contexto
 
 RAG atual acopla UI, indexação e geração ao Ollama. A arquitetura híbrida mantém

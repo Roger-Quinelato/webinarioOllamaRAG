@@ -21,7 +21,9 @@ except ChaveOpenAIAusente as erro:
 
 @st.cache_resource
 def providers():
-    return ProviderEmbeddingsOllama(), ProviderOpenAI(secrets=st.secrets, environ=None)
+    return ProviderEmbeddingsOllama(), ProviderOpenAI(
+        secrets={"OPENAI_API_KEY": chave_openai}, environ={}
+    )
 
 @st.cache_resource
 def base_oficial():
