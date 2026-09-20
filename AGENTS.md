@@ -2,13 +2,15 @@
 
 ## Prioridade de fontes
 
-Siga, nesta ordem: ADR-001, PRD, TDD, `CONTEXT.md`, issue ativa e este arquivo.
-Documentos do fluxo Ollama descrevem o legado; não anulam a arquitetura OpenAI
-aceita nesta branch.
+Siga, nesta ordem: ADR-002, ADR-001, PRD, TDD, `CONTEXT.md`, issue ativa e este
+arquivo. A ADR-002 supera somente a decisão de embeddings da ADR-001.
+Documentos do fluxo Ollama que tratam geração local descrevem o legado; não
+anulam a arquitetura híbrida aceita nesta branch.
 
 ## Limites da entrega P0
 
-- Use OpenAI diretamente, sem LangChain, FAISS ou SentenceTransformers locais.
+- Use `bge-m3` via Ollama para embeddings e OpenAI diretamente para geração, sem
+  LangChain, FAISS ou SentenceTransformers locais.
 - Preserve Chroma, separando Corpus Oficial persistente e Índice de Sessão
   efêmero.
 - Uma pergunta usa uma Base Ativa. Não misture bases, sessões ou uploads.
@@ -34,7 +36,8 @@ antes de delegar. Use as definições versionadas em `.agent/subagents/`.
 - `openai-rag-mechanical`: inventário, links, testes e documentação isolados;
   usa `gpt-5.6-luna` e esforço `medium`; não altera código de produto.
 - `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-6-astra` e esforço
-  `medium`, após MIG-01, MIG-03, MIG-05 e antes do ensaio.
+  `medium`, após MIG-01, após a adaptação híbrida de MIG-02/MIG-03, após MIG-05
+  e antes do ensaio.
 
 Não execute tarefas de escrita em paralelo no mesmo worktree. Um gate aprovado
 é necessário antes de iniciar a issue dependente; o revisor reporta achados, mas
@@ -42,8 +45,8 @@ não corrige o código.
 
 ## Seams de teste
 
-- Provider OpenAI: embeddings, geração e streaming; mock somente a fronteira
-  externa.
+- Provider de embeddings Ollama: `bge-m3`; mock somente a fronteira externa.
+- Provider OpenAI: geração e streaming; mock somente a fronteira externa.
 - Fachada RAG: Base Ativa, retrieval, fontes, recusa, retry e resposta parcial.
 - Streamlit: estado, histórico, upload, limpeza, fontes e erros via AppTest.
 
@@ -52,6 +55,8 @@ não corrige o código.
 - Nunca registre ou versione `OPENAI_API_KEY`, `.env` ou `secrets.toml`.
 - Não apague a coleção Chroma legada nem o corpus original durante a migração.
 - Preserve a tag `legacy-pre-openai`; ela é o rollback aprovado.
+- Não implemente fallback automático para geração local; ele existe somente no
+  rollback explícito pela tag.
 - Falhas devem ser observáveis e acionáveis, sem traceback ou segredo na UI.
 
 ## Fora do escopo

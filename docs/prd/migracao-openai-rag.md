@@ -2,9 +2,10 @@
 
 ## Objetivo
 
-Entregar chatbot Streamlit didático que responde ao corpus selecionado com
-OpenAI, mostra fontes verificáveis e recusa perguntas sem suporte recuperado.
-Deve funcionar no ensaio de 21/09 sem Ollama instalado.
+Entregar chatbot Streamlit didático que recupera contexto com `bge-m3` local,
+gera respostas com OpenAI, mostra fontes verificáveis e recusa perguntas sem
+suporte recuperado. Deve funcionar no ensaio de 21/09 com Ollama e OpenAI
+configurados.
 
 ## Usuário e fluxo
 
@@ -14,7 +15,8 @@ streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI disting
 
 ## Escopo P0
 
-- Corpus oficial: `text-embedding-3-small`, Chroma persistente.
+- Corpus oficial e índice de sessão: `bge-m3` via Ollama, em espaços vetoriais
+  compatíveis e coleções Chroma separadas.
 - Geração: `gpt-5.6-luna`, streaming, uma repetição antes do primeiro token.
 - Grounding estrito, citações rastreáveis, recusa sem contexto suficiente.
 - Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão.
@@ -23,13 +25,16 @@ streaming; abre fontes com arquivo, página, ano e trecho recuperado. UI disting
 
 ## Fora do escopo P0
 
-LangChain, FAISS, SentenceTransformers, Ollama, OCR/Tesseract, bounding boxes,
-consulta simultânea entre bases, upload persistente, SHAP/RAGAS e revisão visual
-de UX.
+LangChain, FAISS, SentenceTransformers, geração local no caminho principal,
+fallback automático para geração local, OCR/Tesseract, bounding boxes, consulta
+simultânea entre bases, upload persistente, SHAP/RAGAS e revisão visual de UX.
 
 ## Critérios de aceite
 
 - Sem `OPENAI_API_KEY`: explique configuração; não inicie consulta.
+- Sem Ollama ou `bge-m3`: explique configuração; não indexe nem consulte.
+- Coleção com provedor, modelo, dimensão ou esquema incompatível: recuse o uso e
+  oriente reindexação explícita.
 - Resposta grounded: mostre só fontes realmente referenciadas. Chunk recuperado
   sem citação deve receber rótulo de Chunk Recuperado.
 - Sem evidência: produza recusa definida, sem conhecimento externo.
@@ -37,6 +42,8 @@ de UX.
 - Falha antes do primeiro token: uma repetição. Falha posterior: preserve e marque
   resposta parcial.
 - Matriz de cinco perguntas passa ensaio e possui evidência versionada.
+- MIG-04 permanece bloqueada até o gate aprovar a reindexação híbrida e a
+  fachada RAG adaptada.
 
 ## Métricas
 

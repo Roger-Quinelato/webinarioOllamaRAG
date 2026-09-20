@@ -12,7 +12,10 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 
 ## Fontes canônicas
 
-- [ADR-001](docs/adr/001-openai-direto-e-chroma-separado.md): decisão.
+- [ADR-002](docs/adr/002-bge-m3-local-e-geracao-openai.md): decisão vigente de
+  embeddings e geração.
+- [ADR-001](docs/adr/001-openai-direto-e-chroma-separado.md): decisões
+  preservadas de Chroma separado, grounding e geração OpenAI.
 - [PRD](docs/prd/migracao-openai-rag.md): escopo P0 e critérios.
 - [TDD](docs/tdd/migracao-openai-rag.md): componentes, fluxo, riscos, rollback.
 - [Estratégia test-first](docs/testing/estrategia-test-first-openai-rag.md):
@@ -21,12 +24,13 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 - [Milestone GitHub](https://github.com/Roger-Quinelato/webinarioOllamaRAG/milestone/1):
   ordem das issues.
 
-Conflito: ADR e PRD prevalecem sobre documentação histórica Ollama.
+Conflito: ADR e PRD prevalecem sobre documentação histórica. A ADR-002 supera
+somente a decisão de embeddings da ADR-001.
 
 ## Arquitetura P0
 
-- Use SDK OpenAI direto: `text-embedding-3-small` para embeddings;
-  `gpt-5.6-luna` para geração.
+- Use `bge-m3` via Ollama para embeddings do Corpus Oficial e do Índice de
+  Sessão; use SDK OpenAI direto com `gpt-5.6-luna` somente para geração.
 - Preserve Chroma: coleção persistente para **Corpus Oficial**; coleção efêmera
   por sessão para **Índice de Sessão**.
 - Cada pergunta consulta uma **Base Ativa**. Nunca misture corpus e upload.
@@ -38,6 +42,8 @@ Conflito: ADR e PRD prevalecem sobre documentação histórica Ollama.
 - Geração recebe as duas últimas turnos; retrieval recebe só pergunta atual.
 - Faça no máximo uma repetição antes do primeiro token. Depois, preserve e
   identifique **Resposta Parcial**.
+- Não faça fallback automático para geração local. O caminho local de geração
+  existe somente no rollback explícito pela tag `legacy-pre-openai`.
 
 Não use LangChain, FAISS, SentenceTransformers locais, OCR/Tesseract, bounding
 boxes, upload persistente, SHAP/RAGAS ou revisão ampla de UX no P0.
@@ -59,7 +65,8 @@ modelos, esforços e gates. Use prompts em `.agent/subagents/`.
 
 - Implementador: uma issue, sozinho.
 - Executor mecânico: não concorre com código; não altera produto.
-- CTO: somente leitura; gates após `MIG-01`, `MIG-03`, `MIG-05` e antes do ensaio.
+- CTO: somente leitura; gates após `MIG-01`, após a adaptação híbrida de
+  `MIG-02`/`MIG-03`, após `MIG-05` e antes do ensaio.
 
 Gate: revise diff e critérios; rastreie dados por componentes; cubra provider,
 reindexação, compatibilidade Chroma, retrieval, metadados, fontes, configuração,

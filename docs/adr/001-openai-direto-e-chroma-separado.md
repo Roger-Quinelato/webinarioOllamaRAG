@@ -1,7 +1,8 @@
 # ADR-001: OpenAI direto; Chroma separado
 
 - **Data**: 2026-09-19
-- **Status**: Aceito
+- **Status**: Aceito; decisão de embeddings superada pela
+  [ADR-002](002-bge-m3-local-e-geracao-openai.md)
 - **Decisores**: equipe do webinário
 - **Tags**: rag, openai, chroma, grounding
 
@@ -51,6 +52,7 @@ Negativas:
 
 ## Links
 
+- [ADR-002: bge-m3 local e geração OpenAI](002-bge-m3-local-e-geracao-openai.md)
 - [TDD da migração](../tdd/migracao-openai-rag.md)
 - [PRD da migração](../prd/migracao-openai-rag.md)
 - [Glossário do contexto RAG](../../CONTEXT.md)
