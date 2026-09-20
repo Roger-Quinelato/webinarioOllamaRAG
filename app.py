@@ -1,8 +1,9 @@
 import streamlit as st
+from chromadb.errors import ChromaError
 
 from corpus import extrair_paginas, dividir_texto
 from hybrid_index import abrir_colecao_hibrida
-from ollama_embedding_provider import ProviderEmbeddingsOllama
+from ollama_embedding_provider import ErroProviderEmbeddingsOllama, ProviderEmbeddingsOllama
 from openai_provider import ProviderOpenAI, obter_chave_openai, ChaveOpenAIAusente, ErroProviderOpenAI
 from openai_rag import OpenAIRAG, BaseAtiva
 from session_index import criar_indice_sessao
@@ -71,7 +72,18 @@ def processar_upload(arquivos_upload, ano_opcional):
             sessao_id = str(uuid.uuid4())
             st.session_state.sessao_id = sessao_id
         
-        st.session_state.base_sessao = criar_indice_sessao(emb_provider, sessao_id, chunks)
+        try:
+            indice_novo = criar_indice_sessao(emb_provider, sessao_id, chunks)
+        except ErroProviderEmbeddingsOllama as erro:
+            st.warning(str(erro))
+            return
+        except (ChromaError, ValueError):
+            st.warning("Não foi possível criar o Índice de Sessão com os PDFs enviados.")
+            return
+        indice_anterior = st.session_state.get("indice_sessao")
+        st.session_state.indice_sessao = indice_novo
+        if indice_anterior:
+            indice_anterior.descartar()
 
 def montar_filtro(ano_minimo, temas, idiomas):
     if not (ano_minimo or temas or idiomas):
@@ -118,8 +130,9 @@ with st.sidebar:
     st.header("Configuração")
     if st.button("Limpar conversa"):
         st.session_state.mensagens = []
-        if "base_sessao" in st.session_state:
-            del st.session_state.base_sessao
+        indice_sessao = st.session_state.pop("indice_sessao", None)
+        if indice_sessao:
+            indice_sessao.descartar()
         st.rerun()
         
     k = st.slider("k (trechos no contexto)", 1, 10, config.K_PADRAO)
@@ -144,7 +157,8 @@ with st.sidebar:
 if "mensagens" not in st.session_state:
     st.session_state.mensagens = []
 
-base_ativa = st.session_state.get("base_sessao") or base_oficial()
+indice_sessao = st.session_state.get("indice_sessao")
+base_ativa = indice_sessao.base_ativa if indice_sessao else base_oficial()
 
 if not base_ativa:
     st.error("Nenhuma Base Ativa disponível. Verifique a reindexação do Corpus Oficial ou faça upload.")

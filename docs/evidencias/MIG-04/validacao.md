@@ -1,16 +1,22 @@
 # Evidência MIG-04
 
 **Issue:** #62
-**Objetivo:** Criar o Índice de Sessão temporário e provar o isolamento entre sessões e entre bases.
+**Objetivo:** criar Índice de Sessão efêmero, isolado e compatível com o Corpus Oficial `bge-m3`.
 
-## Verificação Test-First
-Os testes foram criados (`tests/test_session_index.py`) e validados na estratégia red-green, assegurando:
-- Criação de coleção efêmera correta.
-- Metadados e compatibilidade conferidos com `bge-m3`.
-- Isolamento garantido: uploads em uma sessão não vazam para outras sessões (testado adicionando a uma coleção e verificando o count das coleções efêmeras).
+## Comandos executados
 
-**Comando:**
-```bash
-.\.venv\Scripts\python.exe -m unittest discover tests/
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_session_index -v
+.\.venv\Scripts\python.exe -m unittest discover tests -v
 ```
-**Resultado:** Todos os testes passaram (41 testes).
+
+## Resultado
+
+- `tests.test_session_index`: 7 testes passaram.
+- Suíte completa: 49 testes passaram.
+- Vetores de sessão exigem dimensão `1024`; dimensão `3`, vetores vazios e quantidade divergente são recusados antes de criar coleção.
+- Provider deve ser `ProviderEmbeddingsOllama` com `bge-m3`; falha do Ollama é propagada sem publicar coleção.
+- Cliente Chroma compartilhado mantém coleções de sessões distintas isoladas.
+- `IndiceSessao.descartar()` remove somente sua coleção e aceita repetição.
+- Teste preserva coleção `artigos_rag_hibrido`, representando o Corpus Oficial.
+- Upload válido é publicado antes do descarte do Índice de Sessão anterior. Limpar conversa chama `descartar()`.

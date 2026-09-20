@@ -18,6 +18,7 @@ PROVEDOR_EMBEDDING = "Ollama"
 COLECAO_HIBRIDA = "artigos_rag_hibrido"
 MANIFESTO_HIBRIDO = "hybrid_manifest.json"
 VERSAO_COLECAO = "bge-m3-v1"
+DIMENSAO_EMBEDDING = 1024
 LOTE_EMBEDDING = 32
 _METADADOS_CHUNK_OBRIGATORIOS = ("arquivo", "pagina", "ano", "idioma", "tema", "chunk_id")
 
@@ -51,7 +52,10 @@ def abrir_colecao_hibrida(chroma_client=None):
         if metadados.get(campo) != esperado or publicado.get(campo) != esperado
     ]
     dimensao = metadados.get("dimensao_embedding")
-    if not isinstance(dimensao, int) or dimensao <= 0 or publicado.get("dimensao_embedding") != dimensao:
+    if (
+        dimensao != DIMENSAO_EMBEDDING
+        or publicado.get("dimensao_embedding") != DIMENSAO_EMBEDDING
+    ):
         incompatibilidades.append("dimensao_embedding")
     if incompatibilidades:
         raise ColecaoHibridaIncompativel(
@@ -145,8 +149,7 @@ def reindexar_corpus_oficial(provider, *, chunks=None, chroma_client=None, progr
             and metadados.get("versao_colecao") == VERSAO_COLECAO
             and metadados.get("corpus") == "Corpus Oficial"
             and metadados.get("status") == "ready"
-            and isinstance(metadados.get("dimensao_embedding"), int)
-            and metadados["dimensao_embedding"] > 0
+            and metadados.get("dimensao_embedding") == DIMENSAO_EMBEDDING
             and existente.count() == len(ids_esperados)
             and set(existente.get(include=[])["ids"]) == ids_esperados
         )
@@ -166,9 +169,11 @@ def reindexar_corpus_oficial(provider, *, chunks=None, chroma_client=None, progr
     if len(vetores) != len(chunks):
         raise ValueError("O Provider Ollama devolveu quantidade de embeddings diferente da entrada.")
     dimensoes = {len(vetor) for vetor in vetores}
-    if len(dimensoes) != 1 or not dimensoes or next(iter(dimensoes)) <= 0:
-        raise ValueError("O Provider Ollama devolveu embeddings com dimensão inválida ou inconsistente.")
-    dimensao = next(iter(dimensoes))
+    if dimensoes != {DIMENSAO_EMBEDDING}:
+        raise ValueError(
+            f"O Provider Ollama devolveu embeddings incompatíveis; bge-m3 exige dimensão {DIMENSAO_EMBEDDING}."
+        )
+    dimensao = DIMENSAO_EMBEDDING
     metadados = {
         "provedor_embedding": PROVEDOR_EMBEDDING,
         "modelo_embedding": MODELO_EMBEDDING,

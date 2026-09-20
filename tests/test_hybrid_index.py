@@ -51,13 +51,13 @@ class HybridIndexTest(unittest.TestCase):
             if colecao.name.startswith(COLECAO_HIBRIDA):
                 cliente.delete_collection(colecao.name)
 
-    def test_publica_metadados_hibridos_com_dimensao_descoberta(self):
+    def test_publica_metadados_hibridos_com_dimensao_bge_m3(self):
         cliente = chromadb.EphemeralClient()
         chamadas = []
 
         def embed(**kwargs):
             chamadas.append(kwargs)
-            return SimpleNamespace(embeddings=[[0.1, 0.2, 0.3] for _ in kwargs["input"]])
+            return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
         provider = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=embed))
         with tempfile.TemporaryDirectory() as pasta, patch.object(config, "PASTA_CHROMA", Path(pasta)):
@@ -73,7 +73,7 @@ class HybridIndexTest(unittest.TestCase):
         esperados = {
             "provedor_embedding": PROVEDOR_EMBEDDING,
             "modelo_embedding": MODELO_EMBEDDING,
-            "dimensao_embedding": 3,
+            "dimensao_embedding": 1024,
             "versao_colecao": VERSAO_COLECAO,
             "corpus": "Corpus Oficial",
             "status": "ready",
@@ -89,7 +89,7 @@ class HybridIndexTest(unittest.TestCase):
             metadata={
                 "provedor_embedding": "OpenAI",
                 "modelo_embedding": MODELO_EMBEDDING,
-                "dimensao_embedding": 3,
+            "dimensao_embedding": 1024,
                 "versao_colecao": VERSAO_COLECAO,
                 "corpus": "Corpus Oficial",
                 "status": "ready",
@@ -102,6 +102,24 @@ class HybridIndexTest(unittest.TestCase):
             )
 
             with self.assertRaisesRegex(ColecaoHibridaIncompativel, "reindexação"):
+                abrir_colecao_hibrida(cliente)
+
+    def test_recusa_corpus_oficial_com_dimensao_diferente_de_1024(self):
+        cliente = chromadb.EphemeralClient()
+        metadados = {
+            "provedor_embedding": "Ollama",
+            "modelo_embedding": MODELO_EMBEDDING,
+            "dimensao_embedding": 3,
+            "versao_colecao": VERSAO_COLECAO,
+            "corpus": "Corpus Oficial",
+            "status": "ready",
+        }
+        cliente.create_collection(COLECAO_HIBRIDA, metadata=metadados)
+        with tempfile.TemporaryDirectory() as pasta, patch.object(config, "PASTA_CHROMA", Path(pasta)):
+            (Path(pasta) / MANIFESTO_HIBRIDO).write_text(
+                json.dumps({"colecao": COLECAO_HIBRIDA, **metadados}), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ColecaoHibridaIncompativel, "dimensao_embedding"):
                 abrir_colecao_hibrida(cliente)
 
     def test_recusa_manifesto_que_aponta_para_colecao_ausente(self):
@@ -143,7 +161,7 @@ class HybridIndexTest(unittest.TestCase):
 
         def embed(**kwargs):
             chamadas.append(kwargs)
-            return SimpleNamespace(embeddings=[[0.1, 0.2, 0.3] for _ in kwargs["input"]])
+            return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
         provider = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=embed))
         with tempfile.TemporaryDirectory() as pasta, patch.object(config, "PASTA_CHROMA", Path(pasta)):
@@ -170,7 +188,7 @@ class HybridIndexTest(unittest.TestCase):
         cliente = chromadb.EphemeralClient()
 
         def embed(**kwargs):
-            return SimpleNamespace(embeddings=[[0.1, 0.2, 0.3] for _ in kwargs["input"]])
+            return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
         provider = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=embed))
         with tempfile.TemporaryDirectory() as pasta, patch.object(config, "PASTA_CHROMA", Path(pasta)):
