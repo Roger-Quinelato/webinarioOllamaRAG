@@ -10,6 +10,7 @@ sys.path.insert(0, str(RAIZ))
 
 import config  # noqa: E402
 import rag  # noqa: E402
+from retrieval_calibration import PERGUNTAS_NEGATIVAS, PERGUNTAS_POSITIVAS  # noqa: E402
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(errors="replace")
@@ -221,23 +222,8 @@ def e4():
 # checagem calibra o limiar contra perguntas reais dentro e fora da base, para não escolher um
 # valor que derrube (recuse) pergunta dentro da base (pior erro) ou nunca dispare o fallback
 # (achado 4.4 original).
-_PERGUNTAS_DENTRO_ESTAGIO_1 = [
-    "Como funciona a arquitetura RAG proposta por Lewis et al.?",
-    "O que é Dense Passage Retrieval (DPR)?",
-    "Quais métricas o Ragas usa para avaliar fidelidade e relevância?",
-    "O que são os tokens de reflexão do Self-RAG?",
-    "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
-    "Quais são os principais desafios de RAG discutidos no survey de Gao et al.?",
-    "Como o DPR treina o retriever com exemplos negativos?",
-    "O que é retrieval-augmented generation?",
-]
-_PERGUNTAS_FORA_ESTAGIO_1 = [
-    "Qual é a receita de pão de queijo mineiro?",
-    "Qual é a capital da Mongólia?",
-    "Quais são as regras do xadrez?",
-    "Como trocar o óleo de um carro?",
-    "Qual é a previsão do tempo para amanhã em Belo Horizonte?",
-]
+_PERGUNTAS_DENTRO_ESTAGIO_1 = PERGUNTAS_POSITIVAS
+_PERGUNTAS_FORA_ESTAGIO_1 = PERGUNTAS_NEGATIVAS
 
 
 def _escolher_limiar_estagio_1(distancias_dentro, distancias_fora):
