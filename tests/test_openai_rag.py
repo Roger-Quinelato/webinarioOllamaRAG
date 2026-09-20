@@ -1,6 +1,10 @@
 import unittest
 from types import SimpleNamespace
 
+import chromadb
+
+from ollama_embedding_provider import ProviderEmbeddingsOllama
+from openai_provider import ErroProviderOpenAI
 from openai_rag import BaseAtiva, OpenAIRAG
 
 
@@ -51,7 +55,7 @@ class ProviderFake:
 
     def gerar_embeddings(self, textos):
         self.perguntas_embedding.extend(textos)
-        return [[0.1, 0.2]]
+        return [[0.1] * 1024]
 
     def transmitir(self, mensagens):
         self.mensagens.append(mensagens)
@@ -69,7 +73,7 @@ class EmbeddingProviderFake:
 
     def gerar_embeddings(self, textos):
         self.textos.extend(textos)
-        return [[0.1, 0.2]]
+        return [[0.1] * 1024]
 
 
 class GenerationProviderFake:
@@ -115,6 +119,52 @@ class OpenAIRAGTest(unittest.TestCase):
 
                 with self.assertRaisesRegex(ValueError, "reindexação"):
                     rag.buscar("pergunta", BaseAtiva("Corpus Oficial", colecao))
+
+    def test_retrieval_recusa_dimensao_real_incompativel_antes_de_consultar_chroma(self):
+        cliente = chromadb.EphemeralClient()
+        nome_colecao = "issue-69-dimensao-consulta"
+        if nome_colecao in {item.name for item in cliente.list_collections()}:
+            cliente.delete_collection(nome_colecao)
+        colecao = cliente.create_collection(
+            nome_colecao,
+            embedding_function=None,
+            metadata={
+                "provedor_embedding": "Ollama",
+                "modelo_embedding": "bge-m3",
+                "dimensao_embedding": 3,
+                "versao_colecao": "bge-m3-v1",
+                "status": "ready",
+            },
+        )
+        self.addCleanup(cliente.delete_collection, nome_colecao)
+        colecao.add(
+            ids=["chunk-1"],
+            documents=["Trecho recuperado"],
+            metadatas=[{"arquivo": "artigo.pdf", "pagina": 1, "ano": 2025}],
+            embeddings=[[0.1, 0.2, 0.3]],
+        )
+
+        def embed(**_kwargs):
+            return SimpleNamespace(embeddings=[[0.1, 0.2]])
+
+        provider = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=embed))
+        rag = OpenAIRAG(provider, GenerationProviderFake())
+        base = BaseAtiva("Corpus Oficial", colecao, dimensao_embedding=3)
+
+        with self.assertRaisesRegex(ValueError, "dimensão.*reindexação|reindexação.*dimensão"):
+            rag.buscar("pergunta", base)
+
+    def test_retrieval_exige_exatamente_um_embedding_para_a_pergunta(self):
+        for vetores in ([], [[0.1] * 1024, [0.2] * 1024]):
+            with self.subTest(quantidade=len(vetores)):
+                colecao = ColecaoFake(chunks())
+                provider = SimpleNamespace(gerar_embeddings=lambda _textos: vetores)
+                rag = OpenAIRAG(provider, GenerationProviderFake())
+
+                with self.assertRaisesRegex(ValueError, "exatamente um embedding"):
+                    rag.buscar("pergunta", BaseAtiva("Corpus Oficial", colecao))
+
+                self.assertEqual(colecao.chamadas, [])
 
     def test_retrieval_usa_somente_pergunta_atual_e_no_maximo_cinco_chunks(self):
         rag, base, provider, colecao = self.criar_rag()
@@ -194,6 +244,60 @@ class OpenAIRAGTest(unittest.TestCase):
         resultado = rag.responder("pergunta", base)
 
         self.assertEqual(resultado["texto"], "Resposta [1]")
+        self.assertEqual(len(provider.mensagens), 2)
+
+    def test_apos_retry_preserva_erro_seguro_de_autenticacao_openai(self):
+        mensagem = "Não foi possível autenticar na OpenAI. Confira a chave OPENAI_API_KEY e tente novamente."
+        provider = ProviderFake(
+            [
+                [ErroProviderOpenAI(mensagem, status_code=401)],
+                [ErroProviderOpenAI(mensagem, status_code=401)],
+            ]
+        )
+        rag, base, _provider, _colecao = self.criar_rag(provider)
+
+        with self.assertRaises(ErroProviderOpenAI) as contexto:
+            rag.responder("pergunta", base)
+
+        self.assertEqual(str(contexto.exception), mensagem)
+        self.assertEqual(contexto.exception.status_code, 401)
+        self.assertIsNone(contexto.exception.retry_after)
+        self.assertEqual(len(provider.mensagens), 2)
+
+    def test_apos_retry_preserva_erro_seguro_de_limite_openai(self):
+        mensagem = "A OpenAI atingiu o limite de requisições. Aguarde um momento e tente novamente."
+        provider = ProviderFake(
+            [
+                [ErroProviderOpenAI(mensagem, status_code=429, retry_after=12.0)],
+                [ErroProviderOpenAI(mensagem, status_code=429, retry_after=12.0)],
+            ]
+        )
+        rag, base, _provider, _colecao = self.criar_rag(provider)
+
+        with self.assertRaises(ErroProviderOpenAI) as contexto:
+            rag.responder("pergunta", base)
+
+        self.assertEqual(str(contexto.exception), mensagem)
+        self.assertEqual(contexto.exception.status_code, 429)
+        self.assertEqual(contexto.exception.retry_after, 12.0)
+        self.assertEqual(len(provider.mensagens), 2)
+
+    def test_apos_retry_preserva_erro_seguro_de_rede_openai(self):
+        mensagem = "Não foi possível conectar à OpenAI. Confira a conexão e tente novamente."
+        provider = ProviderFake(
+            [
+                [ErroProviderOpenAI(mensagem)],
+                [ErroProviderOpenAI(mensagem)],
+            ]
+        )
+        rag, base, _provider, _colecao = self.criar_rag(provider)
+
+        with self.assertRaises(ErroProviderOpenAI) as contexto:
+            rag.responder("pergunta", base)
+
+        self.assertEqual(str(contexto.exception), mensagem)
+        self.assertIsNone(contexto.exception.status_code)
+        self.assertIsNone(contexto.exception.retry_after)
         self.assertEqual(len(provider.mensagens), 2)
 
     def test_falha_openai_nao_aciona_geracao_local(self):

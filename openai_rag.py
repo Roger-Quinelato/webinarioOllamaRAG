@@ -61,6 +61,8 @@ class FluxoResposta:
                     self.resultado = self._rag._resultado(texto, chunks, self._args[1], status="Resposta Parcial")
                     yield "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
                     return
+                if isinstance(erro, ErroProviderOpenAI):
+                    raise
                 raise ErroProviderOpenAI("A geração falhou antes do primeiro token. Tente novamente.") from None
 
 
@@ -92,7 +94,21 @@ class OpenAIRAG:
                 + "). Execute a reindexação explícita antes de consultar."
             )
         k = min(max(k, 1), MAX_CHUNKS_RETRIEVAL)
-        vetor = self.embedding_provider.gerar_embeddings([pergunta])[0]
+        vetores = self.embedding_provider.gerar_embeddings([pergunta])
+        if len(vetores) != 1:
+            raise ValueError(
+                "O Provider Ollama precisa devolver exatamente um embedding para a pergunta. "
+                "Confira a configuração do bge-m3 antes de consultar."
+            )
+        vetor = vetores[0]
+        if (
+            len(vetor) != base_ativa.dimensao_embedding
+            or len(vetor) != metadados["dimensao_embedding"]
+        ):
+            raise ValueError(
+                "O embedding da pergunta tem dimensão incompatível com a Base Ativa. "
+                "Confira a configuração do bge-m3 e execute a reindexação explícita antes de consultar."
+            )
         opcoes = {
             "query_embeddings": [vetor],
             "n_results": k,
