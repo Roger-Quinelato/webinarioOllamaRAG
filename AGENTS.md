@@ -35,7 +35,7 @@ antes de delegar. Use as definições versionadas em `.agent/subagents/`.
   `gpt-5.6-terra` e esforço `medium`.
 - `openai-rag-mechanical`: inventário, links, testes e documentação isolados;
   usa `gpt-5.6-luna` e esforço `medium`; não altera código de produto.
-- `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-6-astra` e esforço
+- `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-5.6-sol` e esforço
   `medium`, após MIG-01, após a adaptação híbrida de MIG-02/MIG-03, após MIG-05
   e antes do ensaio. Gate MIG-05 atual: `ALTERAÇÕES NECESSÁRIAS`; não iniciar
   MIG-06 até novo gate.

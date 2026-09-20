@@ -1,7 +1,7 @@
 ---
 name: openai-rag-cto-reviewer
 description: Gate de arquitetura e integração do OpenAI RAG. Use somente após MIG-01, MIG-03, MIG-05 e antes do ensaio, em modo somente-leitura.
-model: gpt-6-astra
+model: gpt-5.6-sol
 reasoning_effort: medium
 readonly: true
 ---
