@@ -4,21 +4,26 @@ import os
 
 import httpx
 
+from generation_router import ErroProviderGeracao
 
-MODELO_GERACAO = "gpt-5.6-luna"
+MODELO_GERACAO = os.getenv("OPENAI_GENERATION_MODEL", "gpt-5.6-luna")
 
 
 class ChaveOpenAIAusente(RuntimeError):
     """A aplicação não pode consultar a OpenAI sem uma chave configurada."""
 
 
-class ErroProviderOpenAI(RuntimeError):
+class ErroProviderOpenAI(ErroProviderGeracao):
     """Falha externa apresentada ao usuário sem detalhes sensíveis."""
 
-    def __init__(self, mensagem, *, status_code=None, retry_after=None):
-        super().__init__(mensagem)
-        self.status_code = status_code
-        self.retry_after = retry_after
+    def __init__(self, mensagem, *, status_code=None, retry_after=None, request_id=None):
+        super().__init__(
+            mensagem,
+            provider="OpenAI",
+            status_code=status_code,
+            retry_after=retry_after,
+            request_id=request_id,
+        )
 
 
 def obter_chave_openai(secrets=None, environ=None):
@@ -69,18 +74,32 @@ def _retry_after(erro):
         return None
 
 
+def _request_id(erro):
+    request_id = getattr(erro, "request_id", None) or getattr(erro, "_request_id", None)
+    if request_id:
+        return request_id
+    cabecalhos = getattr(erro, "headers", None)
+    if cabecalhos is None:
+        cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
+    return (cabecalhos or {}).get("x-request-id") or (cabecalhos or {}).get("request-id")
+
+
 def _erro_seguro(erro):
     return ErroProviderOpenAI(
         _mensagem_erro(erro),
         status_code=getattr(erro, "status_code", None),
         retry_after=_retry_after(erro),
+        request_id=_request_id(erro),
     )
 
 
 class ProviderOpenAI:
     """Contrato de geração do SDK OpenAI, isolado do restante do pipeline RAG."""
 
+    nome = "OpenAI"
+
     def __init__(self, *, client=None, secrets=None, environ=None):
+        self.modelo = os.getenv("OPENAI_GENERATION_MODEL", MODELO_GERACAO)
         if client is None:
             chave = obter_chave_openai(secrets=secrets, environ=environ)
             from openai import OpenAI
@@ -90,7 +109,7 @@ class ProviderOpenAI:
 
     def gerar(self, mensagens):
         try:
-            resposta = self._client.responses.create(model=MODELO_GERACAO, input=mensagens)
+            resposta = self._client.responses.create(model=self.modelo, input=mensagens)
             if resposta.status != "completed":
                 raise RuntimeError("A resposta não foi concluída.")
         except Exception as erro:
@@ -99,7 +118,7 @@ class ProviderOpenAI:
 
     def transmitir(self, mensagens):
         try:
-            eventos = self._client.responses.create(model=MODELO_GERACAO, input=mensagens, stream=True)
+            eventos = self._client.responses.create(model=self.modelo, input=mensagens, stream=True)
             concluida = False
             for evento in eventos:
                 if evento.type == "response.output_text.delta":

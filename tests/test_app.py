@@ -1,21 +1,25 @@
 import unittest
 from unittest.mock import patch, MagicMock
 
+import streamlit as st
 from streamlit.testing.v1 import AppTest
 
 class AppTestIntegracao(unittest.TestCase):
-    @patch("openai_provider.obter_chave_openai")
-    def test_app_sem_chave_openai_mostra_aviso(self, mock_obter_chave):
-        from openai_provider import ChaveOpenAIAusente
-        mock_obter_chave.side_effect = ChaveOpenAIAusente("Configure OPENAI_API_KEY")
+    def setUp(self):
+        st.cache_resource.clear()
+
+    @patch("generation_providers.criar_generation_router")
+    def test_app_sem_provider_mostra_aviso(self, mock_criar_router):
+        from generation_providers import NenhumProviderGeracaoConfigurado
+        mock_criar_router.side_effect = NenhumProviderGeracaoConfigurado("Configure OPENAI_API_KEY, NVIDIA_API_KEY ou GEMINI_API_KEY")
         at = AppTest.from_file("../app.py").run(timeout=30)
         self.assertFalse(at.exception)
         warnings = [w.value for w in at.warning]
-        self.assertTrue(any("OPENAI_API_KEY" in w for w in warnings))
+        self.assertTrue(any("NVIDIA_API_KEY" in w for w in warnings))
 
-    @patch("openai_provider.obter_chave_openai", return_value="fake-key")
+    @patch("generation_providers.criar_generation_router", return_value=MagicMock())
     @patch("hybrid_index.abrir_colecao_hibrida")
-    def test_app_com_chave_inicia_corretamente(self, mock_abrir_colecao, mock_obter_chave):
+    def test_app_com_provider_inicia_corretamente(self, mock_abrir_colecao, _mock_criar_router):
         mock_colecao = MagicMock()
         mock_colecao.metadata = {
             "provedor_embedding": "Ollama",
@@ -32,42 +36,33 @@ class AppTestIntegracao(unittest.TestCase):
         
         # Check title
         self.assertEqual(at.title[0].value, "📚 Assistente RAG sobre artigos de RAG")
-        self.assertEqual(at.radio[0].label, "Base Ativa")
-        self.assertEqual(at.radio[0].value, "Corpus Oficial")
-        self.assertEqual(at.file_uploader[0].label, "Até 3 PDFs")
+        self.assertEqual(len(at.file_uploader), 0)
+        self.assertTrue(any("após a apresentação" in info.value for info in at.info))
 
-    @patch("openai_provider.obter_chave_openai", return_value="fake-key")
+    @patch("generation_providers.criar_generation_router", return_value=MagicMock())
     @patch("hybrid_index.abrir_colecao_hibrida")
-    def test_indice_de_sessao_exige_upload_explicito(self, mock_abrir_colecao, mock_obter_chave):
+    def test_upload_pdfs_permanece_desativado_no_treino(self, mock_abrir_colecao, _mock_criar_router):
         mock_abrir_colecao.return_value = MagicMock(metadata={
             "provedor_embedding": "Ollama", "modelo_embedding": "bge-m3",
             "dimensao_embedding": 1024, "versao_colecao": "bge-m3-v1", "status": "ready",
         })
         at = AppTest.from_file("../app.py").run(timeout=30)
 
-        at.radio[0].set_value("Índice de Sessão").run(timeout=30)
-
         self.assertFalse(at.exception)
-        self.assertTrue(any("Crie um Índice de Sessão" in erro.value for erro in at.error))
+        self.assertEqual(len(at.file_uploader), 0)
+        self.assertTrue(any("após a apresentação" in info.value for info in at.info))
 
-    @patch("openai_provider.obter_chave_openai", return_value="chave-do-ambiente")
-    @patch("openai_provider.ProviderOpenAI")
+    @patch("generation_providers.criar_generation_router", return_value=MagicMock())
     @patch("hybrid_index.abrir_colecao_hibrida")
-    def test_inicio_repassa_chave_resolvida_sem_ler_st_secrets(
-        self, mock_abrir_colecao, mock_provider, mock_obter_chave
-    ):
+    def test_inicio_cria_router_de_providers(self, mock_abrir_colecao, mock_criar_router):
         mock_abrir_colecao.return_value = MagicMock(metadata={
             "provedor_embedding": "Ollama", "modelo_embedding": "bge-m3",
             "dimensao_embedding": 1024, "versao_colecao": "bge-m3-v1", "status": "ready",
         })
-        mock_provider.return_value = MagicMock()
-
         at = AppTest.from_file("../app.py").run(timeout=30)
 
         self.assertFalse(at.exception)
-        mock_provider.assert_called_once_with(
-            secrets={"OPENAI_API_KEY": "chave-do-ambiente"}, environ={}
-        )
+        mock_criar_router.assert_called_once()
 
 if __name__ == "__main__":
     unittest.main()

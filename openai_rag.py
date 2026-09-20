@@ -4,6 +4,7 @@ import re
 from dataclasses import dataclass
 
 import config
+from generation_router import ErroProviderGeracao, GenerationRouter
 from openai_provider import ErroProviderOpenAI
 
 
@@ -40,7 +41,9 @@ class FluxoResposta:
         if not chunks:
             self.resultado = {"texto": _MENSAGEM_RECUSA, "status": "Recusa",
                               "classe_fontes": "sem_resultados", "fontes_citadas": [],
-                              "chunks_recuperados": [], "base_ativa": self._args[1].nome}
+                              "chunks_recuperados": [], "base_ativa": self._args[1].nome,
+                              "generation_provider": None, "generation_model": None,
+                              "fallback_used": False, "attempted_providers": []}
             yield _MENSAGEM_RECUSA
             return
         mensagens = _montar_mensagens(self._args[0], chunks, self._kwargs["historico"] or [])
@@ -50,18 +53,26 @@ class FluxoResposta:
                 for pedaco in self._rag.generation_provider.transmitir(mensagens):
                     texto += pedaco
                     yield pedaco
-                self.resultado = self._rag._resultado(texto.strip(), chunks, self._args[1], status="completa")
+                self.resultado = self._rag._resultado(
+                    texto.strip(), chunks, self._args[1], status="completa",
+                    geracao=getattr(self._rag.generation_provider, "ultima_execucao", None),
+                )
                 return
             except Exception as erro:
-                if not texto and tentativa == 0:
+                if not texto and tentativa == 0 and not isinstance(
+                    self._rag.generation_provider, GenerationRouter
+                ):
                     tentativa += 1
                     continue
                 if texto:
                     texto += "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
-                    self.resultado = self._rag._resultado(texto, chunks, self._args[1], status="Resposta Parcial")
+                    self.resultado = self._rag._resultado(
+                        texto, chunks, self._args[1], status="Resposta Parcial",
+                        geracao=getattr(self._rag.generation_provider, "ultima_execucao", None),
+                    )
                     yield "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
                     return
-                if isinstance(erro, ErroProviderOpenAI):
+                if isinstance(erro, ErroProviderGeracao):
                     raise
                 raise ErroProviderOpenAI("A geração falhou antes do primeiro token. Tente novamente.") from None
 
@@ -143,7 +154,7 @@ class OpenAIRAG:
         return FluxoResposta(self, pergunta, base_ativa, historico, k, where)
 
     @staticmethod
-    def _resultado(texto, chunks, base_ativa, *, status):
+    def _resultado(texto, chunks, base_ativa, *, status, geracao=None):
         citadas = _fontes_citadas(texto, chunks)
         if _eh_recusa(texto):
             classe = "recusa"
@@ -159,6 +170,10 @@ class OpenAIRAG:
             "fontes_citadas": citadas,
             "chunks_recuperados": chunks,
             "base_ativa": base_ativa.nome,
+            "generation_provider": (geracao or {}).get("generation_provider"),
+            "generation_model": (geracao or {}).get("generation_model"),
+            "fallback_used": (geracao or {}).get("fallback_used", False),
+            "attempted_providers": (geracao or {}).get("attempted_providers", []),
         }
 
 
