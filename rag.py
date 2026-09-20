@@ -16,6 +16,7 @@ import config
 
 
 class OllamaIndisponivel(RuntimeError):
+    """Representa erro Ollama Indisponível. Herda de RuntimeError."""
     pass
 
 
@@ -23,6 +24,7 @@ _cliente = None
 
 
 def cliente_ollama():
+    """Descreve cliente Ollama."""
     global _cliente
     if _cliente is None:
         _cliente = ollama.Client(host=config.OLLAMA_HOST)
@@ -30,6 +32,7 @@ def cliente_ollama():
 
 
 def _erro_ollama(erro, modelo=None):
+    """Auxilia erro Ollama."""
     if isinstance(erro, ollama.ResponseError) and erro.status_code == 404 and modelo:
         return OllamaIndisponivel(f"O modelo '{modelo}' não está baixado. Rode no terminal: ollama pull {modelo}")
     return OllamaIndisponivel(
@@ -46,6 +49,7 @@ _ERROS_CONEXAO = (ConnectionError, httpx.ConnectError, httpx.TimeoutException, o
 # reimplementavam o mesmo try/except em volta do corpo inteiro (achado 7.4/Duplicated Code).
 @contextmanager
 def cli_seguro():
+    """Descreve CLI seguro."""
     try:
         yield
     except OllamaIndisponivel as erro:
@@ -54,6 +58,7 @@ def cli_seguro():
 
 
 def verificar_ollama(modelos=None):
+    """Verifica Ollama."""
     try:
         instalados = [m.model for m in cliente_ollama().list().models]
     except _ERROS_CONEXAO as erro:
@@ -65,6 +70,7 @@ def verificar_ollama(modelos=None):
 
 
 def salvar_metadados(linhas, caminho=None):
+    """Salva metadados."""
     with open(caminho or config.ARQUIVO_METADADOS, "w", encoding="utf-8", newline="") as arquivo:
         escritor = csv.DictWriter(arquivo, fieldnames=config.COLUNAS_METADADOS)
         escritor.writeheader()
@@ -72,6 +78,7 @@ def salvar_metadados(linhas, caminho=None):
 
 
 def validar_metadados(linhas, cabecalho, pasta=None):
+    """Valida metadados."""
     pasta = Path(pasta or config.PASTA_ARTIGOS)
     erros = []
     if cabecalho != config.COLUNAS_METADADOS:
@@ -91,6 +98,7 @@ def validar_metadados(linhas, cabecalho, pasta=None):
 
 
 def extrair_abstract(texto_pagina_1):
+    """Extrai abstract."""
     padrao = re.compile(
         r"\b(?:abstract|resumo)\b\s*[—:.\-]?\s*(.+?)"
         r"(?=\n\s*(?:\d\.?\s*)?(?:introduction|introdução|keywords|palavras-chave|index terms)\b|\Z)",
@@ -105,6 +113,7 @@ def extrair_abstract(texto_pagina_1):
 
 
 def gerar_embeddings(textos, modelo=None, lote=16):
+    """Gera embeddings."""
     modelo = modelo or config.MODELO_EMBEDDING
     # why: o Ollama rejeita entrada vazia, e o SHAP gera perguntas totalmente mascaradas.
     textos = [t if t.strip() else "." for t in textos]
@@ -118,6 +127,7 @@ def gerar_embeddings(textos, modelo=None, lote=16):
 
 
 def abrir_colecao(recriar=False):
+    """Abre coleção."""
     cliente = chromadb.PersistentClient(path=str(config.PASTA_CHROMA))
     if recriar and config.NOME_COLECAO in [c.name for c in cliente.list_collections()]:
         cliente.delete_collection(config.NOME_COLECAO)
@@ -130,6 +140,7 @@ def abrir_colecao(recriar=False):
 
 
 def indexar(chunks=None, progresso=print):
+    """Indexa valor do fluxo."""
     chunks = chunks or gerar_chunks()
     colecao = abrir_colecao(recriar=True)
     lote = 64
@@ -147,6 +158,7 @@ def indexar(chunks=None, progresso=print):
 
 
 def combinar_filtros(*condicoes):
+    """Combina filtros."""
     condicoes = [c for c in condicoes if c]
     if not condicoes:
         return None
@@ -154,6 +166,7 @@ def combinar_filtros(*condicoes):
 
 
 def _consultar(colecao, vetor, k, where):
+    """Consulta valor do fluxo."""
     resposta = colecao.query(
         query_embeddings=[vetor], n_results=k, where=where,
         include=["documents", "metadatas", "distances"],
@@ -168,6 +181,7 @@ def _consultar(colecao, vetor, k, where):
 
 
 def buscar(pergunta, k=None, where=None, colecao=None, vetor=None):
+    """Busca valor do fluxo."""
     colecao = colecao or abrir_colecao()
     vetor = vetor or gerar_embeddings([pergunta])[0]
     filtro = combinar_filtros({"tipo_chunk": "pagina"}, where)
@@ -175,6 +189,7 @@ def buscar(pergunta, k=None, where=None, colecao=None, vetor=None):
 
 
 def buscar_dois_estagios(pergunta, k=None, n_artigos=None, where=None, colecao=None):
+    """Busca dois estágios."""
     colecao = colecao or abrir_colecao()
     vetor = gerar_embeddings([pergunta])[0]
     n_artigos = n_artigos or config.N_ARTIGOS_ESTAGIO_1
@@ -201,6 +216,7 @@ def buscar_dois_estagios(pergunta, k=None, n_artigos=None, where=None, colecao=N
 
 
 def tabela_resultados(resultados, largura_trecho=90):
+    """Descreve tabela resultados."""
     linhas = []
     for r in resultados:
         trecho = r["texto"][:largura_trecho].replace("\n", " ")
@@ -218,6 +234,7 @@ INSTRUCOES_SISTEMA = (
 
 
 def montar_prompt(pergunta, resultados):
+    """Monta prompt."""
     trechos = "\n\n".join(
         f"[{i}] ({r['arquivo']}, p. {r['pagina']})\n{r['texto']}" for i, r in enumerate(resultados, start=1)
     ) or "(nenhum trecho recuperado)"
@@ -225,10 +242,12 @@ def montar_prompt(pergunta, resultados):
 
 
 def montar_prompt_sem_contexto(pergunta):
+    """Monta prompt sem contexto."""
     return f"Responda em português, de forma direta.\n\nPergunta: {pergunta}"
 
 
 def montar_mensagens(pergunta, resultados=None):
+    """Monta mensagens."""
     if resultados is None:
         return [{"role": "user", "content": montar_prompt_sem_contexto(pergunta)}]
     return [{"role": "system", "content": INSTRUCOES_SISTEMA},
@@ -236,10 +255,12 @@ def montar_mensagens(pergunta, resultados=None):
 
 
 def formatar_mensagens(mensagens):
+    """Formata mensagens."""
     return "\n\n".join(f"=== {m['role'].upper()} ===\n{m['content']}" for m in mensagens)
 
 
 def _opcoes(max_tokens=None):
+    """Auxilia opções."""
     return {"temperature": config.TEMPERATURA, "seed": 42,
             "num_predict": max_tokens or config.MAX_TOKENS_RESPOSTA}
 
@@ -247,6 +268,7 @@ def _opcoes(max_tokens=None):
 # why: devolve a resposta bruta do Ollama (load_duration, prompt_eval_count…) para quem precisa medir,
 # em vez de forçar esse chamador a tocar cliente_ollama()/_opcoes() diretamente (achado 7.4, medir.py).
 def chat(mensagens, modelo=None, max_tokens=None):
+    """Descreve chat."""
     modelo = modelo or config.MODELO_CHAT
     if isinstance(mensagens, str):
         mensagens = [{"role": "user", "content": mensagens}]
@@ -257,10 +279,12 @@ def chat(mensagens, modelo=None, max_tokens=None):
 
 
 def gerar_texto(mensagens, modelo=None, max_tokens=None):
+    """Gera texto."""
     return chat(mensagens, modelo, max_tokens).message.content.strip()
 
 
 def formatar_fontes(resultados, indices=None):
+    """Formata fontes."""
     indices = indices if indices is not None else range(1, len(resultados) + 1)
     return "\n".join(f"[{i}] {r['arquivo']}, p. {r['pagina']}" for i, r in zip(indices, resultados))
 
@@ -270,6 +294,7 @@ _ESPACOS_RE = re.compile(r"\s+")
 
 
 def indices_citados(texto, n):
+    """Descreve indices citados."""
     vistos, ordem = set(), []
     for m in _CITACAO_RE.finditer(texto):
         i = int(m.group(1))
@@ -283,6 +308,7 @@ def eh_recusa(texto):
     # normaliza espaços (múltiplos → um), remove citações [n] e pontuação repetida antes de comparar,
     # para reconhecer a recusa mesmo quando o modelo varia o espaçamento ou cita uma fonte por engano
     # (achado 6.5: comparação exata perdia esses casos).
+    """Descreve é Recusa."""
     sem_citacoes = _CITACAO_RE.sub("", texto)
     sem_pontuacao_dupla = re.sub(r"([.,;:!?])\1+", r"\1", sem_citacoes)
     normalizado = _ESPACOS_RE.sub(" ", sem_pontuacao_dupla).strip()
@@ -295,6 +321,7 @@ def fontes_da_resposta(texto, resultados):
     # que a resposta de fato usou (achado 6.5) — aqui só entram os [n] que aparecem no texto
     # gerado; se o modelo não citou nenhum, cai para os recuperados, para nunca ficar sem fontes;
     # e nenhuma fonte é listada quando a resposta é uma recusa.
+    """Descreve fontes da resposta."""
     if not resultados or eh_recusa(texto):
         return []
     indices = indices_citados(texto, len(resultados)) or list(range(1, len(resultados) + 1))
@@ -305,6 +332,7 @@ def montar_bloco_fontes(texto, resultados):
     # why: único lugar que monta o bloco "Fontes:" pronto para exibição — responder() e os scripts
     # que também mostram fontes (ex.: scripts/06) chamam isto em vez de repetir o zip/formatar_fontes
     # cada um por conta própria (mesmo achado 6.5 de duplicação que fontes_da_resposta já resolveu).
+    """Monta bloco fontes."""
     fontes = fontes_da_resposta(texto, resultados)
     if not fontes:
         return ""
@@ -313,6 +341,7 @@ def montar_bloco_fontes(texto, resultados):
 
 
 def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
+    """Responde valor do fluxo."""
     modelo = modelo or config.MODELO_CHAT
     texto = ""
     try:
@@ -329,6 +358,7 @@ def responder(pergunta, resultados=None, modelo=None, incluir_fontes=True):
 
 
 def resumir_abstract(abstract, idioma, modelo=None):
+    """Resume abstract."""
     if idioma == "en":
         instrucao = "Summarize the abstract below in 2 to 3 sentences, in English. Reply with the summary only."
     else:
@@ -337,6 +367,7 @@ def resumir_abstract(abstract, idioma, modelo=None):
 
 
 def extrair_metadados_llm(texto_pagina_1, modelo=None):
+    """Extrai metadados LLM."""
     modelo = modelo or config.MODELO_CHAT
     prompt = (
         "Extraia os metadados do artigo científico a partir do texto da primeira página abaixo.\n"
@@ -355,25 +386,30 @@ def extrair_metadados_llm(texto_pagina_1, modelo=None):
 
 
 def _normalizar(valor):
+    """Auxilia normalizar."""
     return re.sub(r"\s+", " ", str(valor)).strip().lower()
 
 
 def comparar_metadados(manual, extraido, campos=("titulo", "autores", "ano", "veiculo", "tema", "idioma")):
+    """Compara metadados."""
     return [{"campo": campo, "csv": manual.get(campo), "llm": extraido.get(campo),
              "igual": _normalizar(manual.get(campo)) == _normalizar(extraido.get(campo))} for campo in campos]
 
 
 def similaridade_cosseno(a, b):
+    """Descreve similaridade cosseno."""
     a, b = np.asarray(a, dtype=float), np.asarray(b, dtype=float)
     return float(a @ b / (np.linalg.norm(a) * np.linalg.norm(b)))
 
 
 def explicar_similaridade(pergunta, texto_chunk, max_evals=200):
+    """Explica similaridade."""
     import shap
 
     alvo = np.asarray(gerar_embeddings([texto_chunk])[0], dtype=float)
 
     def funcao(perguntas):
+        """Descreve função."""
         vetores = np.asarray(gerar_embeddings([str(p) for p in perguntas]), dtype=float)
         return vetores @ alvo / (np.linalg.norm(vetores, axis=1) * np.linalg.norm(alvo))
 
@@ -382,10 +418,12 @@ def explicar_similaridade(pergunta, texto_chunk, max_evals=200):
 
 
 def shapley_chunks(pergunta, resultados, modelo=None, progresso=print):
+    """Descreve shapley chunks."""
     n = len(resultados)
     respostas = {}
 
     def resposta_de(indices):
+        """Descreve resposta de."""
         if indices not in respostas:
             respostas[indices] = gerar_texto(montar_mensagens(pergunta, [resultados[i] for i in indices]),
                                              modelo=modelo, max_tokens=200)

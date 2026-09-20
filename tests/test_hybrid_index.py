@@ -22,6 +22,7 @@ from ollama_embedding_provider import ProviderEmbeddingsOllama
 
 
 def chunks_de_teste():
+    """Descreve chunks de teste."""
     return [
         {
             "id": f"artigo-{numero}-p001-c00",
@@ -45,17 +46,21 @@ def chunks_de_teste():
 
 
 class HybridIndexTest(unittest.TestCase):
+    """Agrupa testes de Hybrid Index Test. Herda de unittest.TestCase."""
     def tearDown(self):
+        """Descreve tear Down."""
         cliente = chromadb.EphemeralClient()
         for colecao in cliente.list_collections():
             if colecao.name.startswith(COLECAO_HIBRIDA):
                 cliente.delete_collection(colecao.name)
 
     def test_publica_metadados_hibridos_com_dimensao_bge_m3(self):
+        """Verifica que publica metadados hibridos com dimensão bge-m3."""
         cliente = chromadb.EphemeralClient()
         chamadas = []
 
         def embed(**kwargs):
+            """Descreve embed."""
             chamadas.append(kwargs)
             return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
@@ -83,6 +88,7 @@ class HybridIndexTest(unittest.TestCase):
         self.assertEqual(chamadas[0]["model"], "bge-m3")
 
     def test_recusa_manifesto_incompativel_com_orientacao_de_reindexacao(self):
+        """Verifica que Recusa manifesto incompativel com orientação de reindexação."""
         cliente = chromadb.EphemeralClient()
         cliente.create_collection(
             COLECAO_HIBRIDA,
@@ -105,6 +111,7 @@ class HybridIndexTest(unittest.TestCase):
                 abrir_colecao_hibrida(cliente)
 
     def test_recusa_corpus_oficial_com_dimensao_diferente_de_1024(self):
+        """Verifica que Recusa Corpus Oficial com dimensão diferente de 1024."""
         cliente = chromadb.EphemeralClient()
         metadados = {
             "provedor_embedding": "Ollama",
@@ -123,6 +130,7 @@ class HybridIndexTest(unittest.TestCase):
                 abrir_colecao_hibrida(cliente)
 
     def test_recusa_manifesto_que_aponta_para_colecao_ausente(self):
+        """Verifica que Recusa manifesto que aponta para coleção ausente."""
         cliente = chromadb.EphemeralClient()
         with tempfile.TemporaryDirectory() as pasta, patch.object(config, "PASTA_CHROMA", Path(pasta)):
             (Path(pasta) / MANIFESTO_HIBRIDO).write_text(
@@ -133,9 +141,11 @@ class HybridIndexTest(unittest.TestCase):
                 abrir_colecao_hibrida(cliente)
 
     def test_recusa_ids_duplicados_antes_de_gerar_embeddings(self):
+        """Verifica que Recusa ids duplicados antes de gerar embeddings."""
         chamadas = []
 
         def embed(**kwargs):
+            """Descreve embed."""
             chamadas.append(kwargs)
             return SimpleNamespace(embeddings=[])
 
@@ -154,12 +164,14 @@ class HybridIndexTest(unittest.TestCase):
         self.assertEqual(chamadas, [])
 
     def test_reindexacao_repetida_e_idempotente_e_preserva_colecoes_existentes(self):
+        """Verifica que reindexação repetida e idempotente e preserva colecoes existentes."""
         cliente = chromadb.EphemeralClient()
         cliente.create_collection("artigos_rag")
         cliente.create_collection("artigos_rag_openai")
         chamadas = []
 
         def embed(**kwargs):
+            """Descreve embed."""
             chamadas.append(kwargs)
             return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
@@ -185,9 +197,11 @@ class HybridIndexTest(unittest.TestCase):
         self.assertEqual(len([nome for nome in nomes if nome.startswith(COLECAO_HIBRIDA)]), 1)
 
     def test_falha_na_candidata_preserva_publicacao_anterior(self):
+        """Verifica que falha na candidata preserva publicação anterior."""
         cliente = chromadb.EphemeralClient()
 
         def embed(**kwargs):
+            """Descreve embed."""
             return SimpleNamespace(embeddings=[[0.1] * 1024 for _ in kwargs["input"]])
 
         provider = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=embed))
@@ -200,6 +214,7 @@ class HybridIndexTest(unittest.TestCase):
             alterados[0]["texto"] += " versão nova"
 
             def falhar(**_kwargs):
+                """Falha valor do fluxo."""
                 raise ConnectionError("Ollama indisponível")
 
             provider_com_falha = ProviderEmbeddingsOllama(client=SimpleNamespace(embed=falhar))

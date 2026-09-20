@@ -4,7 +4,7 @@ import time
 
 
 class ErroProviderGeracao(RuntimeError):
-    """Falha externa segura e independente do provider de geração."""
+    """Falha externa segura e independente do provider de geração. Herda de RuntimeError."""
 
     def __init__(
         self,
@@ -16,6 +16,7 @@ class ErroProviderGeracao(RuntimeError):
         request_id=None,
         retryable=None,
     ):
+        """Inicializa instância com dependências e parâmetros."""
         super().__init__(mensagem)
         self.provider = provider
         self.status_code = status_code
@@ -30,11 +31,13 @@ class GenerationRouter:
     """Tenta providers em ordem sem repetir retrieval ou misturar streams."""
 
     def __init__(self, providers, *, esperar=time.sleep):
+        """Inicializa instância com dependências e parâmetros."""
         self._providers = [provider for provider in providers if provider is not None]
         self._esperar = esperar
         self.ultima_execucao = None
 
     def transmitir(self, mensagens):
+        """Transmite valor do fluxo."""
         tentados = []
         erros = []
         for provider in self._providers:
@@ -82,6 +85,7 @@ class GenerationRouter:
 
     @staticmethod
     def _deve_repetir(erro, tentativa):
+        """Auxilia deve repetir."""
         return (
             tentativa == 0
             and erro.retryable

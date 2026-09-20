@@ -11,6 +11,7 @@ PORTA = 8502
 
 
 def subir_app(porta=PORTA, timeout=90):
+    """Descreve subir app."""
     processo = subprocess.Popen(
         [sys.executable, "-m", "streamlit", "run", str(RAIZ / "app.py"),
          "--server.port", str(porta), "--server.headless", "true"],
@@ -35,6 +36,7 @@ def subir_app(porta=PORTA, timeout=90):
 # mexer em sliders/filtros/chat antes do PNG — sem isso, capturar_app.py só serviria para
 # a tela inicial e T15 duplicaria subir_app()/o boilerplate do Playwright.
 def capturar(caminho_png, porta=PORTA, timeout_ms=60000, interagir=None):
+    """Descreve capturar."""
     processo, url = subir_app(porta)
     try:
         with sync_playwright() as p:

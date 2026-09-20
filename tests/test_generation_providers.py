@@ -8,10 +8,12 @@ from gemini_provider import ChaveGeminiAusente
 
 
 class GenerationProvidersTest(unittest.TestCase):
+    """Agrupa testes de Generation Providers Test. Herda de unittest.TestCase."""
     @patch("generation_providers.ProviderGemini", side_effect=ChaveGeminiAusente("sem Gemini"))
     @patch("generation_providers.ProviderNVIDIA")
     @patch("generation_providers.ProviderOpenAI", side_effect=ChaveOpenAIAusente("sem OpenAI"))
     def test_nvidia_configurada_permite_iniciar_sem_openai(self, _openai, nvidia, _gemini):
+        """Verifica que NVIDIA configurada permite iniciar sem OpenAI."""
         nvidia.return_value.nome = "NVIDIA"
 
         router = criar_generation_router(secrets={"NVIDIA_API_KEY": "chave"}, environ={})
@@ -23,6 +25,7 @@ class GenerationProvidersTest(unittest.TestCase):
     @patch("generation_providers.ProviderNVIDIA", side_effect=ChaveNVIDIAAusente("sem NVIDIA"))
     @patch("generation_providers.ProviderOpenAI", side_effect=ChaveOpenAIAusente("sem OpenAI"))
     def test_sem_credencial_expoe_configuracao_acionavel(self, _openai, _nvidia, _gemini):
+        """Verifica que sem credencial expõe configuração acionavel."""
         with self.assertRaisesRegex(NenhumProviderGeracaoConfigurado, "OPENAI_API_KEY"):
             criar_generation_router(secrets={}, environ={})
 

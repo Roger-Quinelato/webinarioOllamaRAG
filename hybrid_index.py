@@ -24,7 +24,7 @@ _METADADOS_CHUNK_OBRIGATORIOS = ("arquivo", "pagina", "ano", "idioma", "tema", "
 
 
 class ColecaoHibridaIncompativel(RuntimeError):
-    """A coleção publicada não corresponde ao índice híbrido esperado."""
+    """A coleção publicada não corresponde ao índice híbrido esperado. Herda de RuntimeError."""
 
 
 def abrir_colecao_hibrida(chroma_client=None):
@@ -67,6 +67,7 @@ def abrir_colecao_hibrida(chroma_client=None):
 
 
 def _validar_corpus(chunks):
+    """Valida corpus."""
     arquivos = {chunk["metadados"].get("arquivo") for chunk in chunks}
     esperados = set(config.ARTIGOS_CORPUS)
     if arquivos != esperados:
@@ -84,6 +85,7 @@ def _validar_corpus(chunks):
 
 
 def _publicar_manifesto(dados):
+    """Auxilia publicar manifesto."""
     manifesto = Path(config.PASTA_CHROMA) / MANIFESTO_HIBRIDO
     manifesto.parent.mkdir(parents=True, exist_ok=True)
     fd, temporario = tempfile.mkstemp(prefix="hybrid_manifest.", dir=manifesto.parent)
@@ -99,6 +101,7 @@ def _publicar_manifesto(dados):
 
 
 def _nome_candidato(chunks):
+    """Auxilia nome candidato."""
     identidade = json.dumps(
         {
             "provedor_embedding": PROVEDOR_EMBEDDING,
@@ -114,6 +117,7 @@ def _nome_candidato(chunks):
 
 
 def _resultado(colecao, chunks, *, embeddings_gerados, inicio):
+    """Auxilia resultado."""
     return {
         "artigos": len({chunk["metadados"]["arquivo"] for chunk in chunks}),
         "chunks": colecao.count(),

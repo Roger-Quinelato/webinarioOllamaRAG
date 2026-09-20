@@ -28,6 +28,7 @@ PERGUNTA_B = "Como o Ragas mede a fidelidade de uma resposta?"
 
 
 def _novo_app():
+    """Auxilia novo app."""
     from streamlit.testing.v1 import AppTest
     app = AppTest.from_file(str(RAIZ / "app.py"), default_timeout=TIMEOUT)
     app.run()
@@ -35,30 +36,36 @@ def _novo_app():
 
 
 def _slider(app, prefixo):
+    """Auxilia slider."""
     return next(s for s in app.sidebar.slider if s.label.startswith(prefixo))
 
 
 def _perguntar(app, texto):
+    """Envia pergunta valor do fluxo."""
     inicio = time.perf_counter()
     app.chat_input[0].set_value(texto).run(timeout=TIMEOUT)
     return time.perf_counter() - inicio
 
 
 def _legendas(app):
+    """Auxilia legendas."""
     return [c.value for c in app.caption if c.value.startswith("Caminho usado")]
 
 
 def _rotulos(app):
+    """Auxilia rotulos."""
     return [e.label for e in app.expander]
 
 
 def _dump(app, titulo):
+    """Auxilia dump."""
     print(f"  [{titulo}] legendas 'Caminho usado' visiveis: {_legendas(app)}")
     print(f"  [{titulo}] expanders: {_rotulos(app)}")
     print(f"  [{titulo}] erros: {[e.value[:120] for e in app.error]} | avisos: {[w.value[:120] for w in app.warning]}")
 
 
 def apptest():
+    """Descreve AppTest."""
     import rag
     app = _novo_app()
     print("== A4-S1 carga inicial ==")

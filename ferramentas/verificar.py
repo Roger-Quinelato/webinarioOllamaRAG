@@ -28,6 +28,7 @@ _PALAVRAS_FUNCIONAIS = {
 
 
 def _detectar_idioma(texto):
+    """Auxilia detectar idioma."""
     palavras = re.findall(r"[a-zà-úA-ZÀ-Ú]+", texto.lower())
     contagens = {idioma: sum(1 for p in palavras if p in funcionais)
                  for idioma, funcionais in _PALAVRAS_FUNCIONAIS.items()}
@@ -37,10 +38,12 @@ def _detectar_idioma(texto):
 
 
 def _contar_frases(texto):
+    """Auxilia contar frases."""
     return len([f for f in re.split(r"[.!?]+", texto) if f.strip()])
 
 
 def e1_resumos():
+    """Descreve e1 resumos."""
     metadados = rag.carregar_metadados()
     if not metadados:
         print("1.6 FALHA: Nenhum metadado encontrado (nada para checar)")
@@ -65,6 +68,7 @@ def e1_resumos():
 
 
 def e2():
+    """Descreve e2."""
     colecao = rag.abrir_colecao()
     dados = colecao.get(include=["metadatas"])
     metas = dados["metadatas"]
@@ -96,6 +100,7 @@ def e2():
 
 
 def e2_sobreposicao():
+    """Descreve e2 sobreposicao."""
     pagina = rag.extrair_paginas(config.PASTA_ARTIGOS / "lewis2020_rag.pdf")[2]
     pedacos = rag.dividir_texto(pagina)
     if len(pedacos) < 2:
@@ -117,6 +122,7 @@ def e2_sobreposicao():
 
 
 def e2_reabrir():
+    """Descreve e2 reabrir."""
     colecao = rag.abrir_colecao()
     contagem_antes = colecao.count()
     if contagem_antes == 0:
@@ -132,6 +138,7 @@ def e2_reabrir():
 
 
 def e3():
+    """Descreve e3."""
     colecao = rag.abrir_colecao()
     if colecao.count() == 0:
         print("3.1 FALHA: Nada para checar (coleção vazia)")
@@ -190,6 +197,7 @@ def e3():
 
 
 def e4():
+    """Descreve e4."""
     colecao = rag.abrir_colecao()
     pergunta = "Como treinar um retriever denso com poucos exemplos de perguntas e passagens?"
     dois = rag.buscar_dois_estagios(pergunta, k=4, colecao=colecao)
@@ -233,12 +241,14 @@ def _escolher_limiar_estagio_1(distancias_dentro, distancias_fora):
     # Extraído como função pura (sem rag/Ollama) para dar para testar o ramo de sobreposição com
     # dados sintéticos — os dados reais deste corpus não sobrepõem, então só um autoteste prova
     # que a lógica funciona (achado do /code-review).
+    """Auxilia escolher limiar estágio 1."""
     maior_dentro = max(distancias_dentro)
     menor_fora = min(distancias_fora)
     return maior_dentro, maior_dentro >= menor_fora
 
 
 def _autoteste_escolher_limiar():
+    """Auxilia autoteste escolher limiar."""
     limiar, sobreposicao = _escolher_limiar_estagio_1([0.30, 0.50, 0.65], [0.60, 0.70])
     ok = sobreposicao and abs(limiar - 0.65) < 1e-9
     print(f"T06 autoteste (dados sintéticos com sobreposição, prova o ramo que os dados reais não "
@@ -248,6 +258,7 @@ def _autoteste_escolher_limiar():
 
 
 def e4_limiar():
+    """Descreve e4 limiar."""
     _autoteste_escolher_limiar()
     colecao = rag.abrir_colecao()
 
@@ -256,6 +267,7 @@ def e4_limiar():
         # "resumo" dá resultado vazio); rag.buscar_dois_estagios(n_artigos=1) já roda a mesma busca
         # do estágio 1 internamente e devolve "artigos" com a distância real, mesmo quando o limiar
         # decide cair no fallback — evita tocar a função privada _consultar direto daqui.
+        """Descreve distancia estágio 1."""
         dois = rag.buscar_dois_estagios(pergunta, n_artigos=1, colecao=colecao)
         return dois["artigos"][0]["distancia"]
 
@@ -290,6 +302,7 @@ def e4_limiar():
 
 
 def e6_ollama_desligado():
+    """Descreve e6 Ollama desligado."""
     rag._cliente = None
     config.OLLAMA_HOST = "http://localhost:11999"
     falhas = 0
@@ -310,6 +323,7 @@ def e6_ollama_desligado_scripts():
     # hazard: testar só rag.py (e6_ollama_desligado) não prova nada sobre os scripts — cada um
     # importa rag e chama o Ollama por conta própria, e o achado 6.7 mostrou 03-06 e opcional/
     # sem nenhum try/except em volta, deixando o traceback vazar para quem está assistindo a aula.
+    """Descreve e6 Ollama desligado scripts."""
     ambiente = {**__import__("os").environ, "OLLAMA_HOST": "http://localhost:11999", "PYTHONIOENCODING": "utf-8"}
     alvos = [*sorted((RAIZ / "scripts").glob("0[3-7]_*.py")), *sorted((RAIZ / "opcional").glob("*.py"))]
     falhas = []
@@ -331,6 +345,7 @@ def e6_ollama_desligado_scripts():
 def e6_fontes():
     # hazard: cobre os casos que a comparação exata anterior perdia (achado 6.5) — citação parcial,
     # ausência de citação, e a recusa disfarçada por citação colada ou espaçamento irregular do LLM.
+    """Descreve e6 fontes."""
     resultados = [{"arquivo": f"artigo{i}.pdf", "pagina": i} for i in range(1, 4)]
     recusa = config.RESPOSTA_NAO_ENCONTRADA
     casos = [
@@ -370,6 +385,7 @@ _PADROES_COPIA_PIPELINE = {
 
 
 def _achados_copia_pipeline(nome, texto):
+    """Auxilia achados copia pipeline."""
     return [rotulo for rotulo, padrao in _PADROES_COPIA_PIPELINE.items() if padrao.search(texto)]
 
 
@@ -377,6 +393,7 @@ def e7_duplicadas_antes_v2(commit="ba814a0"):
     # why: prova, de um jeito versionado e reexecutável (não um script solto fora do repo), que
     # _achados_copia_pipeline pegaria a duplicação que scripts/06_com_sem_contexto.py tinha antes
     # do T01/T02 — sem precisar reintroduzir a duplicação no código real para testar isso.
+    """Descreve e7 duplicadas antes v2."""
     saida = subprocess.run(["git", "show", f"{commit}:scripts/06_com_sem_contexto.py"],
                            cwd=RAIZ, capture_output=True, text=True, check=True)
     achados = _achados_copia_pipeline("scripts/06_com_sem_contexto.py", saida.stdout)
@@ -387,6 +404,7 @@ def e7_duplicadas_antes_v2(commit="ba814a0"):
 
 
 def e7_duplicadas():
+    """Descreve e7 duplicadas."""
     import ast
     import json
 
@@ -454,6 +472,7 @@ def e7_duplicadas():
 
 
 def e7_estrutura():
+    """Descreve e7 estrutura."""
     import json
 
     notebook = json.loads((RAIZ / "webinario_rag.ipynb").read_text(encoding="utf-8"))
@@ -500,6 +519,7 @@ _PADROES_TEMPO_OBRIGATORIOS = {"extração", "resumo ao vivo", "shap", "resposta
 
 
 def e7_saidas():
+    """Descreve e7 saidas."""
     import json
 
     notebook = json.loads((RAIZ / "webinario_rag.ipynb").read_text(encoding="utf-8"))
@@ -538,6 +558,7 @@ _PADRAO_NUMERO_ULTIMA_EXECUCAO = re.compile(r"(\d+(?:[.,]\d+)?)\s*s\s*na última
 
 
 def e9_numeros():
+    """Descreve e9 numeros."""
     medicoes = (RAIZ / "docs" / "medicoes.md").read_text(encoding="utf-8")
     saidas = (RAIZ / "docs" / "evidencias" / "E7" / "saidas_notebook.txt").read_text(encoding="utf-8")
 
@@ -577,6 +598,7 @@ _ENTRADA_LLM = re.compile(
 
 
 def e6_cli_seguro():
+    """Descreve e6 CLI seguro."""
     alvos = [*sorted((RAIZ / "scripts").glob("*.py")), *sorted((RAIZ / "opcional").glob("*.py"))]
     falhas = []
     for script in alvos:

@@ -12,6 +12,7 @@ _LIGADURAS = {"ﬁ": "fi", "ﬂ": "fl", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl"}
 
 
 def carregar_metadados(caminho=None):
+    """Carrega metadados."""
     with open(caminho or config.ARQUIVO_METADADOS, encoding="utf-8", newline="") as arquivo:
         linhas = list(csv.DictReader(arquivo))
     for linha in linhas:
@@ -20,6 +21,7 @@ def carregar_metadados(caminho=None):
 
 
 def limpar_texto(texto):
+    """Limpa texto."""
     for ligadura, letras in _LIGADURAS.items():
         texto = texto.replace(ligadura, letras)
     texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
@@ -27,11 +29,13 @@ def limpar_texto(texto):
 
 
 def extrair_paginas(caminho, limpar=True):
+    """Extrai paginas."""
     paginas = [pagina.extract_text() or "" for pagina in PdfReader(str(caminho)).pages]
     return [limpar_texto(pagina) for pagina in paginas] if limpar else paginas
 
 
 def dividir_texto(texto, tamanho=None, sobreposicao=None):
+    """Divide texto."""
     tamanho = tamanho or config.TAMANHO_CHUNK
     sobreposicao = config.SOBREPOSICAO if sobreposicao is None else sobreposicao
     if len(texto) <= tamanho:
@@ -50,6 +54,7 @@ def dividir_texto(texto, tamanho=None, sobreposicao=None):
 
 
 def gerar_chunks(metadados=None, pasta=None):
+    """Gera chunks."""
     pasta = Path(pasta or config.PASTA_ARTIGOS)
     chunks = []
     for meta in metadados or carregar_metadados():

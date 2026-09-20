@@ -7,10 +7,13 @@ from generation_router import ErroProviderGeracao
 
 
 class ProviderGeminiTest(unittest.TestCase):
+    """Agrupa testes de Provider Gemini Test. Herda de unittest.TestCase."""
     def test_streaming_mapeia_system_historico_e_deltas(self):
+        """Verifica que streaming mapeia system historico e deltas."""
         chamadas = []
 
         def gerar_stream(**kwargs):
+            """Gera stream."""
             chamadas.append(kwargs)
             return iter([SimpleNamespace(text="Resposta"), SimpleNamespace(text=None)])
 
@@ -35,7 +38,9 @@ class ProviderGeminiTest(unittest.TestCase):
         self.assertFalse(hasattr(provider, "gerar_embeddings"))
 
     def test_saldo_esgotado_nao_e_retentavel(self):
+        """Verifica que saldo esgotado não e retentavel."""
         class ErroHTTP(Exception):
+            """Representa erro Erro HTTP. Herda de Exception."""
             status_code = 402
 
         client = SimpleNamespace(
@@ -52,7 +57,9 @@ class ProviderGeminiTest(unittest.TestCase):
         self.assertFalse(contexto.exception.retryable)
 
     def test_erro_do_sdk_usa_code_http_para_roteamento(self):
+        """Verifica que erro do sdk usa code http para roteamento."""
         class ErroSDK(Exception):
+            """Representa erro Erro SDK. Herda de Exception."""
             code = 429
 
         client = SimpleNamespace(
@@ -69,6 +76,7 @@ class ProviderGeminiTest(unittest.TestCase):
         self.assertTrue(contexto.exception.retryable)
 
     def test_timeout_opcional_e_repassado_ao_sdk_em_milisegundos(self):
+        """Verifica que timeout opcional e repassado ao sdk em milisegundos."""
         cliente = object()
         with patch("google.genai.Client", return_value=cliente) as criar_cliente:
             provider = ProviderGemini(
