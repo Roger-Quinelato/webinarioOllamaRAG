@@ -3,7 +3,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
 
-PASTA_ARTIGOS = RAIZ / "arquivosPDF" / "artigos"
+PASTA_ARTIGOS = RAIZ / "artigos"
 ARQUIVO_METADADOS = RAIZ / "metadados.csv"
 PASTA_CHROMA = RAIZ / "chroma_db"
 PASTA_RESULTADOS = RAIZ / "resultados"
@@ -22,6 +22,9 @@ SOBREPOSICAO = 150
 K_PADRAO = 4
 N_ARTIGOS_ESTAGIO_1 = 3
 DISTANCIA_MAXIMA_ESTAGIO_1 = 0.60
+# Ponto médio do intervalo real (0.44007039070129395, 0.5800204873085022),
+# com margem igual para perguntas positivas e negativas do retrieval híbrido.
+DISTANCIA_MAXIMA_RETRIEVAL = 0.5100454390048981
 TEMPERATURA = 0.1
 MAX_TOKENS_RESPOSTA = 400
 

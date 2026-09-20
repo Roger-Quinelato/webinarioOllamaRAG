@@ -6,16 +6,14 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 
 ## Antes da live (T-30 min)
 
-1. Feche os programas pesados. O LLM divide CPU e RAM com a transmissão.
-2. Abra o aplicativo Ollama e rode `python scripts/00_checar_ambiente.py`. A saída tem que terminar em `Ambiente pronto.`
-3. Rode `python scripts/07_ollama.py` uma vez para aquecer o modelo. A primeira resposta é a mais lenta: carregar um modelo levou de 40 a 80 s nesta máquina. Na aula, use **um único modelo de chat** do começo ao fim. Trocar de modelo custa outra carga e, na medição, derrubou o 3b para 3 tokens/s ([medicoes.md](medicoes.md), 9.3).
-4. Abra o `webinario_rag.ipynb` no VS Code com o kernel **Python (webinario-rag)** e confira `REINDEXAR = False`, `LLM_AO_VIVO = True` e `SHAP_AO_VIVO = True`. Com menos de 1 GB de RAM livre, comece com `SHAP_AO_VIVO = False`.
+1. Feche os programas pesados. Ollama divide CPU e RAM com a transmissão.
+2. Instale e aqueça apenas `bge-m3` no Ollama. Rode `python scripts/00_checar_ambiente.py`.
+3. Configure `OPENAI_API_KEY` sem exibir o valor. Geração e streaming usam OpenAI; não instale modelo de chat local.
+4. Rode `python scripts/02_indexar_hibrido.py` antes da live. Não reindexe durante a apresentação.
 5. Em outro terminal, deixe `streamlit run app.py` pronto, mas ainda sem abrir o navegador.
 6. Envie ao João os links do repositório, do vídeo de instalação e do troubleshooting.
 
-**Plano B geral:** se o LLM travar, mude `LLM_AO_VIVO = False` (ou `SHAP_AO_VIVO = False`), rode a célula de configuração e depois a célula que travou. Todas as células lentas carregam o resultado salvo em `resultados/`. O notebook inteiro nesse modo foi testado e roda em 61 s.
-
-**Modelo ao vivo (decisão parcial do autor, 2026-09-15 — ticket #19):** `config.MODELO_CHAT` agora é `qwen2.5:1.5b` por padrão, para validar a pipeline inteira primeiro; `qwen2.5:3b` vira o "plano B" em `config.MODELO_CHAT_PLANO_B`, para testar depois se a máquina/o notebook aguenta bem no ensaio de 21/09. O 1.5b respondeu em ~20 s contra 42–164 s do 3b nesta máquina. Perguntas-teste definitivas ainda não foram definidas (fica para depois; ticket #19 segue aberto para essa parte).
+**Plano B:** se Ollama falhar, interrompa indexação e mostre erro acionável. Se OpenAI retornar 429, registre bloqueio e não marque ensaio como aprovado. Rollback para geração local exige troca explícita para `legacy-pre-openai`.
 
 ---
 
@@ -81,9 +79,9 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
 - **Plano B:** `LLM_AO_VIVO = False`.
 - **Pendência do autor:** substituir as perguntas marcadas com `TODO` pelas definitivas.
 
-## Bloco 6 — Integração com Ollama (12 min)
+## Bloco 6 — Integração híbrida (12 min)
 
-- **Fala:** "`responder()` junta busca, prompt e chamada ao Ollama em streaming, e devolve as fontes."
+- **Fala:** "`OpenAIRAG` junta busca com embeddings Ollama, prompt e geração OpenAI em streaming, e devolve fontes."
 - **Demo:** célula de streaming e depois `config.py`, mostrando que trocar o modelo é uma linha.
 - **Checkpoint:** mostrar a tabela de velocidade de medicoes.md em vez de trocar de modelo ao vivo: 3b com ~7 tokens/s de geração, 1.5b com ~14 tokens/s.
 - **Plano B:** `LLM_AO_VIVO = False` mostra a resposta salva em `resultados/resposta_bloco6.md`.
@@ -95,8 +93,8 @@ Tempos reais de cada etapa nesta máquina: [medicoes.md](medicoes.md). Problemas
   1. Mostrar o código do `app.py` (célula do bloco 7).
   2. Terminal: `streamlit run app.py`.
   3. Fazer duas perguntas seguidas para mostrar o histórico.
-  4. Mudar o k, filtrar por tema, alternar simples × dois estágios.
-  5. Abrir o expander de fontes, que mostra arquivo, página, trecho e resumo.
+  4. Selecionar **Corpus Oficial** ou criar **Índice de Sessão** com até três PDFs.
+  5. Abrir **Fontes Citadas** ou **Chunks Recuperados**; uma pergunta fora da base mostra **Recusa**.
 - **Checkpoint:** pedir uma pergunta do chat e fazê-la no app. No máximo 4 perguntas neste bloco: sem cache, cada resposta do 3b levou 42–118 s.
 - **Atenção:** o envio é pelo botão de seta; nos testes, o Enter não enviou.
 - **Plano B:** se o Ollama cair, o app mostra o aviso sem quebrar; reabra o Ollama. Trocar o modelo na barra lateral custa outra carga de 40–80 s, então só faça isso em último caso.

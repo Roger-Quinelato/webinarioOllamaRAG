@@ -1,13 +1,20 @@
 # Estado atual do repositório
 
-**Data do levantamento:** 2026-09-16 · **Branch:** `chore/agent-skills-setup` · **HEAD:** `4d6a16b`
+> **Atualização da migração (20 de setembro de 2026):** a arquitetura vigente é
+> híbrida. Ollama fornece apenas `bge-m3` para embeddings; OpenAI fornece geração
+> e streaming. MIG-04 (`f8ec561`) e MIG-05 (`738cc0c`) estão implementadas. O
+> gate CTO de MIG-05 exige mais AppTests; MIG-06/MIG-07 aguardam novo gate.
+> Consulte `docs/evidencias/MIG-04/validacao.md`,
+> `docs/evidencias/MIG-05/validacao.md` e o handoff atual.
 
-Este documento é o retrato do repositório **como ele está**, não como deveria estar. Ele existe para
+**Data do levantamento:** 2026-09-16 (retrato estático, não atualizado a cada commit)
+
+Este documento é o retrato do repositório **como ele estava na data do levantamento**, não como deveria estar. Ele existe para
 dar contexto de partida a quem audita o material (ver [`auditoria/PROTOCOLO_AUDITORIA.md`](auditoria/PROTOCOLO_AUDITORIA.md))
-sem precisar reconstruir o histórico lendo 25 commits e ~30 linhas de registro de execuções.
+sem precisar reconstruir todo o histórico e dezenas de linhas de registro de execuções.
 
-Regra de leitura: tudo aqui é **afirmação a ser conferida**, não evidência. A fonte de verdade sobre
-o que está verificado continua sendo [`VERIFICACAO.md`](VERIFICACAO.md) + os arquivos em `docs/evidencias/`.
+Regra de leitura: tudo aqui é **afirmação a ser conferida**, não evidência. A fonte única de verdade sobre
+os status de verificação continua sendo [`VERIFICACAO.md`](VERIFICACAO.md) + os arquivos em `docs/evidencias/`.
 
 ---
 
@@ -139,7 +146,7 @@ como falha, não como sucesso silencioso).
 | Etapa | Status declarado | Pendências |
 |---|---|---|
 | E0 Ambiente | ✅ | — |
-| E1 Corpus e metadados | ✅ | — (1.8 fechada pelo T12) |
+| E1 Corpus e metadados | ✅ (1.8 ⏸️) | — (1.8 fechada pelo T12) |
 | E2 Indexação | ✅ | — |
 | E3 Retrieval top-k e filtros | ✅ | — |
 | E4 Dois estágios | ✅ | — (4.4 fechada por T06/T07) |
@@ -148,7 +155,7 @@ como falha, não como sucesso silencioso).
 | E7 Notebook e scripts | ✅ | — |
 | E8 Streamlit | ✅ | 8.2/8.4/8.5/8.7 contestados: evidência era só texto; capturas geradas mas **não commitadas** (issues #15, #25) |
 | E9 Medições | ✅ (9.3 ⏸️) | 9.3 depende de decisão do autor no ensaio de 21/09 |
-| E10 Documentação | ⏸️ parcial | 10.1 verificado só no Windows; macOS/Linux sem máquina (issue #17) |
+| E10 Documentação | ✅ (10.1 ⏸️ macOS/Linux) | 10.1 verificado só no Windows; macOS/Linux sem máquina (issue #17) |
 
 O `Registro de execuções` do `VERIFICACAO.md` tem ~30 linhas datadas, uma por tarefa — é o histórico
 canônico e deve ser a primeira leitura de qualquer auditor.
@@ -174,7 +181,7 @@ puladas até o autor responder e não travam as demais.
 
 ## 7. Estado do git
 
-- Branch `chore/agent-skills-setup`, 25 commits desde o inicial; `main` também existe no remoto.
+- Branch base do levantamento: `chore/agent-skills-setup`; `main` também existe no remoto.
 - Duas worktrees em `.claude/worktrees/` (`abstract-wishing-sparkle`, `humble-painting-spindle`) com
   cópias antigas do repo — **não são a árvore de trabalho ativa**; auditar só a raiz.
 - **Trabalho não commitado** (T15/#15 em andamento):

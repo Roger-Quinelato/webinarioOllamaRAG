@@ -1,4 +1,3 @@
-import csv
 import json
 import math
 import re
@@ -11,7 +10,7 @@ import chromadb
 import httpx
 import numpy as np
 import ollama
-from pypdf import PdfReader
+from corpus import carregar_metadados, limpar_texto, extrair_paginas, dividir_texto, gerar_chunks
 
 import config
 
@@ -64,13 +63,6 @@ def verificar_ollama(modelos=None):
     return instalados, faltando
 
 
-def carregar_metadados(caminho=None):
-    with open(caminho or config.ARQUIVO_METADADOS, encoding="utf-8", newline="") as arquivo:
-        linhas = list(csv.DictReader(arquivo))
-    for linha in linhas:
-        linha["ano"] = int(linha["ano"])
-    return linhas
-
 
 def salvar_metadados(linhas, caminho=None):
     with open(caminho or config.ARQUIVO_METADADOS, "w", encoding="utf-8", newline="") as arquivo:
@@ -98,21 +90,6 @@ def validar_metadados(linhas, cabecalho, pasta=None):
     return erros
 
 
-_LIGADURAS = {"ﬁ": "fi", "ﬂ": "fl", "ﬀ": "ff", "ﬃ": "ffi", "ﬄ": "ffl"}
-
-
-def limpar_texto(texto):
-    for ligadura, letras in _LIGADURAS.items():
-        texto = texto.replace(ligadura, letras)
-    texto = re.sub(r"(\w)-\n(\w)", r"\1\2", texto)
-    return re.sub(r"\s+", " ", texto).strip()
-
-
-def extrair_paginas(caminho, limpar=True):
-    paginas = [pagina.extract_text() or "" for pagina in PdfReader(str(caminho)).pages]
-    return [limpar_texto(p) for p in paginas] if limpar else paginas
-
-
 def extrair_abstract(texto_pagina_1):
     padrao = re.compile(
         r"\b(?:abstract|resumo)\b\s*[—:.\-]?\s*(.+?)"
@@ -125,48 +102,6 @@ def extrair_abstract(texto_pagina_1):
     return limpar_texto(achado.group(1))[:3000]
 
 
-def dividir_texto(texto, tamanho=None, sobreposicao=None):
-    tamanho = tamanho or config.TAMANHO_CHUNK
-    sobreposicao = config.SOBREPOSICAO if sobreposicao is None else sobreposicao
-    if len(texto) <= tamanho:
-        return [texto] if texto else []
-    partes, inicio = [], 0
-    while inicio < len(texto):
-        fim = min(inicio + tamanho, len(texto))
-        if fim < len(texto):
-            corte = texto.rfind(" ", inicio + tamanho // 2, fim)
-            fim = corte if corte != -1 else fim
-        partes.append(texto[inicio:fim].strip())
-        if fim >= len(texto):
-            break
-        proximo = max(fim - sobreposicao, inicio + 1)
-        espaco = texto.find(" ", proximo, fim)
-        inicio = espaco + 1 if espaco != -1 else proximo
-    return partes
-
-
-def gerar_chunks(metadados=None, pasta=None):
-    pasta = Path(pasta or config.PASTA_ARTIGOS)
-    chunks = []
-    for meta in metadados or carregar_metadados():
-        base = {campo: meta[campo] for campo in config.COLUNAS_METADADOS}
-        stem = Path(meta["arquivo"]).stem
-        for numero, texto_pagina in enumerate(extrair_paginas(pasta / meta["arquivo"]), start=1):
-            for parte, texto in enumerate(dividir_texto(texto_pagina)):
-                chunk_id = f"{stem}-p{numero:03d}-c{parte:02d}"
-                chunks.append({
-                    "id": chunk_id,
-                    "texto": texto,
-                    "metadados": {**base, "pagina": numero, "chunk_id": chunk_id, "tipo_chunk": "pagina"},
-                })
-        if meta["resumo"]:
-            chunk_id = f"{stem}-resumo"
-            chunks.append({
-                "id": chunk_id,
-                "texto": f"{meta['titulo']}. {meta['resumo']}",
-                "metadados": {**base, "pagina": 0, "chunk_id": chunk_id, "tipo_chunk": "resumo"},
-            })
-    return chunks
 
 
 def gerar_embeddings(textos, modelo=None, lote=16):
