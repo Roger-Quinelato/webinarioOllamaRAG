@@ -1,8 +1,10 @@
+import uuid
+
 import streamlit as st
 from chromadb.errors import ChromaError
 
 from corpus import extrair_paginas, dividir_texto
-from hybrid_index import abrir_colecao_hibrida
+from hybrid_index import ColecaoHibridaIncompativel, abrir_colecao_hibrida
 from ollama_embedding_provider import ErroProviderEmbeddingsOllama, ProviderEmbeddingsOllama
 from openai_provider import ProviderOpenAI, obter_chave_openai, ChaveOpenAIAusente, ErroProviderOpenAI
 from openai_rag import OpenAIRAG, BaseAtiva
@@ -23,11 +25,7 @@ def providers():
 
 @st.cache_resource
 def base_oficial():
-    try:
-        from hybrid_index import abrir_colecao_hibrida
-        return BaseAtiva("Corpus Oficial", abrir_colecao_hibrida())
-    except Exception as e:
-        return None
+    return BaseAtiva("Corpus Oficial", abrir_colecao_hibrida())
 
 emb_provider, gen_provider = providers()
 rag = OpenAIRAG(emb_provider, gen_provider)
@@ -66,7 +64,6 @@ def processar_upload(arquivos_upload, ano_opcional):
     
     if chunks:
         # Create a unique session id based on st.session_state (or just a random uuid, but here we can just use a fixed one per streamlit session if we want to replace it)
-        import uuid
         sessao_id = st.session_state.get("sessao_id")
         if not sessao_id:
             sessao_id = str(uuid.uuid4())
@@ -84,6 +81,8 @@ def processar_upload(arquivos_upload, ano_opcional):
         st.session_state.indice_sessao = indice_novo
         if indice_anterior:
             indice_anterior.descartar()
+    else:
+        st.warning("Os PDFs enviados não contêm texto extraível. OCR não faz parte deste webinário.")
 
 def montar_filtro(ano_minimo, temas, idiomas):
     if not (ano_minimo or temas or idiomas):
@@ -102,37 +101,45 @@ def montar_filtro(ano_minimo, temas, idiomas):
         return condicoes[0]
     return {"$and": condicoes}
 
+def _mostrar_lista_fontes(fontes):
+    for indice, fonte in enumerate(fontes, start=1):
+        referencia = fonte.get("posicao", indice)
+        ano_texto = f" · {fonte.get('ano', '?')}" if "ano" in fonte else ""
+        st.markdown(
+            f"**[{referencia}]** — `{fonte.get('arquivo', '?')}`, p. {fonte.get('pagina', '?')} "
+            f"· distância {fonte.get('distancia', 0.0):.4f}{ano_texto}"
+        )
+        st.text(fonte["texto"][:700])
+
+
 def mostrar_fontes(busca):
-    fontes = busca["chunks_recuperados"]
+    chunks = busca["chunks_recuperados"]
     citadas = busca["fontes_citadas"]
-    
-    status_label = busca["status"]
-    if status_label == "Resposta Parcial":
+    if busca["status"] == "Resposta Parcial":
         st.warning("A geração foi interrompida antes da conclusão.")
-    
-    with st.expander(f"Fontes (citadas {len(citadas)} de {len(fontes)}) — Base Ativa: {busca['base_ativa']} - Classe: {busca['classe_fontes']}"):
-        if not fontes:
-            st.info("Nenhum trecho recuperado com esses filtros.")
-        elif not citadas and busca["classe_fontes"] != "sem_resultados":
-            st.info("Nenhuma fonte usada (Fallback recuperado).")
-            
-        for i, fonte in enumerate(fontes, start=1):
-            marca = " ✅ citado" if fonte in citadas else ""
-            ano_texto = f" · {fonte.get('ano', '?')}" if 'ano' in fonte else ""
-            st.markdown(f"**[{i}]**{marca} — `{fonte.get('arquivo', '?')}`, p. {fonte.get('pagina', '?')} "
-                        f"· distância {fonte.get('distancia', 0.0):.4f}{ano_texto}")
-            st.text(fonte["texto"][:700])
+    st.caption(f"Base Ativa: {busca['base_ativa']} · Classe: {busca['classe_fontes']}")
+    if busca["classe_fontes"] == "recusa":
+        return
+    if citadas:
+        with st.expander(f"Fontes Citadas ({len(citadas)})"):
+            _mostrar_lista_fontes(citadas)
+    elif chunks:
+        with st.expander(f"Chunks Recuperados ({len(chunks)})"):
+            _mostrar_lista_fontes(chunks)
 
 st.title("📚 Assistente RAG sobre artigos de RAG")
 st.caption("Migração OpenAI RAG — Híbrido com bge-m3 local e OpenAI (gpt-5.6-luna)")
 
 with st.sidebar:
     st.header("Configuração")
+    base_escolhida = st.radio("Base Ativa", ("Corpus Oficial", "Índice de Sessão"))
     if st.button("Limpar conversa"):
         st.session_state.mensagens = []
         indice_sessao = st.session_state.pop("indice_sessao", None)
         if indice_sessao:
             indice_sessao.descartar()
+        st.session_state.pop("sessao_id", None)
+        st.session_state.upload_widget_id = str(uuid.uuid4())
         st.rerun()
         
     k = st.slider("k (trechos no contexto)", 1, 10, config.K_PADRAO)
@@ -143,7 +150,12 @@ with st.sidebar:
     idiomas = st.multiselect("Idioma", config.IDIOMAS)
     
     st.subheader("Upload de PDFs (Índice de Sessão)")
-    arquivos = st.file_uploader("Até 3 PDFs", type=["pdf"], accept_multiple_files=True)
+    arquivos = st.file_uploader(
+        "Até 3 PDFs",
+        type=["pdf"],
+        accept_multiple_files=True,
+        key=f"upload_pdfs_{st.session_state.get('upload_widget_id', 'inicial')}",
+    )
     ano_opcional = st.number_input("Ano (opcional)", min_value=1900, max_value=2100, value=None)
     if st.button("Criar Índice de Sessão"):
         if arquivos:
@@ -158,11 +170,25 @@ if "mensagens" not in st.session_state:
     st.session_state.mensagens = []
 
 indice_sessao = st.session_state.get("indice_sessao")
-base_ativa = indice_sessao.base_ativa if indice_sessao else base_oficial()
+if base_escolhida == "Índice de Sessão":
+    base_ativa = indice_sessao.base_ativa if indice_sessao else None
+    erro_base = "Crie um Índice de Sessão antes de selecioná-lo."
+else:
+    try:
+        base_ativa = base_oficial()
+        erro_base = None
+    except (ChromaError, ColecaoHibridaIncompativel):
+        base_ativa = None
+        erro_base = "Corpus Oficial indisponível. Execute a reindexação antes de consultar."
 
 if not base_ativa:
-    st.error("Nenhuma Base Ativa disponível. Verifique a reindexação do Corpus Oficial ou faça upload.")
+    st.error(erro_base)
     st.stop()
+
+identidade_base = base_ativa.colecao.name
+if st.session_state.get("historico_base_ativa") not in (None, identidade_base):
+    st.session_state.mensagens = []
+st.session_state.historico_base_ativa = identidade_base
 
 for mensagem in st.session_state.mensagens:
     if mensagem["papel"] in ["user", "assistant"]:
@@ -204,6 +230,12 @@ if pergunta:
         except ErroProviderOpenAI as erro:
             st.error(f"⚠️ {erro}")
             st.session_state.mensagens.pop()
-        except Exception as e:
-            st.error(f"⚠️ Erro inesperado: {e}")
+        except ErroProviderEmbeddingsOllama as erro:
+            st.error(f"⚠️ {erro}")
+            st.session_state.mensagens.pop()
+        except (ChromaError, ValueError):
+            st.error("⚠️ Não foi possível consultar a Base Ativa. Confira a configuração e tente novamente.")
+            st.session_state.mensagens.pop()
+        except Exception:
+            st.error("⚠️ Não foi possível concluir a resposta. Tente novamente.")
             st.session_state.mensagens.pop()

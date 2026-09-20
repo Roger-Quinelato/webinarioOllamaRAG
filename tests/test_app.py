@@ -32,6 +32,23 @@ class AppTestIntegracao(unittest.TestCase):
         
         # Check title
         self.assertEqual(at.title[0].value, "📚 Assistente RAG sobre artigos de RAG")
+        self.assertEqual(at.radio[0].label, "Base Ativa")
+        self.assertEqual(at.radio[0].value, "Corpus Oficial")
+        self.assertEqual(at.file_uploader[0].label, "Até 3 PDFs")
+
+    @patch("openai_provider.obter_chave_openai", return_value="fake-key")
+    @patch("hybrid_index.abrir_colecao_hibrida")
+    def test_indice_de_sessao_exige_upload_explicito(self, mock_abrir_colecao, mock_obter_chave):
+        mock_abrir_colecao.return_value = MagicMock(metadata={
+            "provedor_embedding": "Ollama", "modelo_embedding": "bge-m3",
+            "dimensao_embedding": 1024, "versao_colecao": "bge-m3-v1", "status": "ready",
+        })
+        at = AppTest.from_file("../app.py").run(timeout=30)
+
+        at.radio[0].set_value("Índice de Sessão").run(timeout=30)
+
+        self.assertFalse(at.exception)
+        self.assertTrue(any("Crie um Índice de Sessão" in erro.value for erro in at.error))
 
 if __name__ == "__main__":
     unittest.main()

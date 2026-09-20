@@ -1,21 +1,20 @@
 # Evidência MIG-05
 
 **Issue:** #63
-**Objetivo:** Adaptar Streamlit para estado, fontes e falhas OpenAI.
 
-## Subtasks concluídas
-- [x] Guardar histórico de duas turnos para geração e pergunta atual para retrieval. (Implementado em `app.py` fatiando `st.session_state.mensagens[-5:-1]`)
-- [x] Exibir Base Ativa, fontes citadas, fallback recuperado, recusa e resposta parcial. (Implementado via lógica em `mostrar_fontes`)
-- [x] Criar controles para upload, ano opcional e limpeza de sessão. (Implementado via `st.sidebar`)
-- [x] Tratar chave ausente, erro de provider e upload inválido sem traceback. (Tratamentos baseados nas exceções de `openai_provider.py`)
+## Comandos executados
 
-## Validação
-- Executado o `test_app.py` garantindo que:
-  - O aplicativo não quebra e exibe aviso `st.warning` quando não há chave OpenAI.
-  - O aplicativo sobe corretamente quando a chave e o índice existem.
-
-**Comando:**
-```bash
-.\.venv\Scripts\python.exe -m unittest discover tests/
+```powershell
+.\.venv\Scripts\python.exe -m unittest tests.test_app -v
+.\.venv\Scripts\python.exe -m unittest discover tests -v
 ```
-**Resultado:** `OK` para todos os testes (43 executados).
+
+## Resultado
+
+- AppTests: 3 passaram. Cobrem chave OpenAI ausente, inicialização e seleção de Índice de Sessão sem upload.
+- Suíte completa: 50 testes passaram.
+- `Corpus Oficial` inicia como Base Ativa. `Índice de Sessão` só é usado após seleção explícita.
+- Upload válido não seleciona a base silenciosamente. Limpeza remove histórico, sessão e coleção efêmera; troca a chave do widget de upload.
+- `Fontes Citadas` lista somente chunks citados. Chunks sem citação aparecem em `Chunks Recuperados`; Recusa não promove chunks.
+- Falhas conhecidas de OpenAI, Ollama, Chroma e incompatibilidade do Corpus Oficial mostram orientação segura, sem traceback ou segredo.
+- Streaming preserva `Resposta Parcial`, produzida pela fachada antes da interface exibir o resultado.
