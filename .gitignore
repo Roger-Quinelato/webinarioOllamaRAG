@@ -18,6 +18,7 @@ chroma_db/
 
 # PDFs: cursos do CIIA e artigos não são versionados (links no README)
 arquivosPDF/**/*.pdf
+artigos/*.pdf
 
 # Estado local do harness
 .tlc/harness/state/

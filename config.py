@@ -3,7 +3,7 @@ from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
 
-PASTA_ARTIGOS = RAIZ / "arquivosPDF" / "artigos"
+PASTA_ARTIGOS = RAIZ / "artigos"
 ARQUIVO_METADADOS = RAIZ / "metadados.csv"
 PASTA_CHROMA = RAIZ / "chroma_db"
 PASTA_RESULTADOS = RAIZ / "resultados"
