@@ -1,13 +1,18 @@
-# Assistente com RAG, Ollama e Streamlit
+# Assistente híbrido com RAG, Ollama e OpenAI
 
-Material prático do **Webinário CIIA — Encontro 2**. Um assistente que responde perguntas sobre artigos científicos de RAG usando só ferramentas locais:
+Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recupera artigos localmente e gera respostas grounded com OpenAI:
 
-- **Ollama** serve o modelo de embedding (`bge-m3`) e o modelo de chat (`qwen2.5:3b`, com plano B `qwen2.5:1.5b`).
-- **ChromaDB** guarda os vetores em disco.
+- **Ollama** serve somente embeddings `bge-m3` (1024 dimensões).
+- **OpenAI** gera respostas com `gpt-5.6-luna` e streaming; configure `OPENAI_API_KEY`.
+- **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
 - **Streamlit** fornece a interface de chat.
 - **SHAP** explica o retrieval.
 
 Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxergar cada peça do RAG.
+
+## Arquitetura vigente
+
+`bge-m3` via Ollama cria e consulta vetores. SDK OpenAI gera texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
 
 ```
 PDFs → texto por página → chunks → embeddings → ChromaDB
@@ -53,8 +58,6 @@ Por padrão, os modelos vão para `~/.ollama/models`. Para usar outra pasta, def
 
 ```bash
 ollama pull bge-m3
-ollama pull qwen2.5:3b
-ollama pull qwen2.5:1.5b
 ```
 
 ### 4. Obter o código e criar o ambiente Python
@@ -108,22 +111,18 @@ O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no rep
 ### 7. Indexar
 
 ```bash
-python scripts/02_indexar.py
+python scripts/02_indexar_hibrido.py
 ```
 
-O script cria a coleção em `chroma_db/`. Pode rodar de novo quantas vezes quiser: a coleção é recriada do zero, sem duplicar chunks. Sem GPU, espere cerca de 20 minutos (1104 a 1141 s na máquina de teste, ver [docs/medicoes.md](docs/medicoes.md)).
+O script publica a coleção híbrida com `bge-m3` e preserva coleções existentes.
 
-### 8. Explorar a busca, o SHAP e o LLM
+### 8. Consultar
 
 ```bash
-python scripts/03_buscar.py
-python scripts/04_dois_estagios.py
-python scripts/05_shap.py
-python scripts/06_com_sem_contexto.py
-python scripts/07_ollama.py "Como o Self-RAG decide quando buscar documentos?"
+streamlit run app.py
 ```
 
-Você também pode abrir o `webinario_rag.ipynb` no VS Code, escolher o kernel **Python (webinario-rag)** e seguir os blocos da aula. As saídas já vêm salvas no notebook, então dá para acompanhar sem rodar nada.
+Scripts CLI híbridos de consulta e streaming OpenAI entram em MIG-06; até lá use o app.
 
 ### 9. Abrir o chatbot
 
@@ -131,7 +130,7 @@ Você também pode abrir o `webinario_rag.ipynb` no VS Code, escolher o kernel *
 streamlit run app.py
 ```
 
-O navegador abre em <http://localhost:8501>. Na barra lateral você escolhe o modelo, o `k`, a busca simples ou em dois estágios, e os filtros de ano, tema e idioma.
+O navegador abre em <http://localhost:8501>. Na barra lateral selecione uma única **Base Ativa**. Upload aceita até três PDFs de 20 MB. A interface separa **Fontes Citadas**, **Chunks Recuperados**, **Recusa** e **Resposta Parcial**.
 
 ## Estrutura
 
@@ -178,10 +177,6 @@ legada em dois eixos. As checagens estáticas estão em
 
 A auditoria histórica lista achados e critérios contestados; ela não valida a
 migração OpenAI atual.
-
-## Trocar para o modelo menor
-
-Se as respostas estiverem lentas, mude `MODELO_CHAT` em `config.py` para `"qwen2.5:1.5b"`, ou defina a variável de ambiente `MODELO_CHAT=qwen2.5:1.5b`. Nada mais precisa mudar.
 
 ## Problemas comuns
 

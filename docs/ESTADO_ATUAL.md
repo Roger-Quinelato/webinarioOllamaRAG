@@ -1,5 +1,12 @@
 # Estado atual do repositório
 
+> **Atualização da migração (20 de setembro de 2026):** a arquitetura vigente é
+> híbrida. Ollama fornece apenas `bge-m3` para embeddings; OpenAI fornece geração
+> e streaming. MIG-04 (`f8ec561`) e MIG-05 (`738cc0c`) estão implementadas. O
+> gate CTO de MIG-05 exige mais AppTests; MIG-06/MIG-07 aguardam novo gate.
+> Consulte `docs/evidencias/MIG-04/validacao.md`,
+> `docs/evidencias/MIG-05/validacao.md` e o handoff atual.
+
 **Data do levantamento:** 2026-09-16 (retrato estático, não atualizado a cada commit)
 
 Este documento é o retrato do repositório **como ele estava na data do levantamento**, não como deveria estar. Ele existe para

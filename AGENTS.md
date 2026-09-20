@@ -37,7 +37,8 @@ antes de delegar. Use as definições versionadas em `.agent/subagents/`.
   usa `gpt-5.6-luna` e esforço `medium`; não altera código de produto.
 - `openai-rag-cto-reviewer`: gate somente-leitura com `gpt-6-astra` e esforço
   `medium`, após MIG-01, após a adaptação híbrida de MIG-02/MIG-03, após MIG-05
-  e antes do ensaio.
+  e antes do ensaio. Gate MIG-05 atual: `ALTERAÇÕES NECESSÁRIAS`; não iniciar
+  MIG-06 até novo gate.
 
 Não execute tarefas de escrita em paralelo no mesmo worktree. Um gate aprovado
 é necessário antes de iniciar a issue dependente; o revisor reporta achados, mas

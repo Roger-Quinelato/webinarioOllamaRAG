@@ -4,9 +4,10 @@ Orientação para agentes nesta branch de migração.
 
 ## Estado
 
-Branch `feat/openai-rag-migration`. Arquitetura-alvo aceita; código ainda usa
-Ollama até `MIG-01`–`MIG-08` concluídas. Não descreva, teste ou apresente OpenAI
-como implementado antes do aceite da issue correspondente.
+Branch `feat/openai-rag-migration`. MIG-04 e MIG-05 têm implementação e testes;
+gate CTO de MIG-05 ainda exige cobertura AppTest adicional. MIG-06 e MIG-07 não
+foram iniciadas. Descreva OpenAI somente como geração híbrida implementada, sem
+afirmar aceite final enquanto a prova real de geração segue bloqueada por HTTP 429.
 
 Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma legada.
 
