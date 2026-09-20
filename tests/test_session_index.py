@@ -11,6 +11,7 @@ DIMENSAO = 1024
 
 
 def chunks_de_teste():
+    """Descreve chunks de teste."""
     return [
         {
             "id": f"upload-{numero}",
@@ -29,7 +30,9 @@ def chunks_de_teste():
 
 
 def provider_de_teste(*, vetores=None, erro=None):
+    """Descreve provider de teste."""
     def embed(**kwargs):
+        """Descreve embed."""
         if erro:
             raise erro
         return SimpleNamespace(
@@ -40,7 +43,9 @@ def provider_de_teste(*, vetores=None, erro=None):
 
 
 class SessionIndexTest(unittest.TestCase):
+    """Agrupa testes de Session Index Test. Herda de unittest.TestCase."""
     def test_cria_indice_sessao_com_perfil_bge_m3(self):
+        """Verifica que cria indice sessao com perfil bge-m3."""
         indice = criar_indice_sessao(
             provider_de_teste(), "sessao-123", chunks_de_teste(), chromadb.EphemeralClient()
         )
@@ -53,6 +58,7 @@ class SessionIndexTest(unittest.TestCase):
         self.assertEqual(indice.base_ativa.colecao.count(), 3)
 
     def test_indices_sao_isolados_com_cliente_compartilhado(self):
+        """Verifica que indices sao isolados com cliente compartilhado."""
         cliente = chromadb.EphemeralClient()
         primeiro = criar_indice_sessao(provider_de_teste(), "sessao-1", chunks_de_teste(), cliente)
         segundo = criar_indice_sessao(provider_de_teste(), "sessao-2", chunks_de_teste(), cliente)
@@ -66,6 +72,7 @@ class SessionIndexTest(unittest.TestCase):
         self.assertEqual(segundo.base_ativa.colecao.count(), 3)
 
     def test_descartar_remove_colecao_e_eh_idempotente(self):
+        """Verifica que descartar remove coleção e eh idempotente."""
         cliente = chromadb.EphemeralClient()
         indice = criar_indice_sessao(provider_de_teste(), "sessao-1", chunks_de_teste(), cliente)
 
@@ -75,6 +82,7 @@ class SessionIndexTest(unittest.TestCase):
         self.assertNotIn(indice.nome_colecao, {colecao.name for colecao in cliente.list_collections()})
 
     def test_descartar_preserva_corpus_oficial(self):
+        """Verifica que descartar preserva Corpus Oficial."""
         cliente = chromadb.EphemeralClient()
         cliente.create_collection("artigos_rag_hibrido")
         indice = criar_indice_sessao(provider_de_teste(), "sessao-1", chunks_de_teste(), cliente)
@@ -84,6 +92,7 @@ class SessionIndexTest(unittest.TestCase):
         self.assertIn("artigos_rag_hibrido", {colecao.name for colecao in cliente.list_collections()})
 
     def test_rejeita_embeddings_de_dimensao_incompativel_sem_criar_colecao(self):
+        """Verifica que rejeita embeddings de dimensão incompativel sem criar coleção."""
         cliente = chromadb.EphemeralClient()
         colecoes_antes = {colecao.name for colecao in cliente.list_collections()}
         with self.assertRaisesRegex(ValueError, "1024"):
@@ -93,6 +102,7 @@ class SessionIndexTest(unittest.TestCase):
         self.assertEqual({colecao.name for colecao in cliente.list_collections()}, colecoes_antes)
 
     def test_rejeita_embeddings_vazios_quantidade_errada_e_ids_duplicados(self):
+        """Verifica que rejeita embeddings vazios quantidade errada e ids duplicados."""
         cliente = chromadb.EphemeralClient()
         with self.assertRaisesRegex(ValueError, "quantidade"):
             criar_indice_sessao(provider_de_teste(vetores=[]), "sessao-1", chunks_de_teste(), cliente)
@@ -104,6 +114,7 @@ class SessionIndexTest(unittest.TestCase):
             criar_indice_sessao(provider_de_teste(), "sessao-1", chunks, cliente)
 
     def test_propagacao_erro_ollama_nao_cria_colecao(self):
+        """Verifica que propagação erro Ollama não cria coleção."""
         cliente = chromadb.EphemeralClient()
         colecoes_antes = {colecao.name for colecao in cliente.list_collections()}
         with self.assertRaises(ErroProviderEmbeddingsOllama):

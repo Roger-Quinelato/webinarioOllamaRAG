@@ -7,10 +7,12 @@ celulas = []
 
 
 def md(texto):
+    """Descreve md."""
     celulas.append(nbf.v4.new_markdown_cell(texto.strip()))
 
 
 def code(texto):
+    """Descreve code."""
     celulas.append(nbf.v4.new_code_cell(texto.strip()))
 
 

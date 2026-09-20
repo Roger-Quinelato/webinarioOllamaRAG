@@ -20,16 +20,19 @@ medidas = {"cenario": cenario, "inicio": datetime.now().isoformat(timespec="seco
 
 
 def ram_livre():
+    """Descreve ram livre."""
     return round(psutil.virtual_memory().available / 2**30, 2)
 
 
 def registrar(nome, segundos, **extra):
+    """Registra valor do fluxo."""
     item = {"etapa": nome, "segundos": round(segundos, 2), "ram_livre_gb": ram_livre(), **extra}
     medidas["etapas"].append(item)
     print(json.dumps(item, ensure_ascii=False))
 
 
 def cronometrar(nome, funcao, **extra):
+    """Cronometra valor do fluxo."""
     inicio = time.perf_counter()
     resultado = funcao()
     registrar(nome, time.perf_counter() - inicio, **extra)

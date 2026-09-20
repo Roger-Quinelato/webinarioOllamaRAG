@@ -1,4 +1,4 @@
-"""Validacao independente do CTO sobre os achados A1 — entradas diferentes das usadas pelo auditor."""
+"""Validação independente do CTO sobre os achados A1 — entradas diferentes das usadas pelo auditor."""
 import subprocess
 import sys
 from pathlib import Path

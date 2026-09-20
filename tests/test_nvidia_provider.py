@@ -7,8 +7,11 @@ from nvidia_provider import ProviderNVIDIA
 
 
 class ProviderNVIDIATest(unittest.TestCase):
+    """Agrupa testes de Provider NVIDIA Test. Herda de unittest.TestCase."""
     def test_streaming_converte_chat_completions_em_deltas(self):
+        """Verifica que streaming converte chat completions em deltas."""
         def criar(**kwargs):
+            """Cria valor do fluxo."""
             self.assertEqual(kwargs["model"], "modelo-nvidia")
             self.assertTrue(kwargs["stream"])
             return iter(
@@ -25,7 +28,9 @@ class ProviderNVIDIATest(unittest.TestCase):
         self.assertFalse(hasattr(provider, "gerar_embeddings"))
 
     def test_erro_http_e_normalizado_sem_expor_mensagem_bruta(self):
+        """Verifica que erro http e normalizado sem expor mensagem bruta."""
         class ErroHTTP(Exception):
+            """Representa erro Erro HTTP. Herda de Exception."""
             status_code = 429
             headers = {"retry-after": "3", "x-request-id": "nvidia-123"}
 
@@ -44,6 +49,7 @@ class ProviderNVIDIATest(unittest.TestCase):
         self.assertNotIn("ErroHTTP", str(contexto.exception))
 
     def test_timeout_opcional_e_repassado_ao_sdk(self):
+        """Verifica que timeout opcional e repassado ao sdk."""
         cliente = object()
         with patch("openai.OpenAI", return_value=cliente) as criar_cliente:
             provider = ProviderNVIDIA(

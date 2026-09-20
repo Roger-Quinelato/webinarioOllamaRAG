@@ -10,13 +10,14 @@ MODELO_GERACAO = os.getenv("OPENAI_GENERATION_MODEL", "gpt-5.6-luna")
 
 
 class ChaveOpenAIAusente(RuntimeError):
-    """A aplicação não pode consultar a OpenAI sem uma chave configurada."""
+    """A aplicação não pode consultar a OpenAI sem uma chave configurada. Herda de RuntimeError."""
 
 
 class ErroProviderOpenAI(ErroProviderGeracao):
-    """Falha externa apresentada ao usuário sem detalhes sensíveis."""
+    """Falha externa apresentada ao usuário sem detalhes sensíveis. Herda de ErroProviderGeracao."""
 
     def __init__(self, mensagem, *, status_code=None, retry_after=None, request_id=None):
+        """Inicializa instância com dependências e parâmetros."""
         super().__init__(
             mensagem,
             provider="OpenAI",
@@ -48,6 +49,7 @@ def obter_chave_openai(secrets=None, environ=None):
 
 
 def _mensagem_erro(erro):
+    """Auxilia mensagem erro."""
     status = getattr(erro, "status_code", None)
     if status == 401:
         return "Não foi possível autenticar na OpenAI. Confira a chave OPENAI_API_KEY e tente novamente."
@@ -62,6 +64,7 @@ def _mensagem_erro(erro):
 
 
 def _retry_after(erro):
+    """Auxilia retry after."""
     cabecalhos = getattr(erro, "headers", None)
     if cabecalhos is None:
         cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
@@ -75,6 +78,7 @@ def _retry_after(erro):
 
 
 def _request_id(erro):
+    """Auxilia request id."""
     request_id = getattr(erro, "request_id", None) or getattr(erro, "_request_id", None)
     if request_id:
         return request_id
@@ -85,6 +89,7 @@ def _request_id(erro):
 
 
 def _erro_seguro(erro):
+    """Auxilia erro seguro."""
     return ErroProviderOpenAI(
         _mensagem_erro(erro),
         status_code=getattr(erro, "status_code", None),
@@ -99,6 +104,7 @@ class ProviderOpenAI:
     nome = "OpenAI"
 
     def __init__(self, *, client=None, secrets=None, environ=None):
+        """Inicializa instância com dependências e parâmetros."""
         self.modelo = os.getenv("OPENAI_GENERATION_MODEL", MODELO_GERACAO)
         if client is None:
             chave = obter_chave_openai(secrets=secrets, environ=environ)
@@ -108,6 +114,7 @@ class ProviderOpenAI:
         self._client = client
 
     def gerar(self, mensagens):
+        """Gera valor do fluxo."""
         try:
             resposta = self._client.responses.create(model=self.modelo, input=mensagens)
             if resposta.status != "completed":
@@ -117,6 +124,7 @@ class ProviderOpenAI:
         return resposta.output_text.strip()
 
     def transmitir(self, mensagens):
+        """Transmite valor do fluxo."""
         try:
             eventos = self._client.responses.create(model=self.modelo, input=mensagens, stream=True)
             concluida = False

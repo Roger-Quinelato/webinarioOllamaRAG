@@ -14,6 +14,7 @@ import config
 st.set_page_config(page_title="Assistente RAG — CIIA", page_icon="📚", layout="wide")
 
 def _secrets_geracao():
+    """Auxilia secrets geração."""
     try:
         return dict(st.secrets)
     except (FileNotFoundError, KeyError, StreamlitSecretNotFoundError):
@@ -21,12 +22,14 @@ def _secrets_geracao():
 
 @st.cache_resource
 def providers():
+    """Descreve providers."""
     return ProviderEmbeddingsOllama(), criar_generation_router(
         secrets=_secrets_geracao(), environ=os.environ
     )
 
 @st.cache_resource
 def base_oficial():
+    """Descreve base oficial."""
     return BaseAtiva("Corpus Oficial", abrir_colecao_hibrida())
 
 try:
@@ -37,6 +40,7 @@ except NenhumProviderGeracaoConfigurado as erro:
 rag = OpenAIRAG(emb_provider, gen_provider)
 
 def montar_filtro(ano_minimo, temas, idiomas):
+    """Monta filtro."""
     if not (ano_minimo or temas or idiomas):
         return None
     condicoes = []
@@ -54,6 +58,7 @@ def montar_filtro(ano_minimo, temas, idiomas):
     return {"$and": condicoes}
 
 def _mostrar_lista_fontes(fontes):
+    """Mostra lista fontes."""
     for indice, fonte in enumerate(fontes, start=1):
         referencia = fonte.get("posicao", indice)
         ano_texto = f" · {fonte.get('ano', '?')}" if "ano" in fonte else ""
@@ -65,6 +70,7 @@ def _mostrar_lista_fontes(fontes):
 
 
 def mostrar_fontes(busca):
+    """Mostra fontes."""
     chunks = busca["chunks_recuperados"]
     citadas = busca["fontes_citadas"]
     if busca["status"] == "Resposta Parcial":

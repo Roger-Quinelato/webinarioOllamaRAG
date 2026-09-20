@@ -32,11 +32,13 @@ class FluxoResposta:
     """Fluxo de deltas que conserva o ResultadoRAG após o consumo."""
 
     def __init__(self, rag, pergunta, base_ativa, historico, k, where):
+        """Inicializa instância com dependências e parâmetros."""
         self._rag, self._args = rag, (pergunta, base_ativa)
         self._kwargs = {"historico": historico, "k": k, "where": where}
         self.resultado = None
 
     def __iter__(self):
+        """Itera sobre deltas e metadados do fluxo."""
         chunks = self._rag.buscar(*self._args, k=self._kwargs["k"], where=self._kwargs["where"])
         if not chunks:
             self.resultado = {"texto": _MENSAGEM_RECUSA, "status": "Recusa",
@@ -81,10 +83,12 @@ class OpenAIRAG:
     """Coordena retrieval, grounding, fontes e geração para uma Base Ativa."""
 
     def __init__(self, embedding_provider, generation_provider):
+        """Inicializa instância com dependências e parâmetros."""
         self.embedding_provider = embedding_provider
         self.generation_provider = generation_provider
 
     def buscar(self, pergunta, base_ativa, *, k=MAX_CHUNKS_RETRIEVAL, where=None):
+        """Busca valor do fluxo."""
         if not isinstance(base_ativa, BaseAtiva):
             raise TypeError("A pergunta precisa receber exatamente uma Base Ativa.")
         metadados = getattr(base_ativa.colecao, "metadata", None) or {}
@@ -145,16 +149,19 @@ class OpenAIRAG:
         ]
 
     def responder(self, pergunta, base_ativa, *, historico=None, k=MAX_CHUNKS_RETRIEVAL, where=None):
+        """Responde valor do fluxo."""
         fluxo = self.transmitir(pergunta, base_ativa, historico=historico, k=k, where=where)
         for _ in fluxo:
             pass
         return fluxo.resultado
 
     def transmitir(self, pergunta, base_ativa, *, historico=None, k=MAX_CHUNKS_RETRIEVAL, where=None):
+        """Transmite valor do fluxo."""
         return FluxoResposta(self, pergunta, base_ativa, historico, k, where)
 
     @staticmethod
     def _resultado(texto, chunks, base_ativa, *, status, geracao=None):
+        """Auxilia resultado."""
         citadas = _fontes_citadas(texto, chunks)
         if _eh_recusa(texto):
             classe = "recusa"
@@ -178,6 +185,7 @@ class OpenAIRAG:
 
 
 def _montar_mensagens(pergunta, chunks, historico):
+    """Monta mensagens."""
     contexto = "\n\n".join(
         f"[{indice}] ({chunk.get('arquivo', 'arquivo desconhecido')}, p. {chunk.get('pagina', '?')}, "
         f"{chunk.get('ano', '?')})\n{chunk['texto']}"
@@ -199,6 +207,7 @@ def _montar_mensagens(pergunta, chunks, historico):
 
 
 def _fontes_citadas(texto, chunks):
+    """Auxilia Fontes Citadas."""
     indices = []
     for correspondencia in _CITACAO_RE.finditer(texto):
         indice = int(correspondencia.group(1))
@@ -208,4 +217,5 @@ def _fontes_citadas(texto, chunks):
 
 
 def _eh_recusa(texto):
+    """Auxilia é Recusa."""
     return texto.strip().startswith(_MENSAGEM_RECUSA)

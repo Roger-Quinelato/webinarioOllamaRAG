@@ -21,6 +21,7 @@ EVID = RAIZ / "docs" / "evidencias"
 
 
 def cabecalho(titulo):
+    """Descreve cabecalho."""
     print(f"\n== {titulo} ==")
 
 
