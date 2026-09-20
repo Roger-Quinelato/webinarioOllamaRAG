@@ -9,8 +9,8 @@ ollama pull bge-m3
 python scripts/00_checar_ambiente.py
 ```
 
-Não tente resolver falha de embedding instalando modelo de chat local. O comando
-`scripts/03_consultar_hibrido.py` depende somente desta fronteira.
+Não tente resolver falha de embedding instalando modelo de chat local. A UI e o
+router remoto dependem desta fronteira apenas para embeddings.
 
 ## Nenhuma chave de geração disponível
 
@@ -23,8 +23,8 @@ inicia consulta. Nunca registre o valor.
 Confira credencial, quota e conectividade. Antes do primeiro token, HTTP 429,
 timeout, rede e indisponibilidade acionam o próximo provider na ordem OpenAI,
 NVIDIA, Gemini. Depois do primeiro token, a UI preserva **Resposta Parcial**.
-Não há fallback automático para geração local. `scripts/07_openai.py` continua
-dependente da OpenAI; o retrieval em `03` continua separado.
+Não há fallback automático para geração local. O fallback válido usa somente
+providers remotos.
 
 `NVIDIA_TIMEOUT` e `GEMINI_TIMEOUT` são opcionais e usam segundos. O SDK
 Gemini recebe internamente o valor convertido para milissegundos.
