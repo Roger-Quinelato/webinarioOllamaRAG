@@ -56,6 +56,11 @@ Se a NVIDIA falhar com frequência, confira `NVIDIA_MODEL`: prefira um modelo de
 instrução, como o padrão `meta/llama-3.2-11b-vision-instruct`, a um modelo de
 *reasoning*, que demora a emitir o primeiro token.
 
+Se a NVIDIA devolver HTTP 404 `page not found` para qualquer modelo, confira
+`NVIDIA_BASE_URL`: use `https://integrate.api.nvidia.com/v1`, sem
+`/chat/completions`. O SDK acrescenta esse caminho, e a URL completa do exemplo
+do catálogo fica duplicada.
+
 O Gemini roda com chamada automática de funções desligada, pois o pipeline não
 usa ferramentas; isso evita o aviso de AFC do SDK em cada chamada.
 
