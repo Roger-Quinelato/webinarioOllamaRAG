@@ -171,7 +171,7 @@ python -m pip install -r requirements-dev.txt
 python ferramentas/construir_notebook.py
 python ferramentas/executar_notebook.py --offline
 bash ferramentas/rodar_scripts.sh
-python ferramentas/testar_app.py
+python -m unittest tests.test_app -v
 python ferramentas/medir.py nome_do_cenario
 python ferramentas/gerar_plano_v11.py
 ```
@@ -181,7 +181,7 @@ python ferramentas/gerar_plano_v11.py
 | `construir_notebook.py` | Gera o `webinario_rag.ipynb` a partir do código-fonte das células |
 | `executar_notebook.py` | Executa o notebook em kernel limpo; `--offline` não chama Ollama nem OpenAI |
 | `rodar_scripts.sh` | Roda apenas a lista explícita de comandos híbridos, com log |
-| `testar_app.py` | Testa o Streamlit com `AppTest` |
+| `python -m unittest tests.test_app` | Testa o Streamlit com `AppTest` (dono único em `tests/test_app.py`) |
 | `medir.py` | Mede os tempos desta máquina |
 | `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
 

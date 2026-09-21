@@ -8,7 +8,7 @@ from generation_providers import NenhumProviderGeracaoConfigurado, criar_generat
 from generation_router import ErroProviderGeracao
 from hybrid_index import ColecaoHibridaIncompativel, abrir_colecao_hibrida
 from ollama_embedding_provider import ErroProviderEmbeddingsOllama, ProviderEmbeddingsOllama
-from openai_rag import OpenAIRAG, BaseAtiva
+from openai_rag import MAX_CHUNKS_RETRIEVAL, OpenAIRAG, BaseAtiva
 import config
 
 st.set_page_config(page_title="Assistente RAG — CIIA", page_icon="📚", layout="wide")
@@ -98,7 +98,7 @@ with st.sidebar:
         st.session_state.mensagens = []
         st.rerun()
         
-    k = st.slider("k (trechos no contexto)", 1, 10, config.K_PADRAO)
+    k = st.slider("k (trechos no contexto)", 1, MAX_CHUNKS_RETRIEVAL, config.K_PADRAO)
     
     st.subheader("Filtros de metadados (Corpus Oficial)")
     ano_minimo = st.slider("Ano mínimo", 2020, 2026, 2020)
@@ -170,7 +170,10 @@ if pergunta:
         except ErroProviderEmbeddingsOllama as erro:
             st.error(f"⚠️ {erro}")
             st.session_state.mensagens.pop()
-        except (ChromaError, ValueError):
+        except ValueError as erro:
+            st.error(f"⚠️ {erro}")
+            st.session_state.mensagens.pop()
+        except ChromaError:
             st.error("⚠️ Não foi possível consultar a Base Ativa. Confira a configuração e tente novamente.")
             st.session_state.mensagens.pop()
         except Exception:
