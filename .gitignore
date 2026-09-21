@@ -20,10 +20,4 @@ chroma_db/
 arquivosPDF/**/*.pdf
 artigos/*.pdf
 
-# Estado local do harness
-.tlc/harness/state/
 logs/
-
-.cursor/hooks.json
-.claude/settings.json
-.claude/worktrees/

@@ -1,23 +1,22 @@
-# Assistente híbrido com RAG, Ollama e OpenAI
+# Assistente híbrido com RAG, Ollama e providers remotos
 
-Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recupera artigos localmente e gera respostas grounded com providers remotos:
+Um assistente que recupera trechos de artigos localmente e gera respostas fundamentadas (grounded) com providers remotos:
 
-- **Ollama** serve somente embeddings `bge-m3` (1024 dimensões).
-- **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: NVIDIA, Gemini, OpenAI, configurável por `GENERATION_PROVIDERS_ORDER` ([ADR-004](docs/adr/004-ordem-configuravel-de-providers.md)).
-- **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
+- **Ollama** gera somente os embeddings `bge-m3` (1024 dimensões).
+- **NVIDIA**, **Gemini** e **OpenAI** geram as respostas com streaming. Ordem padrão: NVIDIA, Gemini, OpenAI, configurável por `GENERATION_PROVIDERS_ORDER`.
+- **ChromaDB** guarda o índice vetorial persistente do corpus.
 - **Streamlit** fornece a interface de chat.
-- **SHAP** permanece como material legado; não integra o caminho P0 atual.
 
 Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxergar cada peça do RAG.
 
-## Arquitetura vigente
-
-`bge-m3` via Ollama cria e consulta vetores. Providers remotos geram texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. O roteador troca entre NVIDIA, Gemini e OpenAI somente antes do primeiro token. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
+## Como funciona
 
 ```
-PDFs → texto por página → chunks → embeddings → ChromaDB
-pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM → resposta com fontes
+PDFs → texto por página → chunks → embeddings (bge-m3) → ChromaDB
+pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM remoto → resposta com fontes
 ```
+
+O assistente responde apenas com base nos trechos recuperados. Se o contexto não basta, ele recusa a resposta em vez de usar conhecimento externo. O roteador troca de provider somente antes do primeiro token; não há fallback para geração local.
 
 ## Requisitos
 
@@ -26,7 +25,7 @@ pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM → 
 | Python | 3.10 ou superior |
 | RAM | 8 GB |
 | Disco | Espaço para `bge-m3`, corpus e ambiente Python |
-| Editor | VS Code com as extensões *Python* e *Jupyter* (ou JupyterLab) |
+| Chave de API | Pelo menos uma: NVIDIA, Gemini ou OpenAI |
 
 ## Passo a passo
 
@@ -39,28 +38,20 @@ pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM → 
   ```
 
 Confira a instalação:
+
 ```bash
 ollama --version
 ```
 
-### 2. (Opcional) Escolher onde os modelos ficam
+Por padrão, os modelos ficam em `~/.ollama/models`. Para usar outra pasta, defina `OLLAMA_MODELS` antes de baixar o modelo e reinicie o Ollama.
 
-Por padrão, os modelos vão para `~/.ollama/models`. Para usar outra pasta, defina `OLLAMA_MODELS` **antes** de baixar os modelos e reinicie o Ollama.
-
-- **Windows (PowerShell):**
-  ```powershell
-  [Environment]::SetEnvironmentVariable("OLLAMA_MODELS", "D:\webinarioOllamaRAG\Ollama\models", "User")
-  ```
-  Depois feche o Ollama pelo ícone da bandeja e abra de novo.
-- **macOS e Linux:** adicione `export OLLAMA_MODELS=/caminho/models` ao `~/.zshrc` ou `~/.bashrc`, abra um novo terminal e reinicie o Ollama.
-
-### 3. Baixar os modelos
+### 2. Baixar o modelo de embeddings
 
 ```bash
 ollama pull bge-m3
 ```
 
-### 4. Obter o código e criar o ambiente Python
+### 3. Obter o código e criar o ambiente Python
 
 ```bash
 git clone <url-do-repositorio> webinarioOllamaRAG
@@ -69,19 +60,20 @@ python -m venv .venv
 ```
 
 Ative o ambiente:
+
 - **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
 - **macOS e Linux:** `source .venv/bin/activate`
 
-Instale as dependências (as versões estão fixadas; `requirements.lock` lista o ambiente completo testado) e registre o kernel do Jupyter:
+Instale as dependências (versões fixadas; `requirements.lock` lista o ambiente completo testado):
+
 ```bash
 python -m pip install -r requirements.txt
-python -m ipykernel install --user --name webinario-rag --display-name "Python (webinario-rag)"
 ```
 
-> A instalação é demorada: numa máquina com Windows, i5 e 8 GB de RAM, passou de 50 minutos. Deixe rodando até o fim.
+> A instalação é demorada: numa máquina com Windows, i5 e 8 GB de RAM, passou de 50 minutos.
 > No PowerShell, rode `$env:PYTHONIOENCODING='utf-8'` antes dos scripts para os acentos aparecerem certos.
 
-### 5. Checar o ambiente
+### 4. Checar o ambiente
 
 ```bash
 python scripts/00_checar_ambiente.py
@@ -89,13 +81,13 @@ python scripts/00_checar_ambiente.py
 
 A última linha deve ser `Ambiente pronto.`
 
-### 6. Baixar os artigos e preparar os metadados
+### 5. Baixar os artigos e validar os metadados
 
 ```bash
 python scripts/01_preparar_corpus.py
 ```
 
-O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
+O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`.
 
 | Arquivo | Artigo |
 |---|---|
@@ -104,100 +96,72 @@ O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e
 | `brakes2025_rag_juridico.pdf` | Brakes et al. (2025). *Uma Arquitetura de RAG com Busca Semântica e Filtros Estruturados para Perguntas e Respostas no Domínio Jurídico* (ERI-GO) — <https://sol.sbc.org.br/index.php/erigo/article/view/39531> |
 | `xavier2024_rag_grafos.pdf` | Xavier & Soares (2024). *Geração com Recuperação Aumentada (RAG) em Grafos de Conhecimento* (Minicursos do SBBD) — <https://books-sol.sbc.org.br/index.php/sbc/catalog/book/153> |
 
-O Corpus Oficial tem só artigos em português desde 2026-09-21. Os seis artigos em inglês da versão anterior (Lewis, Karpukhin, Gao, Es, Asai e Liu) saíram do corpus; a coleção indexada com eles continua no Chroma para rollback.
-
-### 7. Indexar
+### 6. Indexar
 
 ```bash
 python scripts/02_indexar_hibrido.py
 ```
 
-O script publica a coleção híbrida com `bge-m3` e preserva coleções existentes.
+O script gera os chunks, cria os embeddings com `bge-m3` e publica a coleção no ChromaDB (`chroma_db/`).
 
-### 8. Consultar
-
-Use o aplicativo para consultar o Corpus Oficial:
+### 7. (Opcional) Medir a recuperação
 
 ```bash
-streamlit run app.py
+python scripts/calibrar_retrieval_hibrido.py
 ```
 
-O material CLI híbrido pertence à MIG-06 e não está disponível nesta base até
-ser mergeado. Não use scripts legados de geração Ollama para validar a
-arquitetura atual.
+Roda perguntas positivas e negativas de referência contra o índice e mostra, em JSON, se o limiar de distância (`DISTANCIA_MAXIMA_RETRIEVAL` em `config.py`) separa bem as perguntas respondíveis das que devem ser recusadas.
 
-### 9. Abrir o chatbot
+### 8. Configurar as chaves e abrir o chatbot
 
-Configure pelo menos uma chave antes de iniciar. A ordem padrão é NVIDIA,
-Gemini e OpenAI. `GENERATION_PROVIDERS_ORDER` muda a ordem; provider omitido fica
-desativado:
+Configure pelo menos uma chave. Provider omitido de `GENERATION_PROVIDERS_ORDER` fica desativado.
+
+**Windows (PowerShell):**
 
 ```powershell
 $env:GENERATION_PROVIDERS_ORDER = "nvidia,gemini,openai" # opcional
-$env:OPENAI_API_KEY = "..."
-$env:OPENAI_TIMEOUT = "30" # segundos; opcional
 $env:NVIDIA_API_KEY = "..."
 $env:NVIDIA_MODEL = "meta/llama-3.2-11b-vision-instruct"
-$env:NVIDIA_TIMEOUT = "30" # segundos; opcional
 $env:GEMINI_API_KEY = "..."
 $env:GEMINI_MODEL = "gemini-3.5-flash"
-$env:GEMINI_TIMEOUT = "30" # segundos; opcional
+$env:OPENAI_API_KEY = "..."
 ```
+
+**macOS e Linux:** use `export NOME="valor"` com as mesmas variáveis.
+
+Opcionais: `NVIDIA_TIMEOUT`, `GEMINI_TIMEOUT` e `OPENAI_TIMEOUT` (segundos) e `NVIDIA_BASE_URL` (outro endpoint NIM compatível). Também é possível colocar as chaves em `.streamlit/secrets.toml`, que o `.gitignore` já ignora. Nunca versione suas chaves.
 
 ```bash
 streamlit run app.py
 ```
 
-O navegador abre em <http://localhost:8501>. Durante o treino, a UI consulta somente o **Corpus Oficial**. `UPLOADS_STREAMLIT_HABILITADOS=False` mantém upload de PDFs para implementação futura. A interface separa **Fontes Citadas**, **Chunks Recuperados**, **Recusa** e **Resposta Parcial**. `NVIDIA_BASE_URL` pode apontar para outro endpoint NIM compatível.
+O navegador abre em <http://localhost:8501>. A interface separa as fontes citadas, os chunks recuperados, as recusas e as respostas parciais.
 
 ## Estrutura
 
 | Caminho | Função |
 |---|---|
 | `config.py` | Modelos, caminhos, tamanho de chunk e `k` padrão |
-| `openai_rag.py` | Fachada grounded: Base Ativa, retrieval, fontes, recusa e streaming |
-| `hybrid_index.py` | Publicação e abertura do Corpus Oficial híbrido |
-| `metadados.csv` | Metadados e resumos versionados do Corpus Oficial |
-| `scripts/` | Um script por bloco da aula, em ordem |
-| `webinario_rag.ipynb` | Material histórico do Encontro 2, baseado em Ollama; não é executado na aula híbrida atual |
+| `corpus.py` | Extração de texto dos PDFs, limpeza e divisão em chunks |
+| `metadados.csv` | Metadados e resumos dos artigos do corpus |
+| `ollama_embedding_provider.py` | Embeddings `bge-m3` via Ollama |
+| `hybrid_index.py` | Publicação e abertura da coleção no ChromaDB |
+| `openai_rag.py` | Núcleo do RAG: retrieval, prompt, fontes, recusa e streaming |
+| `generation_router.py` | Troca de provider antes do primeiro token |
+| `generation_providers.py` | Monta a ordem de providers a partir do ambiente |
+| `nvidia_provider.py`, `gemini_provider.py`, `openai_provider.py` | Clientes de geração de cada provider |
+| `retrieval_calibration.py` | Perguntas e métricas usadas na medição da recuperação |
+| `rag.py` | Utilitários de corpus e verificação do Ollama usados pelos scripts 00 e 01 |
+| `scripts/` | Etapas da pipeline, em ordem |
 | `app.py` | Chatbot Streamlit |
-| `opcional/` | Shapley dos chunks e avaliação no estilo RAGAS (lentos; não rodam ao vivo) |
-| `resultados/` | Saídas pré-computadas usadas como rede de segurança na aula |
-| `docs/` | Roteiro do facilitador, troubleshooting, medições e verificação |
-
-## Para quem mantém o material
-
-```bash
-python -m pip install -r requirements-dev.txt
-python ferramentas/construir_notebook.py
-python ferramentas/executar_notebook.py --offline
-bash ferramentas/rodar_scripts.sh
-python -m unittest tests.test_app -v
-python ferramentas/medir.py nome_do_cenario
-python ferramentas/gerar_plano_v11.py
-```
-
-| Comando | O que faz |
-|---|---|
-| `construir_notebook.py` | Gera o `webinario_rag.ipynb` a partir do código-fonte das células |
-| `executar_notebook.py` | Executa o notebook em kernel limpo; `--offline` não chama Ollama nem OpenAI |
-| `rodar_scripts.sh` | Roda `02_indexar_hibrido.py` e `calibrar_retrieval_hibrido.py`; grava logs locais ignorados em `logs/rodar_scripts/` |
-| `python -m unittest tests.test_app` | Testa o Streamlit com `AppTest` (dono único em `tests/test_app.py`) |
-| `medir.py` | Mede os tempos desta máquina |
-| `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
-
-Critérios e evidências legadas foram removidos durante a migração OpenAI.
-
-### Auditoria de código (E10)
-
-O registro histórico `docs/evidencias/E10/revisao_codigo.md` mantém a auditoria
-legada em dois eixos. As checagens estáticas estão em
-`docs/evidencias/E10/revisao_codigo_checagens.txt`.
-
-A auditoria histórica lista achados e critérios contestados; ela não valida a
-migração OpenAI atual.
 
 ## Problemas comuns
 
-Consulte o [troubleshooting](docs/troubleshooting.md) e o
-[handoff da migração](docs/handoff/claude-migracao-openai-rag.md).
+| Sintoma | O que fazer |
+|---|---|
+| `bge-m3` não encontrado | Rode `ollama pull bge-m3` e confira se o Ollama está aberto |
+| Erro de conexão com o Ollama | Abra o aplicativo do Ollama (ou `ollama serve` no Linux) |
+| App diz que a coleção não existe | Rode `python scripts/02_indexar_hibrido.py` antes de `streamlit run app.py` |
+| Nenhum provider disponível | Defina pelo menos uma chave de API no mesmo terminal do `streamlit run` |
+| HTTP 429 de um provider | Limite ou saldo esgotado; o roteador tenta o próximo provider da ordem |
+| Acentos quebrados no PowerShell | `$env:PYTHONIOENCODING='utf-8'` |

@@ -1,9 +1,0 @@
-
-Quais são os tokens de reflexão (reflection tokens) propostos no Self-RAG?
-  fidelidade=1.00  relevância da resposta=0.55  precisão do contexto=0.75  (402s)
-
-Segundo o artigo Lost in the Middle, em que posições do contexto os modelos usam melhor a informação?
-  fidelidade=0.60  relevância da resposta=0.47  precisão do contexto=0.75  (203s)
-
-Salvo em resultados\avaliacao_estilo_ragas.json
-exit=0
