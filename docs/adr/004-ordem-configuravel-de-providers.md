@@ -35,9 +35,11 @@ local.
 
 - OpenAI sem saldo deixa de atrasar a primeira tentativa.
 - O facilitador ajusta a ordem no dia do ensaio sem alterar código.
-- A ordem padrão ainda precisa ser confirmada pela nova matriz da FIN-05. Se
-  a NVIDIA com o modelo de instrução ficar lenta ou instável e o Gemini
-  responder a recuperação, use `GENERATION_PROVIDERS_ORDER=gemini,nvidia,openai`.
+- A ordem padrão foi confirmada pela matriz da FIN-05 e reavaliada no corpus
+  pt-br (`docs/evidencias/matriz-pt-br/`): a NVIDIA respondeu tudo sem
+  fallback, enquanto o Gemini devolveu HTTP 429 por cota em 7 de 9 chamadas.
+  Se a NVIDIA ficar instável e a cota do Gemini normalizar, use
+  `GENERATION_PROVIDERS_ORDER=gemini,nvidia,openai`.
 
 ## Links
 

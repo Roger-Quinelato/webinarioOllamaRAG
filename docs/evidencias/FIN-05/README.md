@@ -1,5 +1,8 @@
 # FIN-05 — matriz real dos providers com modelo NVIDIA de instrução
 
+> **Registro histórico (corpus anterior).** Medido no corpus de 661 chunks, antes da troca para o corpus só em português. Para o ensaio, vale [`../matriz-pt-br/README.md`](../matriz-pt-br/README.md). A conclusão sobre a ordem NVIDIA → Gemini → OpenAI foi reavaliada lá.
+
+
 **Data da execução:** 2026-09-21
 **Corpus Oficial:** `artigos_rag_hibrido_a280e65e16ee` (661 chunks, `bge-m3`,
 limiar de distância 0,51)

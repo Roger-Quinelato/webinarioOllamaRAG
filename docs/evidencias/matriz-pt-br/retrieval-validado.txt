@@ -1,0 +1,8 @@
+colecao=artigos_rag_hibrido_a7e480ac787f chunks=213
+recuperação: 5 chunks | medeiros2025_embeddings_pt.pdf(2025,0.339), medeiros2025_embeddings_pt.pdf(2025,0.371), medeiros2025_embeddings_pt.pdf(2025,0.382), medeiros2025_embeddings_pt.pdf(2025,0.393), medeiros2025_embeddings_pt.pdf(2025,0.396)
+citação: 5 chunks | brakes2025_rag_juridico.pdf(2025,0.339), brakes2025_rag_juridico.pdf(2025,0.406), brakes2025_rag_juridico.pdf(2025,0.407), brakes2025_rag_juridico.pdf(2025,0.418), brakes2025_rag_juridico.pdf(2025,0.429)
+recusa: 0 chunks | -
+filtro (sem filtro): 5 chunks | xavier2024_rag_grafos.pdf(2024,0.301), xavier2024_rag_grafos.pdf(2024,0.378), xavier2024_rag_grafos.pdf(2024,0.383), xavier2024_rag_grafos.pdf(2024,0.386), xavier2024_rag_grafos.pdf(2024,0.400)
+filtro (ano>=2025): 5 chunks | rocha2025_ragsft.pdf(2025,0.433), rocha2025_ragsft.pdf(2025,0.449), rocha2025_ragsft.pdf(2025,0.450), brakes2025_rag_juridico.pdf(2025,0.477), medeiros2025_embeddings_pt.pdf(2025,0.477)
+filtro-tema (sem filtro): 5 chunks | brakes2025_rag_juridico.pdf(2025,0.374), rocha2025_ragsft.pdf(2025,0.415), rocha2025_ragsft.pdf(2025,0.415), xavier2024_rag_grafos.pdf(2024,0.416), medeiros2025_embeddings_pt.pdf(2025,0.436)
+filtro-tema (tema avaliacao/retrieval): 5 chunks | rocha2025_ragsft.pdf(2025,0.415), rocha2025_ragsft.pdf(2025,0.415), medeiros2025_embeddings_pt.pdf(2025,0.436), rocha2025_ragsft.pdf(2025,0.444), medeiros2025_embeddings_pt.pdf(2025,0.447)

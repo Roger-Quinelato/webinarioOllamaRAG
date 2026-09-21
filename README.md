@@ -137,10 +137,10 @@ $env:GENERATION_PROVIDERS_ORDER = "nvidia,gemini,openai" # opcional
 $env:OPENAI_API_KEY = "..."
 $env:OPENAI_TIMEOUT = "30" # segundos; opcional
 $env:NVIDIA_API_KEY = "..."
-$env:NVIDIA_MODEL = "..."
+$env:NVIDIA_MODEL = "meta/llama-3.2-11b-vision-instruct"
 $env:NVIDIA_TIMEOUT = "30" # segundos; opcional
 $env:GEMINI_API_KEY = "..."
-$env:GEMINI_MODEL = "..."
+$env:GEMINI_MODEL = "gemini-3.5-flash"
 $env:GEMINI_TIMEOUT = "30" # segundos; opcional
 ```
 
