@@ -22,8 +22,11 @@ primeiro token, o router tenta o próximo. Depois do primeiro token, preserve
 
 - **Fala:** Ollama fornece embeddings `bge-m3`; Chroma recupera evidências;
   providers remotos geram texto.
-- **Demo:** diagrama do notebook e fronteiras dos providers.
+- **Demo:** diagrama da arquitetura híbrida no README e fronteiras dos providers.
 - **Checkpoint:** cada pergunta usa uma única **Base Ativa**.
+
+O `webinario_rag.ipynb` é material histórico do Encontro 2 baseado em Ollama.
+Não o execute nem o apresente como fluxo da aula híbrida atual.
 
 ## Bloco 2 — Corpus Oficial e indexação
 
