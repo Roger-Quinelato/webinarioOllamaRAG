@@ -4,8 +4,9 @@
 
 - **Provider de embeddings**: contrato público de `bge-m3` contra cliente Ollama
   simulado na fronteira externa.
-- **Provider de geração**: contrato público de geração/streaming contra cliente
-  OpenAI simulado na fronteira externa.
+- **Providers de geração**: contratos públicos de geração/streaming contra os
+  clientes OpenAI, NVIDIA e Gemini, simulados apenas nas respectivas fronteiras
+  externas.
 - **Fachada RAG**: busca, grounding, fontes e retry observados por resposta e
   metadados; não teste funções privadas.
 - **Streamlit**: AppTest observa estado, upload, fontes e erros.
@@ -13,7 +14,8 @@
 ## Ciclos red-green
 
 1. Ollama ou `bge-m3` ausente: teste falha; implemente só mensagem acionável.
-2. Chave OpenAI ausente: teste falha; implemente só mensagem acionável.
+2. Chave de provider remoto ausente: teste falha; implemente só mensagem
+   acionável para OpenAI, NVIDIA ou Gemini.
 3. Provider, modelo, dimensão ou esquema incompatível: teste falha; implemente
    recusa de uso + reindexação explícita.
 4. Fonte sem marcador: teste falha; classifique fallback, não citação.
@@ -26,8 +28,10 @@
 ## Casos obrigatórios
 
 - Corpus Oficial e Índice de Sessão usam `bge-m3` via Ollama.
-- Geração e streaming usam `gpt-5.6-luna` via OpenAI.
-- Falha da geração OpenAI não aciona geração local automaticamente.
+- Geração e streaming usam OpenAI, NVIDIA e Gemini, nessa ordem definida pela
+  ADR-003; cada provider tem teste de contrato na sua fronteira externa.
+- Falha antes do primeiro token avança pela ordem OpenAI, NVIDIA e Gemini; não
+  aciona geração local automaticamente.
 - **Corpus Oficial** e **Índice de Sessão** não se misturam numa consulta.
 - Filtros/metadados de arquivo, página e ano chegam à fonte apresentada.
 - Geração recebe duas turnos de histórico; retrieval não muda.
@@ -38,4 +42,5 @@
 ## Qualidade
 
 Cada teste afirma comportamento observável, usa valores esperados independentes e
-simula apenas as fronteiras Ollama e OpenAI. Nenhum depende de detalhe privado.
+simula apenas as fronteiras Ollama, OpenAI, NVIDIA e Gemini. Nenhum depende de
+detalhe privado.
