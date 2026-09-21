@@ -1,6 +1,10 @@
 # Medições de desempenho
 
-Todos os números abaixo foram medidos **nesta máquina**, entre 13 e 14/09/2026. Cada um aponta para o arquivo de evidência de onde saiu.
+> **Medições legadas (era Ollama):** todos os números abaixo foram medidos
+> nesta máquina entre 13 e 14/09/2026, salvo quando a linha indicar outra data.
+> Eles descrevem os corpora e o pipeline locais daquele período; não são métricas
+> da arquitetura híbrida atual. Cada um aponta para o arquivo de evidência de
+> onde saiu.
 
 | Item | Valor |
 |---|---|
@@ -17,7 +21,7 @@ Ferramenta principal: `ferramentas/medir.py <cenario>`. Os tokens por segundo v�
 
 | Etapa | Medições | Evidência |
 |---|---|---|
-| Chunking (556 chunks) | 9,0 s | `E7/log_02_indexar.txt` |
+| Chunking (556 chunks; corpus anterior, 13–14/09/2026) | 9,0 s | `E7/log_02_indexar.txt` |
 | Indexação completa com `bge-m3` (embeddings + ChromaDB) | 1141,1 s · 1111,0 s · 1104,1 s | `E2/02_indexar_execucao1.txt`, `E2/02_indexar_execucao2.txt`, `E7/log_02_indexar.txt` |
 | Embedding de uma pergunta, 1ª chamada (carrega o `bge-m3`) | 58,84 s · 4,56 s | `E9/medicao_*.json` |
 | Embedding de uma pergunta, já carregado | 0,54 s · 0,53 s | `E9/medicao_*.json` |
