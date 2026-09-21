@@ -6,7 +6,7 @@ Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recup
 - **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: OpenAI, NVIDIA, Gemini.
 - **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
 - **Streamlit** fornece a interface de chat.
-- **SHAP** explica o retrieval.
+- **SHAP** permanece como material legado; não integra o caminho P0 atual.
 
 Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxergar cada peça do RAG.
 
@@ -95,7 +95,7 @@ A última linha deve ser `Ambiente pronto.`
 python scripts/01_preparar_corpus.py
 ```
 
-O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
+O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
 
 | Arquivo | Artigo |
 |---|---|
@@ -198,4 +198,5 @@ migração OpenAI atual.
 
 ## Problemas comuns
 
-Consulte o [troubleshooting](docs/troubleshooting.md) e o handoff da migração.
+Consulte o [troubleshooting](docs/troubleshooting.md) e o
+[handoff da migração](docs/handoff/claude-migracao-openai-rag.md).
