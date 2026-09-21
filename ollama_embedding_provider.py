@@ -4,9 +4,6 @@ import config
 import httpx
 
 
-MODELO_EMBEDDING = "bge-m3"
-
-
 class ErroProviderEmbeddingsOllama(RuntimeError):
     """Falha externa de embeddings apresentada sem detalhes internos. Herda de RuntimeError."""
 
@@ -25,12 +22,12 @@ class ProviderEmbeddingsOllama:
     def gerar_embeddings(self, textos):
         """Gera embeddings."""
         try:
-            resposta = self._client.embed(model=MODELO_EMBEDDING, input=textos)
+            resposta = self._client.embed(model=config.MODELO_EMBEDDING, input=textos)
         except Exception as erro:
             if getattr(erro, "status_code", None) == 404:
                 mensagem = (
-                    "O modelo bge-m3 não está instalado. "
-                    "Execute `ollama pull bge-m3` e tente novamente."
+                    f"O modelo {config.MODELO_EMBEDDING} não está instalado. "
+                    f"Execute `ollama pull {config.MODELO_EMBEDDING}` e tente novamente."
                 )
             elif isinstance(erro, (ConnectionError, TimeoutError, httpx.RequestError)):
                 mensagem = "Não foi possível conectar ao Ollama. Inicie o Ollama e tente novamente."

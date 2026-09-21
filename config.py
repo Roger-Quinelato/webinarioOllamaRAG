@@ -17,6 +17,11 @@ MODELO_EMBEDDING = os.getenv("MODELO_EMBEDDING", "bge-m3")
 MODELO_CHAT = os.getenv("MODELO_CHAT", "qwen2.5:1.5b")
 MODELO_CHAT_PLANO_B = "qwen2.5:3b"
 
+# Fonte única da identidade do modelo de embedding: ollama_embedding_provider.py,
+# hybrid_index.py e openai_rag.py (BaseAtiva) leem daqui em vez de duplicar literais.
+DIMENSAO_EMBEDDING = int(os.getenv("DIMENSAO_EMBEDDING", "1024"))
+VERSAO_COLECAO_EMBEDDING = os.getenv("VERSAO_COLECAO_EMBEDDING", "bge-m3-v1")
+
 TAMANHO_CHUNK = 1000
 SOBREPOSICAO = 150
 K_PADRAO = 4
