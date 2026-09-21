@@ -26,3 +26,4 @@ logs/
 
 .cursor/hooks.json
 .claude/settings.json
+.claude/worktrees/
