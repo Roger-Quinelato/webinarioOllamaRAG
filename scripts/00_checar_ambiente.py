@@ -197,9 +197,8 @@ if "ollama" not in imports_quebrados:
         checar("Servidor Ollama respondendo", True, f"{config.OLLAMA_HOST} (versão {versao})")
         import rag
 
-        instalados, faltando = rag.verificar_ollama(
-            [config.MODELO_EMBEDDING, config.MODELO_CHAT, config.MODELO_CHAT_PLANO_B]
-        )
+        # why: ADR-002 limita o Ollama a embeddings; os modelos de chat legados não são pré-requisito.
+        instalados, faltando = rag.verificar_ollama([config.MODELO_EMBEDDING])
         checar("Modelos baixados", not faltando,
                "faltando: " + ", ".join(faltando) if faltando else ", ".join(sorted(instalados)))
     except Exception as erro:
@@ -208,9 +207,10 @@ if "ollama" not in imports_quebrados:
 
 pasta_modelos = variavel_ollama_models()
 pasta_esperada = str(RAIZ / "Ollama" / "models")
-checar("OLLAMA_MODELS aponta para a pasta do projeto",
-       bool(pasta_modelos) and Path(pasta_modelos).resolve() == Path(pasta_esperada).resolve(),
-       f"atual: {pasta_modelos or 'não definida'}, esperada: {pasta_esperada}")
+# why: o README marca OLLAMA_MODELS como opcional, então divergir dele é aviso, não falha.
+if not pasta_modelos or Path(pasta_modelos).resolve() != Path(pasta_esperada).resolve():
+    print(f"[AVISO] OLLAMA_MODELS opcional fora da pasta do projeto — "
+          f"atual: {pasta_modelos or 'não definida'}, esperada: {pasta_esperada}")
 
 resultado_pip = subprocess.run([sys.executable, "-m", "pip", "check"], capture_output=True, text=True)
 checar("pip check não acusa conflitos", resultado_pip.returncode == 0,

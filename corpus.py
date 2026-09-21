@@ -20,6 +20,14 @@ def carregar_metadados(caminho=None):
     return linhas
 
 
+def salvar_metadados(linhas, caminho=None):
+    """Salva metadados."""
+    with open(caminho or config.ARQUIVO_METADADOS, "w", encoding="utf-8", newline="") as arquivo:
+        escritor = csv.DictWriter(arquivo, fieldnames=config.COLUNAS_METADADOS)
+        escritor.writeheader()
+        escritor.writerows(linhas)
+
+
 def limpar_texto(texto):
     """Limpa texto."""
     for ligadura, letras in _LIGADURAS.items():

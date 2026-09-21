@@ -8,6 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import config  # noqa: E402
+import corpus  # noqa: E402
 import rag  # noqa: E402
 
 parser = argparse.ArgumentParser(description="Baixa os artigos, valida o metadados.csv e gera os resumos com o LLM.")
@@ -62,5 +63,5 @@ with rag.cli_seguro():
         print(f"   {linha['arquivo']} ({time.perf_counter() - inicio:.1f}s): {linha['resumo']}")
         alterou = True
     if alterou:
-        rag.salvar_metadados(linhas)
+        corpus.salvar_metadados(linhas)
         print("   metadados.csv atualizado")

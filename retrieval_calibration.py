@@ -1,16 +1,24 @@
 """Matriz versionada e calibração do retrieval do Corpus Oficial."""
 
 
-PERGUNTAS_POSITIVAS = [
-    "Como funciona a arquitetura RAG proposta por Lewis et al.?",
-    "O que é Dense Passage Retrieval (DPR)?",
-    "Quais métricas o Ragas usa para avaliar fidelidade e relevância?",
-    "O que são os tokens de reflexão do Self-RAG?",
-    "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
-    "Quais são os principais desafios de RAG discutidos no survey de Gao et al.?",
-    "Como o DPR treina o retriever com exemplos negativos?",
-    "O que é retrieval-augmented generation?",
+# Cada pergunta positiva traz o artigo que deve responder a ela (Fonte esperada).
+# why: a distância sozinha aceita qualquer chunk próximo; uma pergunta genérica como
+# "arquitetura RAG proposta por Lewis et al." recupera o survey, não o artigo de Lewis (OPS-09).
+POSITIVAS_COM_ARQUIVO = [
+    ("Como o modelo RAG combina o retriever DPR com o gerador BART?", "lewis2020_rag.pdf"),
+    ("O que é Dense Passage Retrieval (DPR)?", "karpukhin2020_dpr.pdf"),
+    ("Quais métricas o Ragas usa para avaliar fidelidade e relevância?", "es2023_ragas.pdf"),
+    ("O que são os tokens de reflexão do Self-RAG?", "asai2023_selfrag.pdf"),
+    (
+        "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
+        "liu2023_lost_middle.pdf",
+    ),
+    ("Quais são os principais desafios de RAG discutidos no survey de Gao et al.?", "gao2023_survey.pdf"),
+    ("Como o DPR treina o retriever com exemplos negativos?", "karpukhin2020_dpr.pdf"),
+    ("O que é retrieval-augmented generation?", None),
 ]
+PERGUNTAS_POSITIVAS = [pergunta for pergunta, _ in POSITIVAS_COM_ARQUIVO]
+ARQUIVOS_ESPERADOS = dict(POSITIVAS_COM_ARQUIVO)
 PERGUNTAS_NEGATIVAS = [
     "Qual é a receita de pão de queijo mineiro?",
     "Qual é a capital da Mongólia?",
@@ -52,6 +60,19 @@ def avaliar_limiar(distancias_positivas, distancias_negativas, *, limiar):
     return {"limiar_validado": limiar, **resultado}
 
 
+def _validar_documento_esperado(perguntas, arquivos_recuperados):
+    """Reprova quando o chunk mais próximo de uma pergunta positiva vem de outro documento."""
+    divergentes = [
+        f"{pergunta!r}: esperado {ARQUIVOS_ESPERADOS[pergunta]}, recuperado {arquivo}"
+        for pergunta, arquivo in zip(perguntas, arquivos_recuperados)
+        if ARQUIVOS_ESPERADOS.get(pergunta) not in (None, arquivo)
+    ]
+    if divergentes:
+        raise ValueError(
+            "O chunk mais próximo não vem do documento esperado: " + "; ".join(divergentes)
+        )
+
+
 def medir_retrieval(colecao, provider, *, limiar):
     """Mede a matriz versionada na coleção híbrida e valida o limiar ativo."""
     perguntas = PERGUNTAS_POSITIVAS + PERGUNTAS_NEGATIVAS
@@ -68,6 +89,9 @@ def medir_retrieval(colecao, provider, *, limiar):
     )
     distancias = [valores[0] for valores in resposta["distances"]]
     corte = len(PERGUNTAS_POSITIVAS)
+    _validar_documento_esperado(
+        PERGUNTAS_POSITIVAS, [metadados[0].get("arquivo") for metadados in resposta["metadatas"][:corte]]
+    )
     resultado = avaliar_limiar(distancias[:corte], distancias[corte:], limiar=limiar)
     resultado["positivas"] = [
         {"pergunta": pergunta, "distancia": distancia, "arquivo": metadados[0].get("arquivo")}
