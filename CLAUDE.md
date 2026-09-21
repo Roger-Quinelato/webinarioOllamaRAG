@@ -13,6 +13,8 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 
 ## Fontes canônicas
 
+- [ADR-004](docs/adr/004-ordem-configuravel-de-providers.md): ordem padrão
+  Gemini, NVIDIA e OpenAI, configurável; supera só a ordem da ADR-003.
 - [ADR-003](docs/adr/003-fallback-remoto-de-geracao.md): fallback remoto de
   geração; supera a consequência de indisponibilidade da ADR-002.
 - [ADR-002](docs/adr/002-bge-m3-local-e-geracao-openai.md): decisão vigente de
@@ -27,7 +29,8 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 - [Milestone GitHub](https://github.com/Roger-Quinelato/webinarioOllamaRAG/milestone/1):
   ordem das issues.
 
-Conflito: ADR e PRD prevalecem sobre documentação histórica. A ADR-003 supera
+Conflito: ADR e PRD prevalecem sobre documentação histórica. A ADR-004 supera
+somente a ordem de providers da ADR-003. A ADR-003 supera
 a consequência de indisponibilidade da ADR-002; a ADR-002 supera somente a
 decisão de embeddings da ADR-001.
 

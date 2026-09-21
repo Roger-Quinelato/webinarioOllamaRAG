@@ -18,8 +18,8 @@ pergunta; acompanha streaming; abre fontes com arquivo, página, ano e trecho re
 
 - Corpus oficial e índice de sessão: `bge-m3` via Ollama, em espaços vetoriais
   compatíveis e coleções Chroma separadas.
-- Geração: OpenAI, NVIDIA e Gemini com streaming. Ordem padrão OpenAI, NVIDIA,
-  Gemini; troca somente antes do primeiro token.
+- Geração: OpenAI, NVIDIA e Gemini com streaming. Ordem padrão Gemini, NVIDIA,
+  OpenAI, configurável (ADR-004); troca somente antes do primeiro token.
 - Grounding estrito, citações rastreáveis, recusa sem contexto suficiente.
 - Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão. A flag
   `UPLOADS_STREAMLIT_HABILITADOS=False` mantém upload fora da UI do treino.
