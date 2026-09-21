@@ -1,5 +1,10 @@
 # Documento de verificação da implementação
 
+> **Registro legado (era Ollama):** E0 a E10 e as evidências referenciadas
+> abaixo verificam o pipeline local anterior. Eles não comprovam os critérios da
+> arquitetura híbrida de embeddings `bge-m3` e geração remota. Consulte ADR-003,
+> o PRD da migração e `docs/evidencias/MIG-04/` e `MIG-05/` para esse estado.
+
 Este documento é **consultado no início e no fim de toda tarefa** neste repositório. Uma etapa só muda para ✅ quando todos os seus critérios têm evidência registrada: saída de comando, arquivo ou captura de tela. Afirmação sem evidência não conta.
 
 ## Protocolo por tarefa
