@@ -4,9 +4,5 @@ google-genai==2.24.0
 chromadb==1.5.9
 streamlit==1.63.0
 pypdf==6.18.1
-shap==0.52.0
-ipykernel==7.3.0
 numpy==2.5.3
-pandas==3.0.5
-matplotlib==3.11.2
 httpx==0.28.1

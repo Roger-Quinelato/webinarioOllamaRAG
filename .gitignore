@@ -1,9 +1,24 @@
 # Ambiente Python
 .venv/
+venv/
+env/
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Segredos: chaves de API nunca vão para o repositório
 .env
+.env.*
 .streamlit/secrets.toml
+
+# Dados gerados localmente pela pipeline
+artigos/*.pdf
+chroma_db/
+Ollama/models/
+logs/
+
+# Notebooks
 .ipynb_checkpoints/
 
 # Editor / SO
@@ -11,13 +26,3 @@ __pycache__/
 .idea/
 .DS_Store
 Thumbs.db
-
-# Modelos do Ollama (vários GB) e índice vetorial regenerável
-Ollama/models/
-chroma_db/
-
-# PDFs: cursos do CIIA e artigos não são versionados (links no README)
-arquivosPDF/**/*.pdf
-artigos/*.pdf
-
-logs/
