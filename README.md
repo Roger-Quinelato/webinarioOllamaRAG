@@ -9,6 +9,13 @@ Um assistente que recupera trechos de artigos localmente e gera respostas fundam
 
 Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxergar cada peça do RAG.
 
+**Quer testar com os seus próprios documentos?** O notebook para o público,
+[`notebooks/rag_com_seus_documentos.ipynb`](notebooks/rag_com_seus_documentos.ipynb),
+roda no Google Colab sem instalar nada: você envia seus PDFs e ajusta os parâmetros de cada etapa.
+[![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/blob/main/notebooks/rag_com_seus_documentos.ipynb)
+Ele é material de treinamento separado do app e usa LangChain de propósito, para dar foco aos conceitos.
+Para editá-lo, altere `notebooks/gerar_notebook_publico.py` e rode `python notebooks/gerar_notebook_publico.py`.
+
 ## Como funciona
 
 ```
