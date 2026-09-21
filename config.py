@@ -10,7 +10,7 @@ PASTA_RESULTADOS = RAIZ / "resultados"
 NOME_COLECAO = "artigos_rag"
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-MODELO_EMBEDDING = os.getenv("MODELO_EMBEDDING", "bge-m3")
+MODELO_EMBEDDING = os.getenv("MODELO_EMBEDDING", "granite-embedding:278m")
 # T19/#19 (decisão parcial do autor, 2026-09-15): valida a pipeline com o 1.5b primeiro;
 # o 3b vira o "plano B" para testar depois se a máquina/notebook aguenta. Perguntas-teste
 # definitivas ainda pendentes (ticket segue aberto para a parte (a)).
@@ -19,22 +19,21 @@ MODELO_CHAT_PLANO_B = "qwen2.5:3b"
 
 # Fonte única da identidade do modelo de embedding: ollama_embedding_provider.py,
 # hybrid_index.py e openai_rag.py (BaseAtiva) leem daqui em vez de duplicar literais.
-DIMENSAO_EMBEDDING = int(os.getenv("DIMENSAO_EMBEDDING", "1024"))
-VERSAO_COLECAO_EMBEDDING = os.getenv("VERSAO_COLECAO_EMBEDDING", "bge-m3-v1")
+DIMENSAO_EMBEDDING = int(os.getenv("DIMENSAO_EMBEDDING", "768"))
+VERSAO_COLECAO_EMBEDDING = os.getenv("VERSAO_COLECAO_EMBEDDING", "granite-278m-v1")
 
 TAMANHO_CHUNK = 1000
 SOBREPOSICAO = 150
 K_PADRAO = 4
 N_ARTIGOS_ESTAGIO_1 = 3
 DISTANCIA_MAXIMA_ESTAGIO_1 = 0.60
-# Ponto médio do intervalo real (0.37379246950149536, 0.5800204873085022) no corpus
-# só em português (2026-09-21), com margem igual para perguntas positivas e negativas.
-DISTANCIA_MAXIMA_RETRIEVAL = 0.4769064784049988
-# Calibração real (#120) para granite-embedding:278m, medida lado a lado com a coleção
-# bge-m3 ainda ativa (2026-09-21): ponto médio do intervalo (0.2792980670928955,
-# 0.4242267608642578). NÃO é o limiar ativo; DISTANCIA_MAXIMA_RETRIEVAL acima segue
-# calibrado para bge-m3 até a migração do padrão em #121.
-DISTANCIA_MAXIMA_RETRIEVAL_GRANITE_278M = 0.35176241397857666
+# Calibrado para granite-embedding:278m (#121, 2026-09-21): ponto médio do intervalo real
+# (0.2792980670928955, 0.4242267608642578) no corpus só em português, com margem igual
+# para perguntas positivas e negativas.
+DISTANCIA_MAXIMA_RETRIEVAL = 0.35176241397857666
+# Valor anterior calibrado para bge-m3 (0.37379246950149536, 0.5800204873085022, medido
+# em 2026-09-21); mantido como referência de rollback — não é lido por nenhum código.
+DISTANCIA_MAXIMA_RETRIEVAL_BGE_M3 = 0.4769064784049988
 TEMPERATURA = 0.1
 MAX_TOKENS_RESPOSTA = 400
 UPLOADS_STREAMLIT_HABILITADOS = False
