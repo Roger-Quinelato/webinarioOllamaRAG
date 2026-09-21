@@ -35,6 +35,17 @@ def obter_chave_gemini(secrets=None, environ=None):
     return chave
 
 
+def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    """Auxilia valor de configuração, lendo primeiro do ambiente e depois de secrets."""
+    environ = os.environ if environ is None else environ
+    valor = environ.get(nome)
+    if valor:
+        return valor
+    if secrets is not None:
+        return secrets.get(nome, padrao)
+    return padrao
+
+
 def _status_code(erro):
     """Auxilia status code."""
     status = getattr(erro, "status_code", None)
@@ -119,7 +130,9 @@ class ProviderGemini:
 
     def __init__(self, *, client=None, secrets=None, environ=None, modelo=None):
         """Inicializa instância com dependências e parâmetros."""
-        self.modelo = modelo or os.getenv("GEMINI_MODEL", MODELO_GEMINI)
+        self.modelo = modelo or _valor_config(
+            "GEMINI_MODEL", MODELO_GEMINI, secrets=secrets, environ=environ
+        )
         if client is None:
             from google import genai
 

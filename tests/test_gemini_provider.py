@@ -87,6 +87,16 @@ class ProviderGeminiTest(unittest.TestCase):
         self.assertIs(provider._client, cliente)
         criar_cliente.assert_called_once_with(api_key="chave", http_options={"timeout": 4500})
 
+    def test_modelo_pode_vir_de_secrets(self):
+        cliente = object()
+        with patch("google.genai.Client", return_value=cliente):
+            provider = ProviderGemini(
+                secrets={"GEMINI_API_KEY": "chave", "GEMINI_MODEL": "modelo-secrets"},
+                environ={},
+            )
+
+        self.assertEqual(provider.modelo, "modelo-secrets")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -65,6 +65,25 @@ class ProviderNVIDIATest(unittest.TestCase):
             timeout=4.5,
         )
 
+    def test_modelo_e_base_url_podem_vir_de_secrets(self):
+        cliente = object()
+        with patch("openai.OpenAI", return_value=cliente) as criar_cliente:
+            provider = ProviderNVIDIA(
+                secrets={
+                    "NVIDIA_API_KEY": "chave",
+                    "NVIDIA_MODEL": "modelo-secrets",
+                    "NVIDIA_BASE_URL": "https://nvidia.example/v1",
+                },
+                environ={},
+            )
+
+        self.assertEqual(provider.modelo, "modelo-secrets")
+        criar_cliente.assert_called_once_with(
+            api_key="chave",
+            base_url="https://nvidia.example/v1",
+            max_retries=0,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
