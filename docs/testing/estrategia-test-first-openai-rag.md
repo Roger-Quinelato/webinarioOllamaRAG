@@ -32,7 +32,8 @@
 - Filtros/metadados de arquivo, página e ano chegam à fonte apresentada.
 - Geração recebe duas turnos de histórico; retrieval não muda.
 - AppTest cobre streaming, limpeza, credencial, recusa e fontes.
-- Matriz de ensaio cobre recuperação, citação, recusa, filtro e upload.
+- Matriz de ensaio cobre recuperação, citação, recusa e filtro. O caso de
+  upload só entra quando `UPLOADS_STREAMLIT_HABILITADOS=True`.
 
 ## Qualidade
 

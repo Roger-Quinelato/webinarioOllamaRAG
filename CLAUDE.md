@@ -84,8 +84,9 @@ testes e rollback. Não paralelize escritas no mesmo worktree.
   provider.
 - Registre modelo, Base Ativa, quantidade de chunks, latência, tentativa, recusa
   e resposta parcial; nunca chave nem conteúdo integral de upload.
-- Antes do ensaio, matriz de cinco perguntas deve cobrir recuperação, citação,
-  recusa, filtro e upload.
+- Antes do ensaio, matriz de quatro perguntas deve cobrir recuperação, citação,
+  recusa e filtro. Upload entra em uma quinta pergunta somente quando
+  `UPLOADS_STREAMLIT_HABILITADOS=True`.
 - Comandos dependentes de Ollama e evidências históricas removidas comprovam
   legado. Não marque critério OpenAI verificado com essa saída.
 
