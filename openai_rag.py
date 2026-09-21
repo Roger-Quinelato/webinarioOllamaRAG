@@ -1,17 +1,18 @@
 """Fachada RAG grounded para uma única Base Ativa usando OpenAI."""
 
+import logging
 import re
 from dataclasses import dataclass
 
 import config
 from generation_router import ErroProviderGeracao, GenerationRouter
-from openai_provider import ErroProviderOpenAI
 
-
+LOGGER = logging.getLogger("rag.geracao")
 MAX_CHUNKS_RETRIEVAL = 5
 MAX_CHUNKS_PROMPT = 3
 _CITACAO_RE = re.compile(r"\[(\d+)\]")
 _MENSAGEM_RECUSA = config.RESPOSTA_NAO_ENCONTRADA
+_AVISO_PARCIAL = "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
 
 
 @dataclass(frozen=True)
@@ -46,37 +47,43 @@ class FluxoResposta:
                               "chunks_recuperados": [], "base_ativa": self._args[1].nome,
                               "generation_provider": None, "generation_model": None,
                               "fallback_used": False, "attempted_providers": []}
+            LOGGER.info(
+                "resposta base_ativa=%s chunks=0 status=Recusa recusa=True parcial=False",
+                self._args[1].nome,
+            )
             yield _MENSAGEM_RECUSA
             return
         mensagens = _montar_mensagens(self._args[0], chunks, self._kwargs["historico"] or [])
+        provider = self._rag.generation_provider
         texto, tentativa = "", 0
         while True:
+            execucao = provider.transmitir(mensagens)
             try:
-                for pedaco in self._rag.generation_provider.transmitir(mensagens):
+                for pedaco in execucao:
                     texto += pedaco
                     yield pedaco
                 self.resultado = self._rag._resultado(
                     texto.strip(), chunks, self._args[1], status="completa",
-                    geracao=getattr(self._rag.generation_provider, "ultima_execucao", None),
+                    geracao=getattr(execucao, "telemetria", None),
                 )
+                _registrar(self.resultado, execucao, tentativa)
                 return
             except Exception as erro:
-                if not texto and tentativa == 0 and not isinstance(
-                    self._rag.generation_provider, GenerationRouter
-                ):
+                if not texto and tentativa == 0 and not isinstance(provider, GenerationRouter):
                     tentativa += 1
                     continue
                 if texto:
-                    texto += "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
+                    texto += _AVISO_PARCIAL
                     self.resultado = self._rag._resultado(
                         texto, chunks, self._args[1], status="Resposta Parcial",
-                        geracao=getattr(self._rag.generation_provider, "ultima_execucao", None),
+                        geracao=getattr(execucao, "telemetria", None),
                     )
-                    yield "\n\nResposta Parcial: a geração foi interrompida antes da conclusão."
+                    _registrar(self.resultado, execucao, tentativa)
+                    yield _AVISO_PARCIAL
                     return
                 if isinstance(erro, ErroProviderGeracao):
                     raise
-                raise ErroProviderOpenAI("A geração falhou antes do primeiro token. Tente novamente.") from None
+                raise ErroProviderGeracao("A geração falhou antes do primeiro token.") from None
 
 
 class OpenAIRAG:
@@ -182,6 +189,24 @@ class OpenAIRAG:
             "fallback_used": (geracao or {}).get("fallback_used", False),
             "attempted_providers": (geracao or {}).get("attempted_providers", []),
         }
+
+
+def _registrar(resultado, execucao, tentativa):
+    """Registra o mínimo do TDD; nunca inclui chave, prompt nem texto de chunk ou de resposta."""
+    telemetria = getattr(execucao, "telemetria", None) or {}
+    LOGGER.info(
+        "resposta base_ativa=%s provider=%s modelo=%s chunks=%s tentativa=%s status=%s "
+        "recusa=%s parcial=%s ttft=%s",
+        resultado["base_ativa"],
+        resultado["generation_provider"],
+        resultado["generation_model"],
+        len(resultado["chunks_recuperados"]),
+        telemetria.get("attempt") or tentativa + 1,
+        resultado["status"],
+        resultado["classe_fontes"] == "recusa",
+        resultado["status"] == "Resposta Parcial",
+        telemetria.get("time_to_first_token"),
+    )
 
 
 def _montar_mensagens(pergunta, chunks, historico):

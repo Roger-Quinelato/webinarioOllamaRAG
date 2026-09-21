@@ -53,19 +53,35 @@ def _status_code(erro):
         status = getattr(erro, "code", None)
     if status is None:
         status = getattr(getattr(erro, "response", None), "status_code", None)
-    return status
+    return status if isinstance(status, int) else None
+
+
+def _retry_after_detalhes(erro):
+    """Lê ``RetryInfo.retryDelay`` (por exemplo ``"3s"``) dos detalhes do erro do SDK."""
+    detalhes = getattr(erro, "details", None)
+    detalhes = detalhes.get("error", detalhes) if isinstance(detalhes, dict) else None
+    for item in (detalhes or {}).get("details", []) if isinstance(detalhes, dict) else []:
+        atraso = item.get("retryDelay") if isinstance(item, dict) else None
+        if isinstance(atraso, str) and atraso.endswith("s"):
+            try:
+                return max(0.0, float(atraso[:-1]))
+            except ValueError:
+                return None
+    return None
 
 
 def _retry_after(erro):
-    """Auxilia retry after."""
+    """Auxilia retry after, lido dos cabeçalhos e, na falta deles, dos detalhes do erro."""
     cabecalhos = getattr(erro, "headers", None)
     if cabecalhos is None:
         cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
     try:
         valor = cabecalhos.get("retry-after") if cabecalhos else None
-        return max(0.0, float(valor)) if valor is not None else None
+        if valor is not None:
+            return max(0.0, float(valor))
     except (AttributeError, TypeError, ValueError):
-        return None
+        pass
+    return _retry_after_detalhes(erro)
 
 
 def _request_id(erro):
@@ -89,14 +105,14 @@ def _mensagem_erro(erro):
     """Auxilia mensagem erro."""
     status = _status_code(erro)
     if status in {401, 403}:
-        return "Não foi possível autenticar no Gemini. Confira GEMINI_API_KEY e tente novamente."
+        return "Não foi possível autenticar no Gemini. Confira GEMINI_API_KEY."
     if status == 402:
-        return "O saldo do Gemini está indisponível. Tentando outro provider de geração."
+        return "O saldo do Gemini está indisponível."
     if status == 429:
-        return "O Gemini atingiu o limite de requisições. Tentando outro provider de geração."
+        return "O Gemini atingiu o limite de requisições."
     if isinstance(erro, (ConnectionError, TimeoutError, httpx.RequestError)):
-        return "Não foi possível conectar ao Gemini. Tentando outro provider de geração."
-    return "O Gemini não respondeu como esperado. Tentando outro provider de geração."
+        return "Não foi possível conectar ao Gemini."
+    return "O Gemini não respondeu como esperado."
 
 
 def _erro_seguro(erro):
@@ -108,6 +124,14 @@ def _erro_seguro(erro):
         retry_after=_retry_after(erro),
         request_id=_request_id(erro),
     )
+
+
+def _config_geracao(sistema):
+    """Monta a config sem tools e com AFC desligado, o que evita o aviso do SDK a cada chamada."""
+    config = {"automatic_function_calling": {"disable": True}}
+    if sistema:
+        config["system_instruction"] = sistema
+    return config
 
 
 def _conteudo_gemini(mensagens):
@@ -151,7 +175,7 @@ class ProviderGemini:
             resposta = self._client.models.generate_content(
                 model=self.modelo,
                 contents=conteudos,
-                config={"system_instruction": sistema} if sistema else None,
+                config=_config_geracao(sistema),
             )
             if not resposta.text:
                 raise RuntimeError("A resposta não foi concluída.")
@@ -166,7 +190,7 @@ class ProviderGemini:
             eventos = self._client.models.generate_content_stream(
                 model=self.modelo,
                 contents=conteudos,
-                config={"system_instruction": sistema} if sistema else None,
+                config=_config_geracao(sistema),
             )
             emitiu_texto = False
             for evento in eventos:

@@ -1,5 +1,6 @@
 """Provider NVIDIA API Catalog para geração e streaming do RAG."""
 
+import logging
 import os
 
 import httpx
@@ -7,6 +8,8 @@ import httpx
 from generation_router import ErroProviderGeracao
 
 
+LOGGER = logging.getLogger("rag.geracao")
+TIMEOUT_PADRAO = 30.0
 MODELO_NVIDIA = os.getenv("NVIDIA_MODEL", "meta/llama-3.1-8b-instruct")
 NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
 
@@ -70,22 +73,33 @@ def _request_id(erro):
     return (cabecalhos or {}).get("x-request-id") or (cabecalhos or {}).get("request-id")
 
 
-def _timeout(environ):
-    """Auxilia timeout."""
-    valor = environ.get("NVIDIA_TIMEOUT")
-    return float(valor) if valor else None
+def _timeout(*, secrets=None, environ=None):
+    """Lê ``NVIDIA_TIMEOUT`` em segundos; sem valor, usa ``TIMEOUT_PADRAO`` para não esperar 90 s."""
+    valor = _valor_config("NVIDIA_TIMEOUT", None, secrets=secrets, environ=environ)
+    return float(valor) if valor else TIMEOUT_PADRAO
+
+
+def _status_code(erro):
+    """Deriva o status HTTP do erro ou da resposta associada."""
+    status = getattr(erro, "status_code", None)
+    if status is None:
+        status = getattr(getattr(erro, "response", None), "status_code", None)
+    return status if isinstance(status, int) else None
 
 
 def _mensagem_erro(erro):
     """Auxilia mensagem erro."""
-    status = getattr(erro, "status_code", None)
+    status = _status_code(erro)
     if status in {401, 403}:
-        return "Não foi possível autenticar na NVIDIA. Confira NVIDIA_API_KEY e tente novamente."
+        return "Não foi possível autenticar na NVIDIA. Confira NVIDIA_API_KEY."
     if status == 429:
-        return "A NVIDIA atingiu o limite de requisições. Tentando outro provider de geração."
-    if isinstance(erro, (ConnectionError, TimeoutError, httpx.RequestError)):
-        return "Não foi possível conectar à NVIDIA. Tentando outro provider de geração."
-    return "A NVIDIA não respondeu como esperado. Tentando outro provider de geração."
+        return "A NVIDIA atingiu o limite de requisições."
+    if isinstance(erro, (ConnectionError, TimeoutError, httpx.RequestError)) or type(erro).__name__ in {
+        "APIConnectionError",
+        "APITimeoutError",
+    }:
+        return "Não foi possível conectar à NVIDIA."
+    return "A NVIDIA não respondeu como esperado."
 
 
 def _erro_seguro(erro):
@@ -93,7 +107,7 @@ def _erro_seguro(erro):
     return ErroProviderGeracao(
         _mensagem_erro(erro),
         provider="NVIDIA",
-        status_code=getattr(erro, "status_code", None),
+        status_code=_status_code(erro),
         retry_after=_retry_after(erro),
         request_id=_request_id(erro),
     )
@@ -121,9 +135,7 @@ class ProviderNVIDIA:
                 ),
                 "max_retries": 0,
             }
-            timeout = _timeout(environ)
-            if timeout is not None:
-                opcoes["timeout"] = timeout
+            opcoes["timeout"] = _timeout(secrets=secrets, environ=environ)
             client = OpenAI(**opcoes)
         self._client = client
 
@@ -145,13 +157,23 @@ class ProviderNVIDIA:
                 model=self.modelo, messages=mensagens, stream=True
             )
             concluida = False
-            for evento in eventos:
-                escolha = evento.choices[0]
-                texto = getattr(escolha.delta, "content", None)
-                if texto:
-                    yield texto
-                if escolha.finish_reason:
-                    concluida = True
+            eventos_recebidos = 0
+            try:
+                for evento in eventos:
+                    eventos_recebidos += 1
+                    if not evento.choices:
+                        continue
+                    escolha = evento.choices[0]
+                    texto = getattr(escolha.delta, "content", None)
+                    if texto:
+                        yield texto
+                    if escolha.finish_reason:
+                        concluida = True
+            finally:
+                LOGGER.info(
+                    "nvidia_stream modelo=%s eventos=%s finish_reason=%s",
+                    self.modelo, eventos_recebidos, concluida,
+                )
             if not concluida:
                 raise RuntimeError("O streaming terminou sem conclusão.")
         except Exception as erro:

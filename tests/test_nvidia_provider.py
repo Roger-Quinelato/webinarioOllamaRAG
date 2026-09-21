@@ -82,6 +82,7 @@ class ProviderNVIDIATest(unittest.TestCase):
             api_key="chave",
             base_url="https://nvidia.example/v1",
             max_retries=0,
+            timeout=30.0,
         )
 
 
