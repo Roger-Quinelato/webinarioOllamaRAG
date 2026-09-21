@@ -54,8 +54,8 @@ ollama pull bge-m3
 ### 3. Obter o código e criar o ambiente Python
 
 ```bash
-git clone <url-do-repositorio> webinarioOllamaRAG
-cd webinarioOllamaRAG
+git clone https://github.com/Roger-Quinelato/webinario-rag.git
+cd webinario-rag
 python -m venv .venv
 ```
 
