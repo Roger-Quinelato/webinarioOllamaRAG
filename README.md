@@ -135,6 +135,7 @@ NVIDIA e Gemini:
 
 ```powershell
 $env:OPENAI_API_KEY = "..."
+$env:OPENAI_TIMEOUT = "30" # segundos; opcional
 $env:NVIDIA_API_KEY = "..."
 $env:NVIDIA_MODEL = "..."
 $env:NVIDIA_TIMEOUT = "30" # segundos; opcional
