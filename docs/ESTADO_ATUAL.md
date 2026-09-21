@@ -8,7 +8,8 @@
 > Consulte `docs/evidencias/MIG-04/validacao.md`,
 > `docs/evidencias/MIG-05/validacao.md` e o handoff atual.
 
-**Data do levantamento:** 2026-09-16 (retrato estático, não atualizado a cada commit)
+**Data do levantamento:** 2026-09-16, na branch `chore/agent-skills-setup`
+(retrato estático, não atualizado a cada commit).
 
 Este documento é o retrato do repositório **como ele estava na data do levantamento**, não como deveria estar. Ele existe para
 dar contexto de partida a quem audita o material (ver [`auditoria/PROTOCOLO_AUDITORIA.md`](auditoria/PROTOCOLO_AUDITORIA.md))
@@ -35,25 +36,26 @@ i5-8250U, sem GPU dedicada**, rodando o LLM em CPU e dividindo recursos com a tr
 Cronograma da aula (~1h54): recap 10 · indexação 18 · retrieval top-k 15 · dois estágios 7 · SHAP 12 ·
 com/sem contexto 12 · Ollama 12 · Streamlit 15 · RAGAS/reranking/encerramento 8 · folga 5.
 
-## 2. Decisões de arquitetura vigentes
+## 2. Decisões registradas em 2026-09-16 (era Ollama)
 
 | Decisão | Estado | Onde está registrada |
 |---|---|---|
-| Sem framework (nada de LangChain/LlamaIndex); Python puro | vigente | `CLAUDE.md`, `README.md:10` |
-| Sem Colab; tudo local em `.venv` dentro do projeto | vigente | `CLAUDE.md`, `README.md` passo 4 |
-| Ollama para embeddings (`bge-m3`) e chat | vigente | `config.py:13-17` |
-| Chat `qwen2.5:1.5b` por padrão, `qwen2.5:3b` como plano B | **invertido em 2026-09-15** (ticket #19) | `config.py:17-18` |
-| Chunking por página, subdividindo páginas longas com sobreposição | vigente | `rag.dividir_texto`, `rag.gerar_chunks` |
-| Busca: top-k → filtros `where` → dois estágios (resumos → chunks) | vigente | `rag.buscar`, `rag.buscar_dois_estagios` |
-| SHAP como explicabilidade **do retrieval**, só no notebook | vigente | bloco 4 do notebook |
-| Prompt separado em mensagem `system` + `user` | vigente, **não reverter sem reverificar E6** | `rag.montar_mensagens`, `docs/troubleshooting.md:61` |
-| Dependências fixadas com `==`; `requirements.lock` = `pip freeze` | vigente | `requirements.txt`, `requirements.lock` |
-| Avaliação estilo RAGAS implementada à mão, sem a lib `ragas`, nunca ao vivo | vigente | `opcional/avaliacao_estilo_ragas.py` |
+| Sem framework (nada de LangChain/LlamaIndex); Python puro | registrado no levantamento | `CLAUDE.md`, `README.md:10` |
+| Sem Colab; tudo local em `.venv` dentro do projeto | registrado no levantamento | `CLAUDE.md`, `README.md` passo 4 |
+| Ollama para embeddings (`bge-m3`) e chat | legado; chat foi substituído por geração remota | `config.py:13-17` |
+| Chat `qwen2.5:1.5b` por padrão, `qwen2.5:3b` como plano B | legado registrado em 2026-09-15 (ticket #19) | `config.py:17-18` |
+| Chunking por página, subdividindo páginas longas com sobreposição | registrado no levantamento | `rag.dividir_texto`, `rag.gerar_chunks` |
+| Busca: top-k → filtros `where` → dois estágios (resumos → chunks) | legado; a fachada híbrida usa Base Ativa | `rag.buscar`, `rag.buscar_dois_estagios` |
+| SHAP como explicabilidade **do retrieval**, só no notebook | legado, fora do P0 | bloco 4 do notebook |
+| Prompt separado em mensagem `system` + `user` | registrado no levantamento | `rag.montar_mensagens`, `docs/troubleshooting.md:61` |
+| Dependências fixadas com `==`; `requirements.lock` = `pip freeze` | registrado no levantamento | `requirements.txt`, `requirements.lock` |
+| Avaliação estilo RAGAS implementada à mão, sem a lib `ragas`, nunca ao vivo | legado, fora do P0 | `opcional/avaliacao_estilo_ragas.py` |
 
 ## 3. Arquitetura do código
 
-`rag.py` é a **única** implementação do pipeline. Notebook, `scripts/00`–`07` e `app.py` apenas
-chamam funções dele; `ferramentas/verificar.py e7_duplicadas` é a checagem automatizada que impede
+Na arquitetura registrada, `rag.py` era a implementação do pipeline legado. A arquitetura híbrida
+também usa `corpus.py`, `hybrid_index.py`, `openai_rag.py` e os providers de geração. Notebook e
+`scripts/00`–`07` continuam chamando funções legadas; `ferramentas/verificar.py e7_duplicadas` é a checagem automatizada que impede
 cópia de lógica para fora (procura `RESPOSTA_NAO_ENCONTRADA in`, `indices_citados(...) or list(range(...))`,
 `import ollama`, `cliente_ollama()`, `.chat(`/`.embed(` diretos fora de `rag.py`).
 
@@ -68,7 +70,7 @@ pergunta → gerar_embeddings → buscar (top-k, where, tipo_chunk=pagina)
          → fontes_da_resposta / eh_recusa → montar_bloco_fontes
 ```
 
-### 3.1 Superfície pública de `rag.py` (485 linhas)
+### 3.1 Superfície pública de `rag.py` no levantamento
 
 | Grupo | Funções |
 |---|---|
@@ -96,35 +98,35 @@ Pontos de comportamento que a auditoria precisa conhecer:
 
 ### 3.2 Inventário de arquivos
 
-| Caminho | Linhas | Papel |
-|---|---:|---|
-| `config.py` | 44 | Modelos, caminhos, chunk, k, limiar, vocabulários fechados, URLs do corpus |
-| `rag.py` | 485 | Pipeline inteiro (única implementação) |
-| `app.py` | 105 | Chat Streamlit: histórico, slider k, filtros, modo de busca, fontes com "✅ citado" |
-| `scripts/00_checar_ambiente.py` | 69 | Checagem de ambiente (E0) |
-| `scripts/01_preparar_corpus.py` | 65 | Download dos PDFs, validação do CSV, resumos via LLM |
-| `scripts/02_indexar.py` | 60 | Chunking + embeddings + Chroma + demo de metadados por LLM |
-| `scripts/03_buscar.py` | 36 | top-k, filtros `where`, cross-lingual |
-| `scripts/04_dois_estagios.py` | 49 | Simples × dois estágios + os dois casos de fallback |
-| `scripts/05_shap.py` | 43 | SHAP da similaridade pergunta × chunk |
-| `scripts/06_com_sem_contexto.py` | 51 | Resposta com e sem contexto + fontes citadas |
-| `scripts/07_ollama.py` | 31 | Resposta RAG completa em streaming |
-| `opcional/calcular_shapley_chunks.py` | 38 | Shapley dos chunks (~10 min, pré-computado) |
-| `opcional/avaliacao_estilo_ragas.py` | 88 | Métricas estilo Ragas com o Ollama como juiz |
-| `ferramentas/verificar.py` | 499 | 15 checagens automatizadas por critério (ver 3.3) |
-| `ferramentas/construir_notebook.py` | 404 | Gera `webinario_rag.ipynb` (40 células, blocos 1–8) |
-| `ferramentas/executar_notebook.py` | 39 | Executa o notebook e salva saídas (`--offline` testa o fallback) |
-| `ferramentas/testar_app.py` | 103 | AppTest do Streamlit (E8) |
-| `ferramentas/capturar_app.py` | 66 | Sobe o app e tira captura via Playwright (msedge) |
-| `ferramentas/capturar_evidencias_e8.py` | 165 | **não commitado** — cenários 8.2/8.4–8.8 de captura |
-| `ferramentas/medir.py` | 80 | Medições de desempenho (E9) |
-| `ferramentas/gerar_plano_v11.py` | 195 | Gera o plano de aula v1.1 `.docx` |
-| `ferramentas/rodar_scripts.sh` | 17 | Roda `scripts/00`–`07` em sequência com log em `docs/evidencias/E7/` |
+| Caminho | Papel |
+|---|---|
+| `config.py` | Modelos, caminhos, chunk, k, limiar, vocabulários fechados, URLs do corpus |
+| `rag.py` | Pipeline legado |
+| `app.py` | Chat Streamlit: histórico, slider k, filtros, modo de busca, fontes com "✅ citado" |
+| `scripts/00_checar_ambiente.py` | Checagem de ambiente (E0) |
+| `scripts/01_preparar_corpus.py` | Download dos PDFs, validação do CSV, resumos via LLM |
+| `scripts/02_indexar.py` | Chunking + embeddings + Chroma + demo de metadados por LLM |
+| `scripts/03_buscar.py` | top-k, filtros `where`, cross-lingual |
+| `scripts/04_dois_estagios.py` | Simples × dois estágios + os dois casos de fallback |
+| `scripts/05_shap.py` | SHAP da similaridade pergunta × chunk |
+| `scripts/06_com_sem_contexto.py` | Resposta com e sem contexto + fontes citadas |
+| `scripts/07_ollama.py` | Resposta RAG completa em streaming |
+| `opcional/calcular_shapley_chunks.py` | Shapley dos chunks (~10 min, pré-computado) |
+| `opcional/avaliacao_estilo_ragas.py` | Métricas estilo Ragas com o Ollama como juiz |
+| `ferramentas/verificar.py` | Checagens automatizadas por critério (ver 3.3) |
+| `ferramentas/construir_notebook.py` | Gera `webinario_rag.ipynb` (40 células, blocos 1–8) |
+| `ferramentas/executar_notebook.py` | Executa o notebook e salva saídas (`--offline` testa o fallback) |
+| `ferramentas/testar_app.py` | AppTest do Streamlit (E8) |
+| `ferramentas/capturar_app.py` | Sobe o app e tira captura via Playwright (msedge) |
+| `ferramentas/capturar_evidencias_e8.py` | **não commitado** — cenários 8.2/8.4–8.8 de captura |
+| `ferramentas/medir.py` | Medições de desempenho (E9) |
+| `ferramentas/gerar_plano_v11.py` | Gera o plano de aula v1.1 `.docx` |
+| `ferramentas/rodar_scripts.sh` | Roda `scripts/00`–`07` em sequência com log em `docs/evidencias/E7/` |
 
 ### 3.3 Checagens disponíveis em `ferramentas/verificar.py`
 
 `e1_resumos`, `e2`, `e2_sobreposicao`, `e2_reabrir`, `e3`, `e4`, `e4_limiar`, `e6_ollama_desligado`,
-`e6_ollama_desligado_scripts`, `e6_fontes`, `e7_duplicadas`, `e7_duplicadas_antes_v2`, `e7_estrutura`,
+`e6_ollama_desligado_scripts`, `e6_cli_seguro`, `e6_fontes`, `e7_duplicadas`, `e7_duplicadas_antes_v2`, `e7_estrutura`,
 `e7_saidas`, `e9_numeros`.
 
 Todas saem com código ≠ 0 quando falham (inclusive `e9_numeros`, que trata "nenhuma menção encontrada"
@@ -132,14 +134,14 @@ como falha, não como sucesso silencioso).
 
 ## 4. Dados e corpus
 
-- **8 artigos** em `arquivosPDF/artigos/` (não versionados; links no `README.md:99-106` e no notebook):
+- **8 artigos** em `artigos/` (não versionados; links no `README.md:99-106` e no notebook):
   6 em inglês (Lewis 2020 RAG, Karpukhin 2020 DPR, Gao 2023 survey, Es 2023 RAGAS, Asai 2023 Self-RAG,
   Liu 2023 Lost in the Middle) + 2 em português da SBC (Rocha et al. 2025 SBBD; Medeiros & Oliveira 2025 SEMISH).
 - `metadados.csv`: colunas `arquivo, titulo, autores, ano, veiculo, tema, idioma, resumo`.
   `tema` ∈ {`fundamentos`, `retrieval`, `avaliacao`, `survey`, `limitacoes`}; `idioma` ∈ {`en`, `pt`}.
   `resumo` gerado pelo LLM a partir do abstract, **no idioma original do artigo**.
-- **Índice atual:** 659 vetores (651 de página + 8 de resumo), dimensão 1024. Antes do T12 eram 556/6.
-- `arquivosPDF/Curso-*.pdf` são cursos do CIIA, **fora do corpus** — não apagar.
+- **Índice publicado:** 661 vetores, dimensão 1024. O levantamento registrava 659 (651 de página + 8 de resumo); antes do T12 eram 556/6.
+- `artigos/Curso-*.pdf` são cursos do CIIA, **fora do corpus** — não apagar.
 - `resultados/` é versionado (rede de segurança para as etapas lentas da aula).
 
 ## 5. Estado da verificação (E0–E10)
@@ -200,9 +202,7 @@ não como achados fechados — cada um ainda precisa de verificação e de decis
 
 | Onde | O que diz | Por que destoa |
 |---|---|---|
-| `README.md:5` | "modelo de chat (`qwen2.5:3b`, com plano B `qwen2.5:1.5b`)" | Invertido desde o ticket #19; `config.py:17-18` tem 1.5b como padrão |
-| `README.md:179-181` | "Se as respostas estiverem lentas, mude `MODELO_CHAT` … para `qwen2.5:1.5b`" | Já é o padrão; a instrução perdeu o sentido |
-| `docs/medicoes.md:20` | "Chunking (556 chunks) \| 9,0 s" | Corpus passou a 659 chunks no T12; o tempo é de outro corpus |
+| `docs/medicoes.md:20` | "Chunking (556 chunks) \| 9,0 s" | No levantamento de 2026-09-16, o corpus T12 tinha 659 chunks; o índice publicado atual tem 661 e o tempo é de outro corpus |
 | `docs/troubleshooting.md:47` | "gerar os 556 embeddings" | Idem |
 | `docs/evidencias/E8/capturas/` | 8 PNGs presentes | Não commitados e sem a captura 8.8; `VERIFICACAO.md` 8.2–8.8 ainda não os cita como evidência |
 | `scripts/01`, `scripts/02` | sem `with rag.cli_seguro():` | `scripts/03`–`07` e `opcional/*` têm; é exatamente o achado 6.7 (issue #24) |

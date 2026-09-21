@@ -2,8 +2,9 @@
 
 ## Prioridade de fontes
 
-Siga, nesta ordem: ADR-002, ADR-001, PRD, TDD, `CONTEXT.md`, issue ativa e este
-arquivo. A ADR-002 supera somente a decisão de embeddings da ADR-001.
+Siga, nesta ordem: ADR-003, ADR-002, ADR-001, PRD, TDD, `CONTEXT.md`, issue
+ativa e este arquivo. A ADR-003 supera a consequência de indisponibilidade da
+ADR-002; a ADR-002 supera somente a decisão de embeddings da ADR-001.
 Documentos do fluxo Ollama que tratam geração local descrevem o legado; não
 anulam a arquitetura híbrida aceita nesta branch.
 

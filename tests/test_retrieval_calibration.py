@@ -1,7 +1,34 @@
 import unittest
 
 import config
-from retrieval_calibration import avaliar_limiar, calcular_limiar_com_margem
+from retrieval_calibration import (
+    ARQUIVOS_ESPERADOS,
+    PERGUNTAS_NEGATIVAS,
+    PERGUNTAS_POSITIVAS,
+    avaliar_limiar,
+    calcular_limiar_com_margem,
+    medir_retrieval,
+)
+
+
+class _ProviderFalso:
+    def gerar_embeddings(self, textos):
+        return [[0.0, 0.0] for _ in textos]
+
+
+class _ColecaoFalsa:
+    """Devolve, para cada pergunta, o arquivo esperado, exceto os trocados em `troca`."""
+
+    metadata = {"dimensao_embedding": 2}
+
+    def __init__(self, troca=None):
+        self.troca = troca or {}
+
+    def query(self, **_):
+        arquivos = [self.troca.get(p, ARQUIVOS_ESPERADOS.get(p) or "gao2023_survey.pdf") for p in PERGUNTAS_POSITIVAS]
+        arquivos += ["outro.pdf"] * len(PERGUNTAS_NEGATIVAS)
+        distancias = [0.3] * len(PERGUNTAS_POSITIVAS) + [0.7] * len(PERGUNTAS_NEGATIVAS)
+        return {"distances": [[d] for d in distancias], "metadatas": [[{"arquivo": a}] for a in arquivos]}
 
 
 class RetrievalCalibrationTest(unittest.TestCase):
@@ -33,6 +60,19 @@ class RetrievalCalibrationTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "não separa"):
             avaliar_limiar([0.21, 0.61], [0.67, 0.81], limiar=0.60)
+
+    def test_calibracao_aprova_quando_chunk_mais_proximo_vem_do_documento_esperado(self):
+        """Verifica que calibração aprova quando chunk mais próximo vem do documento esperado."""
+        resultado = medir_retrieval(_ColecaoFalsa(), _ProviderFalso(), limiar=0.5)
+
+        self.assertEqual(resultado["positivas"][0]["arquivo"], "lewis2020_rag.pdf")
+
+    def test_calibracao_reprova_quando_chunk_mais_proximo_vem_de_outro_documento(self):
+        """Verifica que calibração reprova quando chunk mais próximo vem de outro documento."""
+        colecao = _ColecaoFalsa({PERGUNTAS_POSITIVAS[0]: "gao2023_survey.pdf"})
+
+        with self.assertRaisesRegex(ValueError, "lewis2020_rag.pdf.*gao2023_survey.pdf"):
+            medir_retrieval(colecao, _ProviderFalso(), limiar=0.5)
 
 
 if __name__ == "__main__":

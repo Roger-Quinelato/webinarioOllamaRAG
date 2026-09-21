@@ -10,7 +10,7 @@ import chromadb
 import httpx
 import numpy as np
 import ollama
-from corpus import carregar_metadados, limpar_texto, extrair_paginas, dividir_texto, gerar_chunks
+from corpus import carregar_metadados, salvar_metadados, limpar_texto, extrair_paginas, dividir_texto, gerar_chunks
 
 import config
 
@@ -67,14 +67,6 @@ def verificar_ollama(modelos=None):
     faltando = [m for m in modelos if not any(i == m or i == f"{m}:latest" for i in instalados)]
     return instalados, faltando
 
-
-
-def salvar_metadados(linhas, caminho=None):
-    """Salva metadados."""
-    with open(caminho or config.ARQUIVO_METADADOS, "w", encoding="utf-8", newline="") as arquivo:
-        escritor = csv.DictWriter(arquivo, fieldnames=config.COLUNAS_METADADOS)
-        escritor.writeheader()
-        escritor.writerows(linhas)
 
 
 def validar_metadados(linhas, cabecalho, pasta=None):

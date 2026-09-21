@@ -5,11 +5,18 @@ export PYTHONIOENCODING=utf-8
 python=".venv/Scripts/python.exe"
 [ -x "$python" ] || python=".venv/bin/python"
 falhas=0
-for script in scripts/0*.py; do
+logs="logs/rodar_scripts"
+mkdir -p "$logs"
+scripts=(
+  scripts/02_indexar_hibrido.py
+  scripts/calibrar_retrieval_hibrido.py
+)
+for script in "${scripts[@]}"; do
   inicio=$(date +%s)
-  "$python" -u "$script" > "docs/evidencias/E7/log_$(basename "$script" .py).txt" 2>&1
+  log="$logs/$(basename "$script" .py).txt"
+  "$python" -u "$script" > "$log" 2>&1
   codigo=$?
-  echo "$(date +%H:%M:%S) $script → exit $codigo em $(( $(date +%s) - inicio ))s"
+  echo "$(date +%H:%M:%S) $script → exit $codigo em $(( $(date +%s) - inicio ))s; log: $log"
   [ "$codigo" -eq 0 ] || falhas=$((falhas + 1))
 done
 echo "scripts com falha: $falhas"

@@ -24,7 +24,8 @@ pergunta; acompanha streaming; abre fontes com arquivo, página, ano e trecho re
 - Até três PDFs de 20 MB; ano opcional; índice exclusivo da sessão. A flag
   `UPLOADS_STREAMLIT_HABILITADOS=False` mantém upload fora da UI do treino.
 - Geração usa duas últimas turnos; retrieval usa apenas pergunta atual.
-- Ensaio: cinco perguntas para recuperação, citação, recusa, filtro e upload.
+- Ensaio: quatro perguntas para recuperação, citação, recusa e filtro. A
+  pergunta de upload fica adiada até `UPLOADS_STREAMLIT_HABILITADOS=True`.
 
 ## Fora do escopo P0
 
@@ -45,7 +46,8 @@ simultânea entre bases, upload persistente, SHAP/RAGAS e revisão visual de UX.
 - Upload não aparece em outra sessão nem altera coleção oficial.
 - Falha antes do primeiro token: roteie para o próximo provider; `retry-after`
   curto permite uma repetição. Falha posterior: preserve e marque resposta parcial.
-- Matriz de cinco perguntas passa ensaio e possui evidência versionada.
+- Matriz de quatro perguntas passa ensaio e possui evidência versionada. O caso
+  de upload é requisito futuro, condicionado à habilitação da flag Streamlit.
 - MIG-04 permanece bloqueada até o gate aprovar a reindexação híbrida e a
   fachada RAG adaptada.
 

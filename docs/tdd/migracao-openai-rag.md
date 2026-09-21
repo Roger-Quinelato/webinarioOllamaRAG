@@ -70,8 +70,10 @@ flowchart LR
   relevância de upload e envia no máximo três à geração.
 - **Resposta**: recebe pergunta atual, até duas turnos anteriores e chunks
   numerados; classifica `citadas`, `recusa`, `fallback`, `sem_resultados`.
-- **Streamlit**: guarda histórico e índice efêmero em `session_state`; limpar
-  sessão remove índice de upload e histórico.
+- **Streamlit**: durante o treino guarda somente o histórico em `session_state`;
+  limpar conversa remove esse histórico. O Índice de Sessão é contrato de domínio
+  futuro e não é exposto pela interface enquanto
+  `UPLOADS_STREAMLIT_HABILITADOS=False`.
 
 ## Falhas, segurança, observabilidade
 
@@ -135,4 +137,6 @@ arquitetura híbrida.
 
 ## Validação
 
-Critérios PRD, estratégia test-first e matriz de cinco perguntas encerram migração.
+Critérios PRD, estratégia test-first e matriz de quatro perguntas encerram a
+migração. O caso de upload só entra quando
+`UPLOADS_STREAMLIT_HABILITADOS=True`.

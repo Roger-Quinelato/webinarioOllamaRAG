@@ -13,6 +13,8 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 
 ## Fontes canônicas
 
+- [ADR-003](docs/adr/003-fallback-remoto-de-geracao.md): fallback remoto de
+  geração; supera a consequência de indisponibilidade da ADR-002.
 - [ADR-002](docs/adr/002-bge-m3-local-e-geracao-openai.md): decisão vigente de
   embeddings e geração.
 - [ADR-001](docs/adr/001-openai-direto-e-chroma-separado.md): decisões
@@ -25,8 +27,9 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 - [Milestone GitHub](https://github.com/Roger-Quinelato/webinarioOllamaRAG/milestone/1):
   ordem das issues.
 
-Conflito: ADR e PRD prevalecem sobre documentação histórica. A ADR-002 supera
-somente a decisão de embeddings da ADR-001.
+Conflito: ADR e PRD prevalecem sobre documentação histórica. A ADR-003 supera
+a consequência de indisponibilidade da ADR-002; a ADR-002 supera somente a
+decisão de embeddings da ADR-001.
 
 ## Arquitetura P0
 
@@ -81,8 +84,9 @@ testes e rollback. Não paralelize escritas no mesmo worktree.
   provider.
 - Registre modelo, Base Ativa, quantidade de chunks, latência, tentativa, recusa
   e resposta parcial; nunca chave nem conteúdo integral de upload.
-- Antes do ensaio, matriz de cinco perguntas deve cobrir recuperação, citação,
-  recusa, filtro e upload.
+- Antes do ensaio, matriz de quatro perguntas deve cobrir recuperação, citação,
+  recusa e filtro. Upload entra em uma quinta pergunta somente quando
+  `UPLOADS_STREAMLIT_HABILITADOS=True`.
 - Comandos dependentes de Ollama e evidências históricas removidas comprovam
   legado. Não marque critério OpenAI verificado com essa saída.
 

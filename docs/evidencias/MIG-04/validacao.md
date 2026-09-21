@@ -20,3 +20,12 @@
 - `IndiceSessao.descartar()` remove somente sua coleção e aceita repetição.
 - Teste preserva coleção `artigos_rag_hibrido`, representando o Corpus Oficial.
 - Upload válido é publicado antes do descarte do Índice de Sessão anterior. Limpar conversa chama `descartar()`.
+
+## Nota de escopo — 2026-09-20
+
+O último item registra o comportamento validado no commit `c5ebe9a`, que
+expunha upload e Índice de Sessão no Streamlit. No fluxo enxuto atual, a UI não
+expõe upload: `UPLOADS_STREAMLIT_HABILITADOS=False`, `app.py` não usa
+`st.file_uploader` e **Limpar conversa** limpa somente o histórico. O contrato
+de `IndiceSessao.descartar()` continua validado pelos testes desta evidência,
+mas não é acionado pela UI do treino.

@@ -6,7 +6,7 @@ Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recup
 - **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: OpenAI, NVIDIA, Gemini.
 - **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
 - **Streamlit** fornece a interface de chat.
-- **SHAP** explica o retrieval.
+- **SHAP** permanece como material legado; não integra o caminho P0 atual.
 
 Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxergar cada peça do RAG.
 
@@ -95,7 +95,7 @@ A última linha deve ser `Ambiente pronto.`
 python scripts/01_preparar_corpus.py
 ```
 
-O script baixa os artigos para `arquivosPDF/artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
+O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e valida o `metadados.csv`. A apresentação não depende de geração por modelo local.
 
 | Arquivo | Artigo |
 |---|---|
@@ -158,7 +158,7 @@ O navegador abre em <http://localhost:8501>. Durante o treino, a UI consulta som
 | `hybrid_index.py` | Publicação e abertura do Corpus Oficial híbrido |
 | `metadados.csv` | Metadados e resumos versionados do Corpus Oficial |
 | `scripts/` | Um script por bloco da aula, em ordem |
-| `webinario_rag.ipynb` | Notebook da aula (gerado por `ferramentas/construir_notebook.py`) |
+| `webinario_rag.ipynb` | Material histórico do Encontro 2, baseado em Ollama; não é executado na aula híbrida atual |
 | `app.py` | Chatbot Streamlit |
 | `opcional/` | Shapley dos chunks e avaliação no estilo RAGAS (lentos; não rodam ao vivo) |
 | `resultados/` | Saídas pré-computadas usadas como rede de segurança na aula |
@@ -171,7 +171,7 @@ python -m pip install -r requirements-dev.txt
 python ferramentas/construir_notebook.py
 python ferramentas/executar_notebook.py --offline
 bash ferramentas/rodar_scripts.sh
-python ferramentas/testar_app.py
+python -m unittest tests.test_app -v
 python ferramentas/medir.py nome_do_cenario
 python ferramentas/gerar_plano_v11.py
 ```
@@ -180,8 +180,8 @@ python ferramentas/gerar_plano_v11.py
 |---|---|
 | `construir_notebook.py` | Gera o `webinario_rag.ipynb` a partir do código-fonte das células |
 | `executar_notebook.py` | Executa o notebook em kernel limpo; `--offline` não chama Ollama nem OpenAI |
-| `rodar_scripts.sh` | Roda apenas a lista explícita de comandos híbridos, com log |
-| `testar_app.py` | Testa o Streamlit com `AppTest` |
+| `rodar_scripts.sh` | Roda `02_indexar_hibrido.py` e `calibrar_retrieval_hibrido.py`; grava logs locais ignorados em `logs/rodar_scripts/` |
+| `python -m unittest tests.test_app` | Testa o Streamlit com `AppTest` (dono único em `tests/test_app.py`) |
 | `medir.py` | Mede os tempos desta máquina |
 | `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
 
@@ -198,4 +198,5 @@ migração OpenAI atual.
 
 ## Problemas comuns
 
-Consulte o [troubleshooting](docs/troubleshooting.md) e o handoff da migração.
+Consulte o [troubleshooting](docs/troubleshooting.md) e o
+[handoff da migração](docs/handoff/claude-migracao-openai-rag.md).
