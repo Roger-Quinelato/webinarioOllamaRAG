@@ -121,7 +121,7 @@ def mostrar_fontes(busca):
             _mostrar_lista_fontes(chunks)
 
 st.title("Assistente RAG sobre artigos de RAG")
-st.caption("RAG híbrido com bge-m3 local e geração OpenAI, NVIDIA ou Gemini")
+st.caption(f"RAG híbrido com {config.MODELO_EMBEDDING} local e geração OpenAI, NVIDIA ou Gemini")
 
 with st.sidebar:
     st.header("Configuração")

@@ -2,7 +2,7 @@
 
 Um assistente que recupera trechos de artigos localmente e gera respostas fundamentadas (grounded) com providers remotos:
 
-- **Ollama** gera somente os embeddings `bge-m3` (1024 dimensões).
+- **Ollama** gera somente os embeddings, com `granite-embedding:278m` (768 dimensões) por padrão — configurável por `MODELO_EMBEDDING` (ex.: `bge-m3`, mais pesado e também multilíngue).
 - **NVIDIA**, **Gemini** e **OpenAI** geram as respostas com streaming. Ordem padrão: NVIDIA, Gemini, OpenAI, configurável por `GENERATION_PROVIDERS_ORDER`.
 - **ChromaDB** guarda o índice vetorial persistente do corpus.
 - **Streamlit** fornece a interface de chat.
@@ -19,7 +19,7 @@ Para editá-lo, altere `notebooks/gerar_notebook_publico.py` e rode `python note
 ## Como funciona
 
 ```
-PDFs → texto por página → chunks → embeddings (bge-m3) → ChromaDB
+PDFs → texto por página → chunks → embeddings (granite-embedding:278m) → ChromaDB
 pergunta → embedding → top-k (+ filtros) → prompt com trechos → LLM remoto → resposta com fontes
 ```
 
@@ -31,7 +31,7 @@ O assistente responde apenas com base nos trechos recuperados. Se o contexto nã
 |---|---|
 | Python | 3.10 ou superior |
 | RAM | 8 GB |
-| Disco | Espaço para `bge-m3`, corpus e ambiente Python |
+| Disco | Espaço para `granite-embedding:278m`, corpus e ambiente Python |
 | Chave de API | Pelo menos uma: NVIDIA, Gemini ou OpenAI |
 
 ## Passo a passo
@@ -55,7 +55,7 @@ Por padrão, os modelos ficam em `~/.ollama/models`. Para usar outra pasta, defi
 ### 2. Baixar o modelo de embeddings
 
 ```bash
-ollama pull bge-m3
+ollama pull granite-embedding:278m
 ```
 
 ### 3. Obter o código e criar o ambiente Python
@@ -109,7 +109,7 @@ O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e
 python scripts/02_indexar_hibrido.py
 ```
 
-O script gera os chunks, cria os embeddings com `bge-m3` e publica a coleção no ChromaDB (`chroma_db/`).
+O script gera os chunks, cria os embeddings com o modelo configurado em `MODELO_EMBEDDING` (`granite-embedding:278m` por padrão) e publica a coleção no ChromaDB (`chroma_db/`).
 
 ### 7. (Opcional) Medir a recuperação
 
@@ -151,7 +151,7 @@ O navegador abre em <http://localhost:8501>. A interface separa as fontes citada
 | `config.py` | Modelos, caminhos, tamanho de chunk e `k` padrão |
 | `corpus.py` | Extração de texto dos PDFs, limpeza e divisão em chunks |
 | `metadados.csv` | Metadados e resumos dos artigos do corpus |
-| `ollama_embedding_provider.py` | Embeddings `bge-m3` via Ollama |
+| `ollama_embedding_provider.py` | Embeddings locais via Ollama (`MODELO_EMBEDDING`, `granite-embedding:278m` por padrão) |
 | `hybrid_index.py` | Publicação e abertura da coleção no ChromaDB |
 | `openai_rag.py` | Núcleo do RAG: retrieval, prompt, fontes, recusa e streaming |
 | `generation_router.py` | Troca de provider antes do primeiro token |
@@ -166,7 +166,7 @@ O navegador abre em <http://localhost:8501>. A interface separa as fontes citada
 
 | Sintoma | O que fazer |
 |---|---|
-| `bge-m3` não encontrado | Rode `ollama pull bge-m3` e confira se o Ollama está aberto |
+| Modelo de embedding não encontrado | Rode `ollama pull granite-embedding:278m` (ou o modelo em `MODELO_EMBEDDING`) e confira se o Ollama está aberto |
 | Erro de conexão com o Ollama | Abra o aplicativo do Ollama (ou `ollama serve` no Linux) |
 | App diz que a coleção não existe | Rode `python scripts/02_indexar_hibrido.py` antes de `streamlit run app.py` |
 | Nenhum provider disponível | Defina pelo menos uma chave de API no mesmo terminal do `streamlit run` |
