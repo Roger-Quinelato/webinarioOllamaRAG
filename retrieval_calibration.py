@@ -2,20 +2,20 @@
 
 
 # Cada pergunta positiva traz o artigo que deve responder a ela (Fonte esperada).
-# why: a distância sozinha aceita qualquer chunk próximo; uma pergunta genérica como
-# "arquitetura RAG proposta por Lewis et al." recupera o survey, não o artigo de Lewis (OPS-09).
+# why: a distância sozinha aceita qualquer chunk próximo; uma pergunta genérica pode recuperar
+# outro artigo do corpus e ainda assim passar pelo limiar (OPS-09).
 POSITIVAS_COM_ARQUIVO = [
-    ("Como o modelo RAG combina o retriever DPR com o gerador BART?", "lewis2020_rag.pdf"),
-    ("O que é Dense Passage Retrieval (DPR)?", "karpukhin2020_dpr.pdf"),
-    ("Quais métricas o Ragas usa para avaliar fidelidade e relevância?", "es2023_ragas.pdf"),
-    ("O que são os tokens de reflexão do Self-RAG?", "asai2023_selfrag.pdf"),
+    ("Como o ajuste fino sequencial de modelos de linguagem pequenos melhora o RAG?", "rocha2025_ragsft.pdf"),
+    ("Quais modelos de embeddings tiveram melhor desempenho em RAG para português?", "medeiros2025_embeddings_pt.pdf"),
+    ("Quais LLMs foram comparados para geração aumentada por recuperação em português?", "medeiros2025_embeddings_pt.pdf"),
     (
-        "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
-        "liu2023_lost_middle.pdf",
+        "Como a segmentação ancorada e o enriquecimento com pré-contexto otimizam os chunks no domínio jurídico?",
+        "brakes2025_rag_juridico.pdf",
     ),
-    ("Quais são os principais desafios de RAG discutidos no survey de Gao et al.?", "gao2023_survey.pdf"),
-    ("Como o DPR treina o retriever com exemplos negativos?", "karpukhin2020_dpr.pdf"),
-    ("O que é retrieval-augmented generation?", None),
+    ("Como a busca jurídica combina filtros de metadados com busca vetorial?", "brakes2025_rag_juridico.pdf"),
+    ("O que são grafos de conhecimento e como eles se integram ao RAG?", "xavier2024_rag_grafos.pdf"),
+    ("Como o Neo4j é usado em RAG com grafos de conhecimento?", "xavier2024_rag_grafos.pdf"),
+    ("O que é geração aumentada por recuperação?", None),
 ]
 PERGUNTAS_POSITIVAS = [pergunta for pergunta, _ in POSITIVAS_COM_ARQUIVO]
 ARQUIVOS_ESPERADOS = dict(POSITIVAS_COM_ARQUIVO)

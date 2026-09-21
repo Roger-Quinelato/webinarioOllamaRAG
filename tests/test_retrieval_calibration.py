@@ -25,7 +25,7 @@ class _ColecaoFalsa:
         self.troca = troca or {}
 
     def query(self, **_):
-        arquivos = [self.troca.get(p, ARQUIVOS_ESPERADOS.get(p) or "gao2023_survey.pdf") for p in PERGUNTAS_POSITIVAS]
+        arquivos = [self.troca.get(p, ARQUIVOS_ESPERADOS.get(p) or "xavier2024_rag_grafos.pdf") for p in PERGUNTAS_POSITIVAS]
         arquivos += ["outro.pdf"] * len(PERGUNTAS_NEGATIVAS)
         distancias = [0.3] * len(PERGUNTAS_POSITIVAS) + [0.7] * len(PERGUNTAS_NEGATIVAS)
         return {"distances": [[d] for d in distancias], "metadatas": [[{"arquivo": a}] for a in arquivos]}
@@ -44,7 +44,7 @@ class RetrievalCalibrationTest(unittest.TestCase):
     def test_limiar_ativo_e_o_ponto_medio_da_calibracao_real(self):
         """Verifica que limiar ativo e o ponto medio da calibração real."""
         resultado = calcular_limiar_com_margem(
-            [0.44007039070129395],
+            [0.37379246950149536],
             [0.5800204873085022],
         )
 
@@ -65,13 +65,13 @@ class RetrievalCalibrationTest(unittest.TestCase):
         """Verifica que calibração aprova quando chunk mais próximo vem do documento esperado."""
         resultado = medir_retrieval(_ColecaoFalsa(), _ProviderFalso(), limiar=0.5)
 
-        self.assertEqual(resultado["positivas"][0]["arquivo"], "lewis2020_rag.pdf")
+        self.assertEqual(resultado["positivas"][0]["arquivo"], "rocha2025_ragsft.pdf")
 
     def test_calibracao_reprova_quando_chunk_mais_proximo_vem_de_outro_documento(self):
         """Verifica que calibração reprova quando chunk mais próximo vem de outro documento."""
-        colecao = _ColecaoFalsa({PERGUNTAS_POSITIVAS[0]: "gao2023_survey.pdf"})
+        colecao = _ColecaoFalsa({PERGUNTAS_POSITIVAS[0]: "brakes2025_rag_juridico.pdf"})
 
-        with self.assertRaisesRegex(ValueError, "lewis2020_rag.pdf.*gao2023_survey.pdf"):
+        with self.assertRaisesRegex(ValueError, "rocha2025_ragsft.pdf.*brakes2025_rag_juridico.pdf"):
             medir_retrieval(colecao, _ProviderFalso(), limiar=0.5)
 
 

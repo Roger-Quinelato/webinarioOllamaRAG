@@ -5,7 +5,7 @@ e afirmações atribuídas pela resposta.
 
 ## Bases
 
-**Corpus Oficial**: conjunto fixo de oito artigos da demonstração.  Evitar: base
+**Corpus Oficial**: conjunto fixo de quatro artigos em português da demonstração.  Evitar: base
 padrão, base global.
 
 **Índice de Sessão**: base temporária, exclusiva dos PDFs enviados na sessão
