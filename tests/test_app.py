@@ -96,7 +96,7 @@ class AppTestIntegracao(unittest.TestCase):
         self.assertFalse(at.exception)
         
         # Check title
-        self.assertEqual(at.title[0].value, "📚 Assistente RAG sobre artigos de RAG")
+        self.assertEqual(at.title[0].value, "Assistente RAG sobre artigos de RAG")
         self.assertEqual(len(at.file_uploader), 0)
         self.assertTrue(any("após a apresentação" in info.value for info in at.info))
 
@@ -154,7 +154,7 @@ class AppTestFluxoPergunta(unittest.TestCase):
 
     def test_slider_de_k_vai_ate_o_teto_real(self):
         at, _ = self._abrir(_GeracaoFalsa())
-        slider = next(s for s in at.sidebar.slider if s.label.startswith("k"))
+        slider = next(s for s in at.sidebar.slider if s.label.startswith("Trechos"))
         self.assertEqual(slider.max, MAX_CHUNKS_RETRIEVAL)
         self.assertLessEqual(slider.value, MAX_CHUNKS_RETRIEVAL)
 
@@ -164,7 +164,7 @@ class AppTestFluxoPergunta(unittest.TestCase):
         mensagens = at.session_state["mensagens"]
         self.assertEqual(mensagens[-1]["texto"], "O RAG recupera trechos [1].")
         self.assertEqual(mensagens[-1]["busca"]["classe_fontes"], "citadas")
-        self.assertEqual([e.label for e in at.expander], ["Fontes Citadas (1)"])
+        self.assertEqual([e.label for e in at.expander], ["Fontes Citadas (1) · a.pdf"])
         self.assertTrue(any("a.pdf" in m.value for m in at.expander[0].markdown))
 
     def test_resposta_sem_citacao_mostra_chunks_recuperados_como_fallback(self):
@@ -211,7 +211,7 @@ class AppTestFluxoPergunta(unittest.TestCase):
 
     def test_valor_de_k_respeita_o_slider(self):
         at, colecao = self._abrir(_GeracaoFalsa(["Ok [1]"]))
-        next(s for s in at.sidebar.slider if s.label.startswith("k")).set_value(2).run(timeout=30)
+        next(s for s in at.sidebar.slider if s.label.startswith("Trechos")).set_value(2).run(timeout=30)
         self._perguntar(at)
         self.assertEqual(colecao.consultas[-1]["n_results"], 2)
 

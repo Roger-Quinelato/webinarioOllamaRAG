@@ -99,14 +99,12 @@ O script baixa os artigos para `artigos/` (os PDFs não ficam no repositório) e
 
 | Arquivo | Artigo |
 |---|---|
-| `lewis2020_rag.pdf` | Lewis et al. (2020). *Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks* — <https://arxiv.org/abs/2005.11401> |
-| `karpukhin2020_dpr.pdf` | Karpukhin et al. (2020). *Dense Passage Retrieval for Open-Domain Question Answering* — <https://arxiv.org/abs/2004.04906> |
-| `gao2023_survey.pdf` | Gao et al. (2023). *Retrieval-Augmented Generation for Large Language Models: A Survey* — <https://arxiv.org/abs/2312.10997> |
-| `es2023_ragas.pdf` | Es et al. (2023). *Ragas: Automated Evaluation of Retrieval Augmented Generation* — <https://arxiv.org/abs/2309.15217> |
-| `asai2023_selfrag.pdf` | Asai et al. (2023). *Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection* — <https://arxiv.org/abs/2310.11511> |
-| `liu2023_lost_middle.pdf` | Liu et al. (2023). *Lost in the Middle: How Language Models Use Long Contexts* — <https://arxiv.org/abs/2307.03172> |
-| `rocha2025_ragsft.pdf` | Rocha et al. (2025). *Aprimorando Geração Aumentada por Recuperação via Ajuste Fino Sequencial de Modelos de Linguagem Pequenos* (SBBD) — <https://sol.sbc.org.br/index.php/sbbd/article/view/37242> |
+| `rocha2025_ragsft.pdf` | Olivera et al. (2025). *Aprimorando Geração Aumentada por Recuperação via Ajuste Fino Sequencial de Modelos de Linguagem Pequenos* (SBBD) — <https://sol.sbc.org.br/index.php/sbbd/article/view/37242> |
 | `medeiros2025_embeddings_pt.pdf` | Medeiros & Oliveira (2025). *Comparação de Modelos de Embeddings e LLMs para Geração Aumentada por Recuperação em Português* (SEMISH) — <https://sol.sbc.org.br/index.php/semish/article/view/36829> |
+| `brakes2025_rag_juridico.pdf` | Brakes et al. (2025). *Uma Arquitetura de RAG com Busca Semântica e Filtros Estruturados para Perguntas e Respostas no Domínio Jurídico* (ERI-GO) — <https://sol.sbc.org.br/index.php/erigo/article/view/39531> |
+| `xavier2024_rag_grafos.pdf` | Xavier & Soares (2024). *Geração com Recuperação Aumentada (RAG) em Grafos de Conhecimento* (Minicursos do SBBD) — <https://books-sol.sbc.org.br/index.php/sbc/catalog/book/153> |
+
+O Corpus Oficial tem só artigos em português desde 2026-09-21. Os seis artigos em inglês da versão anterior (Lewis, Karpukhin, Gao, Es, Asai e Liu) saíram do corpus; a coleção indexada com eles continua no Chroma para rollback.
 
 ### 7. Indexar
 

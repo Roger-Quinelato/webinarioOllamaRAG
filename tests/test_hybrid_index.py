@@ -41,7 +41,7 @@ def chunks_de_teste():
                 "tipo_chunk": "pagina",
             },
         }
-        for numero in range(1, 9)
+        for numero in range(1, len(config.ARTIGOS_CORPUS) + 1)
     ]
 
 
@@ -189,7 +189,7 @@ class HybridIndexTest(unittest.TestCase):
 
         nomes = {colecao.name for colecao in cliente.list_collections()}
         self.assertEqual(primeiro["colecao"], segundo["colecao"])
-        self.assertEqual(primeiro["embeddings_gerados"], 8)
+        self.assertEqual(primeiro["embeddings_gerados"], len(config.ARTIGOS_CORPUS))
         self.assertEqual(segundo["embeddings_gerados"], 0)
         self.assertEqual(len(chamadas), 1)
         self.assertIn("artigos_rag", nomes)

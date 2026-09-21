@@ -15,7 +15,28 @@ from ollama_embedding_provider import ErroProviderEmbeddingsOllama, ProviderEmbe
 from openai_rag import MAX_CHUNKS_RETRIEVAL, OpenAIRAG, BaseAtiva
 import config
 
-st.set_page_config(page_title="Assistente RAG — CIIA", page_icon="📚", layout="wide")
+st.set_page_config(
+    page_title="Assistente RAG — CIIA", page_icon=":material/menu_book:", layout="wide"
+)
+
+st.markdown(
+    """
+    <style>
+    h1 { font-size: 1.9rem !important; }
+    [data-testid="stCaptionContainer"] { color: #B8BFCC !important; opacity: 1 !important; font-size: 0.85rem; }
+    [data-testid="stChatInputSubmitButton"] { min-width: 44px; min-height: 44px; }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+AVATAR_USUARIO = ":material/person:"
+AVATAR_ASSISTENTE = ":material/smart_toy:"
+
+
+def _avatar(papel):
+    """Escolhe o avatar do papel."""
+    return AVATAR_USUARIO if papel == "user" else AVATAR_ASSISTENTE
 
 def _secrets_geracao():
     """Auxilia secrets geração."""
@@ -43,17 +64,15 @@ except (NenhumProviderGeracaoConfigurado, OrdemProvidersInvalida) as erro:
     st.stop()
 rag = OpenAIRAG(emb_provider, gen_provider)
 
-def montar_filtro(ano_minimo, temas, idiomas):
+def montar_filtro(ano_minimo, temas):
     """Monta filtro."""
-    if not (ano_minimo or temas or idiomas):
+    if not (ano_minimo or temas):
         return None
     condicoes = []
     if ano_minimo:
         condicoes.append({"ano": {"$gte": ano_minimo}})
     if temas:
         condicoes.append({"tema": {"$in": temas}})
-    if idiomas:
-        condicoes.append({"idioma": {"$in": idiomas}})
     
     if not condicoes:
         return None
@@ -73,6 +92,12 @@ def _mostrar_lista_fontes(fontes):
         st.text(fonte["texto"][:700])
 
 
+def _resumo_arquivos(fontes):
+    """Resume os arquivos das fontes para o cabeçalho do expander."""
+    arquivos = list(dict.fromkeys(f.get("arquivo", "?") for f in fontes))
+    return arquivos[0] if len(arquivos) == 1 else f"{arquivos[0]} e mais {len(arquivos) - 1}"
+
+
 def mostrar_fontes(busca):
     """Mostra fontes."""
     chunks = busca["chunks_recuperados"]
@@ -83,31 +108,38 @@ def mostrar_fontes(busca):
     detalhe_provider = f" · Geração: {provider}" if provider else ""
     if busca.get("fallback_used"):
         detalhe_provider += " (fallback)"
-    st.caption(f"Base Ativa: {busca['base_ativa']} · Classe: {busca['classe_fontes']}{detalhe_provider}")
-    if busca["classe_fontes"] == "recusa":
+    classe = busca["classe_fontes"]
+    detalhe_classe = "" if classe == "citadas" else f" · Classe: {classe}"
+    st.caption(f"Base Ativa: {busca['base_ativa']}{detalhe_classe}{detalhe_provider}")
+    if classe == "recusa":
         return
     if citadas:
-        with st.expander(f"Fontes Citadas ({len(citadas)})"):
+        with st.expander(f"Fontes Citadas ({len(citadas)}) · {_resumo_arquivos(citadas)}", expanded=True):
             _mostrar_lista_fontes(citadas)
     elif chunks:
         with st.expander(f"Chunks Recuperados ({len(chunks)})"):
             _mostrar_lista_fontes(chunks)
 
-st.title("📚 Assistente RAG sobre artigos de RAG")
+st.title("Assistente RAG sobre artigos de RAG")
 st.caption("RAG híbrido com bge-m3 local e geração OpenAI, NVIDIA ou Gemini")
 
 with st.sidebar:
     st.header("Configuração")
-    if st.button("Limpar conversa"):
+    if st.button("Limpar conversa", icon=":material/delete:"):
         st.session_state.mensagens = []
         st.rerun()
-        
-    k = st.slider("k (trechos no contexto)", 1, MAX_CHUNKS_RETRIEVAL, config.K_PADRAO)
-    
-    st.subheader("Filtros de metadados (Corpus Oficial)")
+
+    k = st.slider(
+        "Trechos consultados (k)",
+        1,
+        MAX_CHUNKS_RETRIEVAL,
+        config.K_PADRAO,
+        help="Quantidade de trechos do corpus enviados ao modelo para responder cada pergunta.",
+    )
+
+    st.subheader("Filtros do Corpus")
     ano_minimo = st.slider("Ano mínimo", 2020, 2026, 2020)
-    temas = st.multiselect("Tema", config.TEMAS)
-    idiomas = st.multiselect("Idioma", config.IDIOMAS)
+    temas = st.multiselect("Tema", config.TEMAS, placeholder="Selecione os temas")
     
     if not config.UPLOADS_STREAMLIT_HABILITADOS:
         st.info("Upload de PDFs ficará disponível após a apresentação.")
@@ -133,7 +165,7 @@ st.session_state.historico_base_ativa = identidade_base
 
 for mensagem in st.session_state.mensagens:
     if mensagem["papel"] in ["user", "assistant"]:
-        with st.chat_message(mensagem["papel"]):
+        with st.chat_message(mensagem["papel"], avatar=_avatar(mensagem["papel"])):
             st.markdown(mensagem["texto"])
             if mensagem["papel"] == "assistant" and "busca" in mensagem:
                 mostrar_fontes(mensagem["busca"])
@@ -141,12 +173,12 @@ for mensagem in st.session_state.mensagens:
 pergunta = st.chat_input("Pergunte algo...")
 if pergunta:
     st.session_state.mensagens.append({"papel": "user", "texto": pergunta})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=AVATAR_USUARIO):
         st.markdown(pergunta)
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=AVATAR_ASSISTENTE):
         try:
             if base_ativa.tipo == "Corpus Oficial":
-                filtro = montar_filtro(ano_minimo, temas, idiomas)
+                filtro = montar_filtro(ano_minimo, temas)
             else:
                 filtro = None
                 

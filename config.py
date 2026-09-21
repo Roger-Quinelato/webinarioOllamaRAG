@@ -22,27 +22,23 @@ SOBREPOSICAO = 150
 K_PADRAO = 4
 N_ARTIGOS_ESTAGIO_1 = 3
 DISTANCIA_MAXIMA_ESTAGIO_1 = 0.60
-# Ponto médio do intervalo real (0.44007039070129395, 0.5800204873085022),
-# com margem igual para perguntas positivas e negativas do retrieval híbrido.
-DISTANCIA_MAXIMA_RETRIEVAL = 0.5100454390048981
+# Ponto médio do intervalo real (0.37379246950149536, 0.5800204873085022) no corpus
+# só em português (2026-09-21), com margem igual para perguntas positivas e negativas.
+DISTANCIA_MAXIMA_RETRIEVAL = 0.4769064784049988
 TEMPERATURA = 0.1
 MAX_TOKENS_RESPOSTA = 400
 UPLOADS_STREAMLIT_HABILITADOS = False
 
 COLUNAS_METADADOS = ["arquivo", "titulo", "autores", "ano", "veiculo", "tema", "idioma", "resumo"]
-TEMAS = ["fundamentos", "retrieval", "avaliacao", "survey", "limitacoes"]
-IDIOMAS = ["en", "pt"]
+TEMAS = ["fundamentos", "retrieval", "avaliacao", "aplicacoes"]
+IDIOMAS = ["pt"]
 
 ARTIGOS_CORPUS = {
-    "lewis2020_rag.pdf": "https://arxiv.org/pdf/2005.11401",
-    "karpukhin2020_dpr.pdf": "https://arxiv.org/pdf/2004.04906",
-    "gao2023_survey.pdf": "https://arxiv.org/pdf/2312.10997",
-    "es2023_ragas.pdf": "https://arxiv.org/pdf/2309.15217",
-    "asai2023_selfrag.pdf": "https://arxiv.org/pdf/2310.11511",
-    "liu2023_lost_middle.pdf": "https://arxiv.org/pdf/2307.03172",
-    # T12/#12: artigos em português, decisão do autor de 2026-09-15 (delegada ao agente).
+    # Corpus só em português (decisão do autor, 2026-09-21); os artigos em inglês saíram.
     "rocha2025_ragsft.pdf": "https://sol.sbc.org.br/index.php/sbbd/article/download/37242/37025/",
     "medeiros2025_embeddings_pt.pdf": "https://sol.sbc.org.br/index.php/semish/article/download/36829/36615/",
+    "brakes2025_rag_juridico.pdf": "https://sol.sbc.org.br/index.php/erigo/article/download/39531/39303/",
+    "xavier2024_rag_grafos.pdf": "https://books-sol.sbc.org.br/index.php/sbc/catalog/download/153/658/1179",
 }
 
 RESPOSTA_NAO_ENCONTRADA = "Não encontrei essa informação nos documentos."
