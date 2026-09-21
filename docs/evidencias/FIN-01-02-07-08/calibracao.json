@@ -1,0 +1,81 @@
+{
+  "limiar_validado": 0.5100454390048981,
+  "limiar_calculado": 0.5100454390048981,
+  "maior_distancia_positiva": 0.44007039070129395,
+  "menor_distancia_negativa": 0.5800204873085022,
+  "margem_positivas": 0.06997504830360413,
+  "margem_negativas": 0.06997504830360413,
+  "intervalo_seguro": [
+    0.44007039070129395,
+    0.5800204873085022
+  ],
+  "positivas": [
+    {
+      "pergunta": "Como o modelo RAG combina o retriever DPR com o gerador BART?",
+      "distancia": 0.34807848930358887,
+      "arquivo": "lewis2020_rag.pdf"
+    },
+    {
+      "pergunta": "O que é Dense Passage Retrieval (DPR)?",
+      "distancia": 0.3088452219963074,
+      "arquivo": "karpukhin2020_dpr.pdf"
+    },
+    {
+      "pergunta": "Quais métricas o Ragas usa para avaliar fidelidade e relevância?",
+      "distancia": 0.39288443326950073,
+      "arquivo": "es2023_ragas.pdf"
+    },
+    {
+      "pergunta": "O que são os tokens de reflexão do Self-RAG?",
+      "distancia": 0.34669792652130127,
+      "arquivo": "asai2023_selfrag.pdf"
+    },
+    {
+      "pergunta": "Por que a posição da informação no contexto afeta a performance, segundo Lost in the Middle?",
+      "distancia": 0.286432683467865,
+      "arquivo": "liu2023_lost_middle.pdf"
+    },
+    {
+      "pergunta": "Quais são os principais desafios de RAG discutidos no survey de Gao et al.?",
+      "distancia": 0.44007039070129395,
+      "arquivo": "gao2023_survey.pdf"
+    },
+    {
+      "pergunta": "Como o DPR treina o retriever com exemplos negativos?",
+      "distancia": 0.3437419533729553,
+      "arquivo": "karpukhin2020_dpr.pdf"
+    },
+    {
+      "pergunta": "O que é retrieval-augmented generation?",
+      "distancia": 0.2875502109527588,
+      "arquivo": "gao2023_survey.pdf"
+    }
+  ],
+  "negativas": [
+    {
+      "pergunta": "Qual é a receita de pão de queijo mineiro?",
+      "distancia": 0.6412662267684937,
+      "arquivo": "lewis2020_rag.pdf"
+    },
+    {
+      "pergunta": "Qual é a capital da Mongólia?",
+      "distancia": 0.581831693649292,
+      "arquivo": "asai2023_selfrag.pdf"
+    },
+    {
+      "pergunta": "Quais são as regras do xadrez?",
+      "distancia": 0.6048406362533569,
+      "arquivo": "lewis2020_rag.pdf"
+    },
+    {
+      "pergunta": "Como trocar o óleo de um carro?",
+      "distancia": 0.5800204873085022,
+      "arquivo": "rocha2025_ragsft.pdf"
+    },
+    {
+      "pergunta": "Qual é a previsão do tempo para amanhã em Belo Horizonte?",
+      "distancia": 0.6257079839706421,
+      "arquivo": "asai2023_selfrag.pdf"
+    }
+  ]
+}
