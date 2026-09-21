@@ -47,6 +47,16 @@ def obter_chave_openai(secrets=None, environ=None):
     return chave
 
 
+def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    environ = os.environ if environ is None else environ
+    valor = environ.get(nome)
+    if valor:
+        return valor
+    if secrets is not None:
+        return secrets.get(nome, padrao)
+    return padrao
+
+
 def _mensagem_erro(erro):
     status = getattr(erro, "status_code", None)
     if status == 401:
@@ -99,7 +109,9 @@ class ProviderOpenAI:
     nome = "OpenAI"
 
     def __init__(self, *, client=None, secrets=None, environ=None):
-        self.modelo = os.getenv("OPENAI_GENERATION_MODEL", MODELO_GERACAO)
+        self.modelo = _valor_config(
+            "OPENAI_GENERATION_MODEL", MODELO_GERACAO, secrets=secrets, environ=environ
+        )
         if client is None:
             chave = obter_chave_openai(secrets=secrets, environ=environ)
             from openai import OpenAI

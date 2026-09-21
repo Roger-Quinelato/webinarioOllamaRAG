@@ -35,6 +35,16 @@ def obter_chave_nvidia(secrets=None, environ=None):
     return chave
 
 
+def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    environ = os.environ if environ is None else environ
+    valor = environ.get(nome)
+    if valor:
+        return valor
+    if secrets is not None:
+        return secrets.get(nome, padrao)
+    return padrao
+
+
 def _retry_after(erro):
     cabecalhos = getattr(erro, "headers", None)
     if cabecalhos is None:
@@ -88,14 +98,19 @@ class ProviderNVIDIA:
     nome = "NVIDIA"
 
     def __init__(self, *, client=None, secrets=None, environ=None, modelo=None, base_url=None):
-        self.modelo = modelo or os.getenv("NVIDIA_MODEL", MODELO_NVIDIA)
+        self.modelo = modelo or _valor_config(
+            "NVIDIA_MODEL", MODELO_NVIDIA, secrets=secrets, environ=environ
+        )
         if client is None:
             from openai import OpenAI
 
             environ = os.environ if environ is None else environ
             opcoes = {
                 "api_key": obter_chave_nvidia(secrets=secrets, environ=environ),
-                "base_url": base_url or os.getenv("NVIDIA_BASE_URL", NVIDIA_BASE_URL),
+                "base_url": base_url
+                or _valor_config(
+                    "NVIDIA_BASE_URL", NVIDIA_BASE_URL, secrets=secrets, environ=environ
+                ),
                 "max_retries": 0,
             }
             timeout = _timeout(environ)

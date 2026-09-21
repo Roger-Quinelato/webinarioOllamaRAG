@@ -30,6 +30,19 @@ class ObterChaveOpenAITest(unittest.TestCase):
         self.assertIs(provider._client, cliente)
         criar_cliente.assert_called_once_with(api_key="chave-de-ambiente", max_retries=0)
 
+    def test_modelo_pode_vir_de_secrets(self):
+        cliente = object()
+        with patch("openai.OpenAI", return_value=cliente):
+            provider = ProviderOpenAI(
+                secrets={
+                    "OPENAI_API_KEY": "chave",
+                    "OPENAI_GENERATION_MODEL": "modelo-secrets",
+                },
+                environ={},
+            )
+
+        self.assertEqual(provider.modelo, "modelo-secrets")
+
 
 class ProviderOpenAITest(unittest.TestCase):
     def test_expoe_somente_geracao_e_streaming(self):

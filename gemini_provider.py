@@ -34,6 +34,16 @@ def obter_chave_gemini(secrets=None, environ=None):
     return chave
 
 
+def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    environ = os.environ if environ is None else environ
+    valor = environ.get(nome)
+    if valor:
+        return valor
+    if secrets is not None:
+        return secrets.get(nome, padrao)
+    return padrao
+
+
 def _status_code(erro):
     status = getattr(erro, "status_code", None)
     if status is None:
@@ -110,7 +120,9 @@ class ProviderGemini:
     nome = "Gemini"
 
     def __init__(self, *, client=None, secrets=None, environ=None, modelo=None):
-        self.modelo = modelo or os.getenv("GEMINI_MODEL", MODELO_GEMINI)
+        self.modelo = modelo or _valor_config(
+            "GEMINI_MODEL", MODELO_GEMINI, secrets=secrets, environ=environ
+        )
         if client is None:
             from google import genai
 
