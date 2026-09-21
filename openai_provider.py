@@ -59,19 +59,66 @@ def _valor_config(nome, padrao, *, secrets=None, environ=None):
     return padrao
 
 
+def _timeout(*, secrets=None, environ=None):
+    """Lê ``OPENAI_TIMEOUT`` em segundos, do ambiente ou de secrets; ausente mantém o padrão do SDK."""
+    valor = _valor_config("OPENAI_TIMEOUT", None, secrets=secrets, environ=environ)
+    return float(valor) if valor else None
+
+
+_CODIGOS_STATUS = {
+    "credit_balance_exhausted": 429,
+    "insufficient_quota": 429,
+    "rate_limit_exceeded": 429,
+    "invalid_api_key": 401,
+}
+_CODIGOS_SEM_SALDO = {"credit_balance_exhausted", "insufficient_quota"}
+
+
+class _ErroEventoStream(Exception):
+    """Evento de erro do stream, reduzido a código e status; nunca guarda mensagem ou corpo."""
+
+    def __init__(self, codigo=None, status_code=None):
+        """Inicializa instância com dependências e parâmetros."""
+        super().__init__("evento de erro no streaming")
+        self.code = codigo
+        self.status_code = status_code
+
+
+def _codigo_erro(erro):
+    """Auxilia código do erro, lido do atributo ou do corpo estruturado."""
+    codigo = getattr(erro, "code", None)
+    if not isinstance(codigo, str):
+        corpo = getattr(erro, "body", None)
+        corpo = corpo.get("error", corpo) if isinstance(corpo, dict) else None
+        codigo = corpo.get("code") if isinstance(corpo, dict) else None
+    return codigo if isinstance(codigo, str) else None
+
+
+def _status_code(erro):
+    """Deriva o status HTTP do erro, da resposta ou do código do erro, nessa ordem."""
+    status = getattr(erro, "status_code", None)
+    if status is None:
+        status = getattr(getattr(erro, "response", None), "status_code", None)
+    if status is None:
+        status = _CODIGOS_STATUS.get(_codigo_erro(erro))
+    return status if isinstance(status, int) else None
+
+
 def _mensagem_erro(erro):
     """Auxilia mensagem erro."""
-    status = getattr(erro, "status_code", None)
+    status = _status_code(erro)
     if status == 401:
-        return "Não foi possível autenticar na OpenAI. Confira a chave OPENAI_API_KEY e tente novamente."
+        return "Não foi possível autenticar na OpenAI. Confira a chave OPENAI_API_KEY."
+    if status == 429 and _codigo_erro(erro) in _CODIGOS_SEM_SALDO:
+        return "A conta OpenAI está sem saldo ou cota. Verifique o faturamento."
     if status == 429:
-        return "A OpenAI atingiu o limite de requisições. Aguarde um momento e tente novamente."
+        return "A OpenAI atingiu o limite de requisições."
     if isinstance(erro, (ConnectionError, TimeoutError, httpx.RequestError)) or type(erro).__name__ in {
         "APIConnectionError",
         "APITimeoutError",
     }:
-        return "Não foi possível conectar à OpenAI. Confira a conexão e tente novamente."
-    return "A OpenAI não respondeu como esperado. Tente novamente em instantes."
+        return "Não foi possível conectar à OpenAI. Confira a conexão."
+    return "A OpenAI não respondeu como esperado."
 
 
 def _retry_after(erro):
@@ -99,11 +146,21 @@ def _request_id(erro):
     return (cabecalhos or {}).get("x-request-id") or (cabecalhos or {}).get("request-id")
 
 
+def _erro_do_evento(evento):
+    """Reduz um evento de erro do stream ao código e ao status, sem carregar a mensagem."""
+    origem = getattr(getattr(evento, "response", None), "error", None) or evento
+    codigo = getattr(origem, "code", None)
+    return _ErroEventoStream(
+        codigo if isinstance(codigo, str) else None,
+        getattr(evento, "status_code", None),
+    )
+
+
 def _erro_seguro(erro):
     """Auxilia erro seguro."""
     return ErroProviderOpenAI(
         _mensagem_erro(erro),
-        status_code=getattr(erro, "status_code", None),
+        status_code=_status_code(erro),
         retry_after=_retry_after(erro),
         request_id=_request_id(erro),
     )
@@ -123,7 +180,11 @@ class ProviderOpenAI:
             chave = obter_chave_openai(secrets=secrets, environ=environ)
             from openai import OpenAI
 
-            client = OpenAI(api_key=chave, max_retries=0)
+            opcoes = {"api_key": chave, "max_retries": 0}
+            timeout = _timeout(secrets=secrets, environ=environ)
+            if timeout is not None:
+                opcoes["timeout"] = timeout
+            client = OpenAI(**opcoes)
         self._client = client
 
     def gerar(self, mensagens):
@@ -147,7 +208,7 @@ class ProviderOpenAI:
                 elif evento.type == "response.completed":
                     concluida = True
                 elif evento.type in {"error", "response.failed", "response.incomplete"}:
-                    raise RuntimeError("A resposta em streaming falhou.")
+                    raise _erro_do_evento(evento)
             if not concluida:
                 raise RuntimeError("O streaming terminou sem conclusão.")
         except Exception as erro:

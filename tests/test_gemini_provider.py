@@ -27,7 +27,13 @@ class ProviderGeminiTest(unittest.TestCase):
 
         self.assertEqual("".join(provider.transmitir(mensagens)), "Resposta")
         self.assertEqual(chamadas[0]["model"], "modelo-gemini")
-        self.assertEqual(chamadas[0]["config"], {"system_instruction": "Use somente os trechos."})
+        self.assertEqual(
+            chamadas[0]["config"],
+            {
+                "automatic_function_calling": {"disable": True},
+                "system_instruction": "Use somente os trechos.",
+            },
+        )
         self.assertEqual(
             chamadas[0]["contents"],
             [

@@ -1,6 +1,6 @@
 import unittest
 
-from generation_router import ErroProviderGeracao, GenerationRouter
+from generation_router import ErroProviderGeracao, ExecucaoGeracao, GenerationRouter
 
 
 class ProviderFake:
@@ -32,10 +32,12 @@ class GenerationRouterTest(unittest.TestCase):
         router = GenerationRouter([openai, nvidia, None])
         mensagens = [{"role": "user", "content": "Pergunta"}]
 
-        self.assertEqual("".join(router.transmitir(mensagens)), "Resposta [1]")
-        self.assertEqual(router.ultima_execucao["generation_provider"], "NVIDIA")
-        self.assertTrue(router.ultima_execucao["fallback_used"])
-        self.assertEqual(router.ultima_execucao["attempted_providers"], ["OpenAI", "NVIDIA"])
+        execucao = router.transmitir(mensagens)
+
+        self.assertEqual("".join(execucao), "Resposta [1]")
+        self.assertEqual(execucao.telemetria["generation_provider"], "NVIDIA")
+        self.assertTrue(execucao.telemetria["fallback_used"])
+        self.assertEqual(execucao.telemetria["attempted_providers"], ["OpenAI", "NVIDIA"])
         self.assertEqual(openai.mensagens, [mensagens])
         self.assertEqual(nvidia.mensagens, [mensagens])
 
@@ -50,9 +52,12 @@ class GenerationRouterTest(unittest.TestCase):
         )
         router = GenerationRouter([openai])
 
-        self.assertEqual("".join(router.transmitir([])), "Resposta [1]")
+        execucao = router.transmitir([])
+
+        self.assertEqual("".join(execucao), "Resposta [1]")
         self.assertEqual(len(openai.mensagens), 2)
-        self.assertFalse(router.ultima_execucao["fallback_used"])
+        self.assertFalse(execucao.telemetria["fallback_used"])
+        self.assertEqual(execucao.telemetria["attempt"], 2)
 
     def test_retry_after_longo_avanca_para_nvidia_sem_repetir_openai(self):
         """Verifica que retry after longo avanca para NVIDIA sem repetir OpenAI."""
@@ -63,9 +68,11 @@ class GenerationRouterTest(unittest.TestCase):
         nvidia = ProviderFake("NVIDIA", [["Resposta [1]"]])
         router = GenerationRouter([openai, nvidia])
 
-        self.assertEqual("".join(router.transmitir([])), "Resposta [1]")
+        execucao = router.transmitir([])
+
+        self.assertEqual("".join(execucao), "Resposta [1]")
         self.assertEqual(len(openai.mensagens), 1)
-        self.assertEqual(router.ultima_execucao["attempted_providers"], ["OpenAI", "NVIDIA"])
+        self.assertEqual(execucao.telemetria["attempted_providers"], ["OpenAI", "NVIDIA"])
 
     def test_falha_apos_token_nao_chama_provider_seguinte(self):
         """Verifica que falha após token não chama provider seguinte."""
@@ -81,8 +88,8 @@ class GenerationRouterTest(unittest.TestCase):
         with self.assertRaisesRegex(ErroProviderGeracao, "interrompido"):
             next(fluxo)
         self.assertEqual(nvidia.mensagens, [])
-        self.assertEqual(router.ultima_execucao["generation_provider"], "OpenAI")
-        self.assertEqual(router.ultima_execucao["attempted_providers"], ["OpenAI"])
+        self.assertEqual(fluxo.telemetria["generation_provider"], "OpenAI")
+        self.assertEqual(fluxo.telemetria["attempted_providers"], ["OpenAI"])
 
     def test_todos_os_providers_indisponiveis_expoem_erro_seguro(self):
         """Verifica que todos os providers indisponiveis expõem erro seguro."""
@@ -96,6 +103,45 @@ class GenerationRouterTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ErroProviderGeracao, "Nenhum provider de geração"):
             list(router.transmitir([]))
+
+    def test_telemetria_pertence_a_cada_execucao_e_nao_ao_roteador(self):
+        """Verifica que execuções do mesmo roteador não compartilham telemetria."""
+        primeiro = ProviderFake("OpenAI", [["A"], ["B"]])
+        router = GenerationRouter([primeiro])
+        execucao_a = router.transmitir([])
+        execucao_b = router.transmitir([])
+
+        self.assertEqual("".join(execucao_a), "A")
+        self.assertEqual("".join(execucao_b), "B")
+        self.assertIsNot(execucao_a.telemetria, execucao_b.telemetria)
+        self.assertFalse(hasattr(router, "ultima_execucao"))
+
+    def test_mede_tempo_ate_o_primeiro_token(self):
+        """Verifica que a telemetria registra o tempo até o primeiro token."""
+        instantes = iter([10.0, 12.5, 13.0])
+        execucao = ExecucaoGeracao(
+            [ProviderFake("OpenAI", [["A", "B"]])], [], lambda _: None, relogio=lambda: next(instantes)
+        )
+
+        self.assertEqual("".join(execucao), "AB")
+        self.assertEqual(execucao.telemetria["time_to_first_token"], 2.5)
+
+    def test_registro_omite_prompt_chave_e_texto(self):
+        """Verifica que o registro traz provider e tentativa, mas nunca prompt, chave ou resposta."""
+        openai = ProviderFake(
+            "OpenAI", [[ErroProviderGeracao("segredo-sk-123", provider="OpenAI", status_code=503)]]
+        )
+        nvidia = ProviderFake("NVIDIA", [["texto da resposta"]])
+        mensagens = [{"role": "user", "content": "prompt confidencial"}]
+
+        with self.assertLogs("rag.geracao", level="INFO") as registro:
+            "".join(GenerationRouter([openai, nvidia]).transmitir(mensagens))
+
+        saida = " | ".join(registro.output)
+        self.assertIn("provider=NVIDIA", saida)
+        self.assertIn("tentativa=1", saida)
+        for proibido in ("prompt confidencial", "sk-123", "texto da resposta"):
+            self.assertNotIn(proibido, saida)
 
 
 if __name__ == "__main__":
