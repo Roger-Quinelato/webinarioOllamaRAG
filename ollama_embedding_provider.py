@@ -8,13 +8,14 @@ MODELO_EMBEDDING = "bge-m3"
 
 
 class ErroProviderEmbeddingsOllama(RuntimeError):
-    """Falha externa de embeddings apresentada sem detalhes internos."""
+    """Falha externa de embeddings apresentada sem detalhes internos. Herda de RuntimeError."""
 
 
 class ProviderEmbeddingsOllama:
     """Adapter mínimo entre o RAG e a fronteira externa do Ollama."""
 
     def __init__(self, *, client=None):
+        """Inicializa instância com dependências e parâmetros."""
         if client is None:
             from ollama import Client
 
@@ -22,6 +23,7 @@ class ProviderEmbeddingsOllama:
         self._client = client
 
     def gerar_embeddings(self, textos):
+        """Gera embeddings."""
         try:
             resposta = self._client.embed(model=MODELO_EMBEDDING, input=textos)
         except Exception as erro:

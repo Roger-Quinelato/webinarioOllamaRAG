@@ -12,17 +12,21 @@ from openai_provider import (
 
 
 class ObterChaveOpenAITest(unittest.TestCase):
+    """Agrupa testes de Obter Chave OpenAI Test. Herda de unittest.TestCase."""
     def test_informa_como_configurar_quando_chave_esta_ausente(self):
+        """Verifica que informa como configurar quando chave está ausente."""
         with self.assertRaisesRegex(ChaveOpenAIAusente, "OPENAI_API_KEY"):
             obter_chave_openai(secrets={}, environ={})
 
     def test_usa_ambiente_quando_secrets_nao_tem_chave(self):
+        """Verifica que usa ambiente quando secrets não tem chave."""
         self.assertEqual(
             obter_chave_openai(secrets={}, environ={"OPENAI_API_KEY": "chave-de-ambiente"}),
             "chave-de-ambiente",
         )
 
     def test_cliente_desativa_retentativas_para_a_fachada_controlar_o_retry(self):
+        """Verifica que cliente desativa retentativas para a fachada controlar o retry."""
         cliente = object()
         with patch("openai.OpenAI", return_value=cliente) as criar_cliente:
             provider = ProviderOpenAI(secrets={}, environ={"OPENAI_API_KEY": "chave-de-ambiente"})
@@ -45,16 +49,20 @@ class ObterChaveOpenAITest(unittest.TestCase):
 
 
 class ProviderOpenAITest(unittest.TestCase):
+    """Agrupa testes de Provider OpenAI Test. Herda de unittest.TestCase."""
     def test_expoe_somente_geracao_e_streaming(self):
+        """Verifica que expõe somente geração e streaming."""
         provider = ProviderOpenAI(client=object())
 
         self.assertFalse(hasattr(provider, "gerar_embeddings"))
         self.assertFalse(hasattr(openai_provider, "MODELO_EMBEDDING"))
 
     def test_geracao_e_streaming_usam_modelo_configurado(self):
+        """Verifica que geração e streaming usam modelo configurado."""
         chamadas = []
 
         def criar(**kwargs):
+            """Cria valor do fluxo."""
             chamadas.append(kwargs)
             if kwargs.get("stream"):
                 return iter([
@@ -75,7 +83,9 @@ class ProviderOpenAITest(unittest.TestCase):
         ])
 
     def test_streaming_reporta_falha_do_provider_apos_um_delta(self):
+        """Verifica que streaming reporta falha do provider após um delta."""
         def criar(**_kwargs):
+            """Cria valor do fluxo."""
             return iter([
                 SimpleNamespace(type="response.output_text.delta", delta="Resposta parcial"),
                 SimpleNamespace(type="response.failed"),
@@ -89,7 +99,9 @@ class ProviderOpenAITest(unittest.TestCase):
             next(fluxo)
 
     def test_normaliza_request_id_sem_expor_o_erro_externo(self):
+        """Verifica que normaliza request id sem expor o erro externo."""
         class ErroHTTP(Exception):
+            """Representa erro Erro HTTP. Herda de Exception."""
             status_code = 429
             headers = {"x-request-id": "openai-123"}
 
@@ -106,7 +118,9 @@ class ProviderOpenAITest(unittest.TestCase):
         self.assertNotIn("ErroHTTP", str(contexto.exception))
 
     def test_streaming_reporta_resposta_incompleta_antes_de_emitir_delta(self):
+        """Verifica que streaming reporta resposta incompleta antes de emitir delta."""
         def criar(**_kwargs):
+            """Cria valor do fluxo."""
             return iter([SimpleNamespace(type="response.incomplete")])
 
         provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))
@@ -115,7 +129,9 @@ class ProviderOpenAITest(unittest.TestCase):
             next(provider.transmitir([{"role": "user", "content": "Pergunta"}]))
 
     def test_geracao_incompleta_nao_retorna_texto_parcial_como_resposta(self):
+        """Verifica que geração incompleta não retorna texto parcial como resposta."""
         def criar(**_kwargs):
+            """Cria valor do fluxo."""
             return SimpleNamespace(status="incomplete", output_text="Trecho truncado")
 
         provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))
@@ -124,7 +140,9 @@ class ProviderOpenAITest(unittest.TestCase):
             provider.gerar([{"role": "user", "content": "Pergunta"}])
 
     def test_streaming_sem_evento_de_conclusao_reporta_falha(self):
+        """Verifica que streaming sem evento de conclusão reporta falha."""
         def criar(**_kwargs):
+            """Cria valor do fluxo."""
             return iter([SimpleNamespace(type="response.output_text.delta", delta="Trecho truncado")])
 
         provider = ProviderOpenAI(client=SimpleNamespace(responses=SimpleNamespace(create=criar)))

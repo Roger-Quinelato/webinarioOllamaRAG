@@ -23,6 +23,7 @@ SEP = "=" * 78
 
 
 def cabecalho(titulo):
+    """Descreve cabecalho."""
     print()
     print(SEP)
     print(titulo)
@@ -31,6 +32,7 @@ def cabecalho(titulo):
 
 # ---------------------------------------------------------------- A6/imports
 def ler_requisitos(caminho):
+    """Lê requisitos."""
     pacotes = {}
     for linha in (RAIZ / caminho).read_text(encoding="utf-8").splitlines():
         linha = linha.strip()
@@ -42,16 +44,19 @@ def ler_requisitos(caminho):
 
 
 def imports_do_codigo():
+    """Descreve imports do codigo."""
     achados = {}
     stdlib = set(sys.stdlib_module_names)
 
     def registra(modulo, origem):
+        """Registra valor do fluxo."""
         topo = modulo.split(".")[0]
         if topo in stdlib or topo in LOCAIS:
             return
         achados.setdefault(topo, set()).add(origem)
 
     def varrer(fonte, origem):
+        """Varre valor do fluxo."""
         try:
             arvore = ast.parse(fonte)
         except SyntaxError as erro:
@@ -81,6 +86,7 @@ def imports_do_codigo():
 
 
 def bloco_imports():
+    """Descreve bloco imports."""
     cabecalho("A6/imports — imports de terceiros × requirements")
     txt = ler_requisitos("requirements.txt")
     dev = ler_requisitos("requirements-dev.txt")
@@ -134,6 +140,7 @@ def bloco_imports():
 
 # ------------------------------------------------------------------ A6/venv
 def bloco_venv():
+    """Descreve bloco venv."""
     cabecalho("A6/venv — dist-info sem o código correspondente (modo de falha do A1-00)")
     sp = pathlib.Path(sys.prefix) / "Lib" / "site-packages"
     print(f"site-packages: {sp}")
@@ -189,6 +196,7 @@ def bloco_venv():
 
 # -------------------------------------------------------------- A6/scripts00
 def bloco_scripts00():
+    """Descreve bloco scripts00."""
     cabecalho("A6/scripts00 — o que 00_checar_ambiente.py de fato checa")
     texto = (RAIZ / "scripts" / "00_checar_ambiente.py").read_text(encoding="utf-8")
     arvore = ast.parse(texto)
@@ -328,6 +336,7 @@ def _rodar_00_sem(bloqueados, alvo="runpy.run_path(r'scripts/00_checar_ambiente.
 
 
 def bloco_scripts00_sim():
+    """Descreve bloco scripts00 sim."""
     cabecalho("A6/scripts00-sim — scripts/00 aprova ambiente ao qual falta pacote do requirements?")
     for bloqueados in (["pandas"], ["matplotlib"], ["ipykernel"], ["httpx"]):
         proc = _rodar_00_sem(bloqueados)

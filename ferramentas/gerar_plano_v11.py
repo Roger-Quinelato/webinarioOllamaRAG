@@ -15,6 +15,7 @@ paragrafos = documento.paragraphs
 
 
 def trocar(paragrafo, texto):
+    """Troca valor do fluxo."""
     primeiro = copy.deepcopy(paragrafo.runs[0]._element) if paragrafo.runs else None
     for filho in list(paragrafo._element):
         if filho.tag != docx.oxml.ns.qn("w:pPr"):
@@ -27,6 +28,7 @@ def trocar(paragrafo, texto):
 
 
 def substituir_lista(primeiro, ultimo, itens):
+    """Substitui lista."""
     modelo = paragrafos[primeiro]
     for indice in range(primeiro + 1, ultimo + 1):
         elemento = paragrafos[indice]._element
@@ -41,6 +43,7 @@ def substituir_lista(primeiro, ultimo, itens):
 
 
 def definir_celula(celula, texto):
+    """Define celula."""
     trocar(celula.paragraphs[0], texto)
     for extra in celula.paragraphs[1:]:
         extra._element.getparent().remove(extra._element)

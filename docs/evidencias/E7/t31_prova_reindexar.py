@@ -24,6 +24,7 @@ MARCA_FIM_DO_TRECHO = "amostra = colecao.get"
 
 
 def falhar(mensagem):
+    """Falha valor do fluxo."""
     print(f"RESULTADO: FALHOU -- {mensagem}")
     sys.exit(1)
 
@@ -51,18 +52,22 @@ print(fonte)
 
 
 class ColecaoDuble:
+    """Representa Colecao Duble."""
     def __init__(self, quantos):
+        """Inicializa instância com dependências e parâmetros."""
         self._quantos = quantos
 
     def count(self):
+        """Descreve count."""
         return self._quantos
 
 
 class IndexarChamado(Exception):
-    """rag.indexar() foi chamado -- a celula decidiu reindexar."""
+    """rag.indexar() foi chamado -- a celula decidiu reindexar. Herda de Exception."""
 
 
 def indexar_proibido(*_, **__):
+    """Indexa proibido."""
     raise IndexarChamado("rag.indexar() FOI CHAMADO: a celula decidiu reindexar")
 
 

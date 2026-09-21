@@ -24,6 +24,7 @@ def checar(nome, ok, detalhe=""):
     # why: devolve `ok` para o chamador ramificar sem consultar `falhas` — a versão anterior
     # testava `if "ollama" not in falhas`, mas `falhas` guarda o rótulo ("import ollama"), então a
     # condição era sempre verdadeira e o bloco do servidor rodava com o import quebrado.
+    """Checa valor do fluxo."""
     print(f"[{'OK ' if ok else 'FALHOU'}] {nome}{' — ' + detalhe if detalhe else ''}")
     if not ok:
         falhas.append(nome)
@@ -43,6 +44,7 @@ def pacotes_declarados(arquivo):
     # `pacote @ https://…`) reproduziria o próprio defeito que este ticket corrige — o script
     # diria "Ambiente pronto." sem ter checado tudo. Por isso o que não é reconhecido volta
     # separado, para virar uma falha visível, em vez de sumir.
+    """Lista pacotes declarados."""
     nomes, condicionais, nao_reconhecidas, sem_versao_fixa = [], [], [], []
     for numero, bruta in enumerate(arquivo.read_text(encoding="utf-8").splitlines(), start=1):
         linha = bruta.split("#")[0].strip()
@@ -68,12 +70,14 @@ def _normalizar_nome_pacote(nome):
     # why: nome próprio, e não `_normalizar`, para não colidir com rag._normalizar(), que normaliza
     # espaços em texto de metadados — outra regra, outro propósito (a checagem e7_duplicadas pegou
     # a homonímia).
+    """Auxilia normalizar nome pacote."""
     return re.sub(r"[-_.]+", "-", nome).lower()
 
 
 def _mapa_distribuicao_para_modulo():
     # why: packages_distributions() varre o site-packages inteiro; chamá-la uma vez por pacote
     # multiplicava esse custo por 10 num script que é a primeira coisa que o participante roda.
+    """Auxilia mapa distribuicao para modulo."""
     mapa = {}
     for modulo, distribuicoes in importlib.metadata.packages_distributions().items():
         for distribuicao in distribuicoes:
@@ -91,6 +95,7 @@ def modulo_da_distribuicao(distribuicao, mapa):
     # script importar `__pycache__`, que existe como namespace package e importa sem erro: a
     # checagem passava sem tocar no pacote que devia checar. Por isso a preferência é o nome que
     # bate com o da distribuição, e nomes com sublinhado à frente ficam por último.
+    """Descreve modulo da distribuicao."""
     normalizado = _normalizar_nome_pacote(distribuicao)
     candidatos = mapa.get(normalizado, [])
     for candidato in candidatos:
@@ -101,6 +106,7 @@ def modulo_da_distribuicao(distribuicao, mapa):
 
 
 def checar_integridade(pacote):
+    """Checa integridade."""
     try:
         dist = importlib.metadata.distribution(pacote)
         record = dist.read_text("RECORD")
@@ -124,6 +130,7 @@ def checar_integridade(pacote):
 
 
 def variavel_ollama_models():
+    """Descreve variavel Ollama models."""
     valor = os.environ.get("OLLAMA_MODELS")
     if valor or sys.platform != "win32":
         return valor

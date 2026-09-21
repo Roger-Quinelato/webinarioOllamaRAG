@@ -12,10 +12,11 @@ NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com
 
 
 class ChaveNVIDIAAusente(RuntimeError):
-    """A aplicação não pode consultar NVIDIA sem chave configurada."""
+    """A aplicação não pode consultar NVIDIA sem chave configurada. Herda de RuntimeError."""
 
 
 def obter_chave_nvidia(secrets=None, environ=None):
+    """Obtém chave NVIDIA."""
     if secrets is None:
         try:
             import streamlit as st
@@ -36,6 +37,7 @@ def obter_chave_nvidia(secrets=None, environ=None):
 
 
 def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    """Auxilia valor de configuração, lendo primeiro do ambiente e depois de secrets."""
     environ = os.environ if environ is None else environ
     valor = environ.get(nome)
     if valor:
@@ -46,6 +48,7 @@ def _valor_config(nome, padrao, *, secrets=None, environ=None):
 
 
 def _retry_after(erro):
+    """Auxilia retry after."""
     cabecalhos = getattr(erro, "headers", None)
     if cabecalhos is None:
         cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
@@ -57,6 +60,7 @@ def _retry_after(erro):
 
 
 def _request_id(erro):
+    """Auxilia request id."""
     request_id = getattr(erro, "request_id", None) or getattr(erro, "_request_id", None)
     if request_id:
         return request_id
@@ -67,11 +71,13 @@ def _request_id(erro):
 
 
 def _timeout(environ):
+    """Auxilia timeout."""
     valor = environ.get("NVIDIA_TIMEOUT")
     return float(valor) if valor else None
 
 
 def _mensagem_erro(erro):
+    """Auxilia mensagem erro."""
     status = getattr(erro, "status_code", None)
     if status in {401, 403}:
         return "Não foi possível autenticar na NVIDIA. Confira NVIDIA_API_KEY e tente novamente."
@@ -83,6 +89,7 @@ def _mensagem_erro(erro):
 
 
 def _erro_seguro(erro):
+    """Auxilia erro seguro."""
     return ErroProviderGeracao(
         _mensagem_erro(erro),
         provider="NVIDIA",
@@ -98,6 +105,7 @@ class ProviderNVIDIA:
     nome = "NVIDIA"
 
     def __init__(self, *, client=None, secrets=None, environ=None, modelo=None, base_url=None):
+        """Inicializa instância com dependências e parâmetros."""
         self.modelo = modelo or _valor_config(
             "NVIDIA_MODEL", MODELO_NVIDIA, secrets=secrets, environ=environ
         )
@@ -120,6 +128,7 @@ class ProviderNVIDIA:
         self._client = client
 
     def gerar(self, mensagens):
+        """Gera valor do fluxo."""
         try:
             resposta = self._client.chat.completions.create(model=self.modelo, messages=mensagens)
             texto = resposta.choices[0].message.content
@@ -130,6 +139,7 @@ class ProviderNVIDIA:
         return texto.strip()
 
     def transmitir(self, mensagens):
+        """Transmite valor do fluxo."""
         try:
             eventos = self._client.chat.completions.create(
                 model=self.modelo, messages=mensagens, stream=True

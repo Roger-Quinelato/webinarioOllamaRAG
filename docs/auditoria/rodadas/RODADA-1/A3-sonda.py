@@ -29,11 +29,13 @@ CONSTRUTOR = RAIZ / "ferramentas" / "construir_notebook.py"
 
 
 def celulas(caminho):
+    """Descreve celulas."""
     nb = json.loads(Path(caminho).read_text(encoding="utf-8"))
     return nb["cells"], [c for c in nb["cells"] if c["cell_type"] == "code"]
 
 
 def saida(celula):
+    """Descreve saida."""
     partes = []
     for o in celula.get("outputs", []):
         if o.get("output_type") == "stream":

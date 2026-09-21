@@ -27,15 +27,18 @@ PERGUNTAS = [
 
 
 def linhas_numeradas(texto):
+    """Descreve linhas numeradas."""
     return [re.sub(r"^\s*(?:\d+[.)]|[-*•])\s*", "", linha).strip()
             for linha in texto.splitlines() if linha.strip()]
 
 
 def sim_ou_nao(texto):
+    """Descreve sim ou não."""
     return texto.strip().lower().startswith(("sim", "yes"))
 
 
 def fidelidade(resposta, contexto):
+    """Descreve fidelidade."""
     afirmacoes = linhas_numeradas(rag.gerar_texto(
         "Quebre a resposta abaixo em afirmações curtas e independentes, uma por linha, numeradas.\n\n"
         f"Resposta:\n{resposta}", modelo=args.modelo, max_tokens=300))
@@ -49,6 +52,7 @@ def fidelidade(resposta, contexto):
 
 
 def relevancia_resposta(pergunta, resposta, n=3):
+    """Descreve relevancia resposta."""
     geradas = linhas_numeradas(rag.gerar_texto(
         f"Escreva {n} perguntas diferentes, uma por linha, numeradas, que a resposta abaixo responderia.\n\n"
         f"Resposta:\n{resposta}", modelo=args.modelo, max_tokens=200))[:n]
@@ -59,6 +63,7 @@ def relevancia_resposta(pergunta, resposta, n=3):
 
 
 def precisao_contexto(pergunta, resultados):
+    """Descreve precisao contexto."""
     relevantes = [sim_ou_nao(rag.gerar_texto(
         f"Pergunta: {pergunta}\n\nTrecho:\n{r['texto']}\n\nEste trecho ajuda a responder a pergunta? "
         "Responda apenas 'sim' ou 'não'.", modelo=args.modelo, max_tokens=5)) for r in resultados]

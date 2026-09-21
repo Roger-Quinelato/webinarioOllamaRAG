@@ -17,6 +17,7 @@ import verificar  # noqa: E402
 
 
 def exercitar(nome, funcao, esperado_reprova=True):
+    """Descreve exercitar."""
     try:
         funcao()
         saiu = None

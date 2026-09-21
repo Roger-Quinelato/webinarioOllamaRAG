@@ -7,10 +7,11 @@ from openai_provider import ChaveOpenAIAusente, ProviderOpenAI
 
 
 class NenhumProviderGeracaoConfigurado(RuntimeError):
-    """Nenhuma credencial de geração foi configurada."""
+    """Nenhuma credencial de geração foi configurada. Herda de RuntimeError."""
 
 
 def criar_generation_router(*, secrets, environ):
+    """Cria generation router."""
     providers = []
     for classe, erro_chave in (
         (ProviderOpenAI, ChaveOpenAIAusente),

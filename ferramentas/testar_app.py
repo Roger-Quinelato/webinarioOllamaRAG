@@ -13,16 +13,19 @@ sys.path.insert(0, str(RAIZ))
 
 
 def rotulos_expanders(app):
+    """Descreve rotulos expanders."""
     return [e.label for e in app.expander]
 
 
 def perguntar(app, texto, timeout=900):
+    """Envia pergunta valor do fluxo."""
     inicio = time.perf_counter()
     app.chat_input[0].set_value(texto).run(timeout=timeout)
     return time.perf_counter() - inicio
 
 
 def falhar(rotulo, motivo):
+    """Falha valor do fluxo."""
     print(f"FALHA {rotulo}: {motivo}")
     sys.exit(1)
 

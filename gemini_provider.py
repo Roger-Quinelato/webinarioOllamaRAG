@@ -11,10 +11,11 @@ MODELO_GEMINI = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
 
 
 class ChaveGeminiAusente(RuntimeError):
-    """A aplicação não pode consultar Gemini sem chave configurada."""
+    """A aplicação não pode consultar Gemini sem chave configurada. Herda de RuntimeError."""
 
 
 def obter_chave_gemini(secrets=None, environ=None):
+    """Obtém chave Gemini."""
     if secrets is None:
         try:
             import streamlit as st
@@ -35,6 +36,7 @@ def obter_chave_gemini(secrets=None, environ=None):
 
 
 def _valor_config(nome, padrao, *, secrets=None, environ=None):
+    """Auxilia valor de configuração, lendo primeiro do ambiente e depois de secrets."""
     environ = os.environ if environ is None else environ
     valor = environ.get(nome)
     if valor:
@@ -45,6 +47,7 @@ def _valor_config(nome, padrao, *, secrets=None, environ=None):
 
 
 def _status_code(erro):
+    """Auxilia status code."""
     status = getattr(erro, "status_code", None)
     if status is None:
         status = getattr(erro, "code", None)
@@ -54,6 +57,7 @@ def _status_code(erro):
 
 
 def _retry_after(erro):
+    """Auxilia retry after."""
     cabecalhos = getattr(erro, "headers", None)
     if cabecalhos is None:
         cabecalhos = getattr(getattr(erro, "response", None), "headers", None)
@@ -65,6 +69,7 @@ def _retry_after(erro):
 
 
 def _request_id(erro):
+    """Auxilia request id."""
     request_id = getattr(erro, "request_id", None) or getattr(erro, "_request_id", None)
     if request_id:
         return request_id
@@ -75,11 +80,13 @@ def _request_id(erro):
 
 
 def _timeout(environ):
+    """Auxilia timeout."""
     valor = environ.get("GEMINI_TIMEOUT")
     return int(float(valor) * 1000) if valor else None
 
 
 def _mensagem_erro(erro):
+    """Auxilia mensagem erro."""
     status = _status_code(erro)
     if status in {401, 403}:
         return "Não foi possível autenticar no Gemini. Confira GEMINI_API_KEY e tente novamente."
@@ -93,6 +100,7 @@ def _mensagem_erro(erro):
 
 
 def _erro_seguro(erro):
+    """Auxilia erro seguro."""
     return ErroProviderGeracao(
         _mensagem_erro(erro),
         provider="Gemini",
@@ -103,6 +111,7 @@ def _erro_seguro(erro):
 
 
 def _conteudo_gemini(mensagens):
+    """Auxilia conteudo gemini."""
     sistema = []
     conteudos = []
     for mensagem in mensagens:
@@ -120,6 +129,7 @@ class ProviderGemini:
     nome = "Gemini"
 
     def __init__(self, *, client=None, secrets=None, environ=None, modelo=None):
+        """Inicializa instância com dependências e parâmetros."""
         self.modelo = modelo or _valor_config(
             "GEMINI_MODEL", MODELO_GEMINI, secrets=secrets, environ=environ
         )
@@ -135,6 +145,7 @@ class ProviderGemini:
         self._client = client
 
     def gerar(self, mensagens):
+        """Gera valor do fluxo."""
         conteudos, sistema = _conteudo_gemini(mensagens)
         try:
             resposta = self._client.models.generate_content(
@@ -149,6 +160,7 @@ class ProviderGemini:
         return resposta.text.strip()
 
     def transmitir(self, mensagens):
+        """Transmite valor do fluxo."""
         conteudos, sistema = _conteudo_gemini(mensagens)
         try:
             eventos = self._client.models.generate_content_stream(

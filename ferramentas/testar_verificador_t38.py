@@ -9,14 +9,18 @@ import verificar
 
 
 class _ColecaoVazia:
+    """Representa Colecao Vazia."""
     def count(self):
+        """Descreve count."""
         return 0
 
     def get(self, **_):
+        """Descreve get."""
         return {"metadatas": []}
 
 
 def _deve_reprovar(nome, chamada):
+    """Auxilia deve reprovar."""
     try:
         chamada()
     except SystemExit as erro:
@@ -27,6 +31,7 @@ def _deve_reprovar(nome, chamada):
 
 
 def main():
+    """Descreve main."""
     _deve_reprovar(
         "e1_resumos sem metadados",
         lambda: _com_patch("rag.carregar_metadados", lambda: [], verificar.e1_resumos),
@@ -70,11 +75,13 @@ def main():
 
 
 def _com_patch(alvo, valor, chamada):
+    """Auxilia com patch."""
     with patch(alvo, valor):
         chamada()
 
 
 def _com_patches(valores, chamada):
+    """Auxilia com patches."""
     with patch.multiple(verificar.rag, **{
         alvo.removeprefix("rag."): valor for alvo, valor in valores.items()
     }):
