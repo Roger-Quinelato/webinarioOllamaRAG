@@ -11,14 +11,15 @@ import chromadb
 from chromadb.errors import NotFoundError
 
 import config
-from ollama_embedding_provider import MODELO_EMBEDDING, ProviderEmbeddingsOllama
+from ollama_embedding_provider import ProviderEmbeddingsOllama
 
 
 PROVEDOR_EMBEDDING = "Ollama"
 COLECAO_HIBRIDA = "artigos_rag_hibrido"
 MANIFESTO_HIBRIDO = "hybrid_manifest.json"
-VERSAO_COLECAO = "bge-m3-v1"
-DIMENSAO_EMBEDDING = 1024
+MODELO_EMBEDDING = config.MODELO_EMBEDDING
+VERSAO_COLECAO = config.VERSAO_COLECAO_EMBEDDING
+DIMENSAO_EMBEDDING = config.DIMENSAO_EMBEDDING
 LOTE_EMBEDDING = 32
 _METADADOS_CHUNK_OBRIGATORIOS = ("arquivo", "pagina", "ano", "idioma", "tema", "chunk_id")
 
@@ -175,7 +176,8 @@ def reindexar_corpus_oficial(provider, *, chunks=None, chroma_client=None, progr
     dimensoes = {len(vetor) for vetor in vetores}
     if dimensoes != {DIMENSAO_EMBEDDING}:
         raise ValueError(
-            f"O Provider Ollama devolveu embeddings incompatíveis; bge-m3 exige dimensão {DIMENSAO_EMBEDDING}."
+            f"O Provider Ollama devolveu embeddings incompatíveis; "
+            f"{MODELO_EMBEDDING} exige dimensão {DIMENSAO_EMBEDDING}."
         )
     dimensao = DIMENSAO_EMBEDDING
     metadados = {

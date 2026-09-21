@@ -23,9 +23,9 @@ class BaseAtiva:
     colecao: object
     tipo: str = "Corpus Oficial"
     provedor_embedding: str = "Ollama"
-    modelo_embedding: str = "bge-m3"
-    dimensao_embedding: int = 1024
-    versao_colecao: str = "bge-m3-v1"
+    modelo_embedding: str = config.MODELO_EMBEDDING
+    dimensao_embedding: int = config.DIMENSAO_EMBEDDING
+    versao_colecao: str = config.VERSAO_COLECAO_EMBEDDING
     sessao_id: str | None = None
 
 
@@ -120,7 +120,7 @@ class OpenAIRAG:
         if len(vetores) != 1:
             raise ValueError(
                 "O Provider Ollama precisa devolver exatamente um embedding para a pergunta. "
-                "Confira a configuração do bge-m3 antes de consultar."
+                f"Confira a configuração do {base_ativa.modelo_embedding} antes de consultar."
             )
         vetor = vetores[0]
         if (
@@ -129,7 +129,8 @@ class OpenAIRAG:
         ):
             raise ValueError(
                 "O embedding da pergunta tem dimensão incompatível com a Base Ativa. "
-                "Confira a configuração do bge-m3 e execute a reindexação explícita antes de consultar."
+                f"Confira a configuração do {base_ativa.modelo_embedding} "
+                "e execute a reindexação explícita antes de consultar."
             )
         opcoes = {
             "query_embeddings": [vetor],
