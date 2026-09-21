@@ -158,7 +158,7 @@ O navegador abre em <http://localhost:8501>. Durante o treino, a UI consulta som
 | `hybrid_index.py` | Publicação e abertura do Corpus Oficial híbrido |
 | `metadados.csv` | Metadados e resumos versionados do Corpus Oficial |
 | `scripts/` | Um script por bloco da aula, em ordem |
-| `webinario_rag.ipynb` | Notebook da aula (gerado por `ferramentas/construir_notebook.py`) |
+| `webinario_rag.ipynb` | Material histórico do Encontro 2, baseado em Ollama; não é executado na aula híbrida atual |
 | `app.py` | Chatbot Streamlit |
 | `opcional/` | Shapley dos chunks e avaliação no estilo RAGAS (lentos; não rodam ao vivo) |
 | `resultados/` | Saídas pré-computadas usadas como rede de segurança na aula |
@@ -180,7 +180,7 @@ python ferramentas/gerar_plano_v11.py
 |---|---|
 | `construir_notebook.py` | Gera o `webinario_rag.ipynb` a partir do código-fonte das células |
 | `executar_notebook.py` | Executa o notebook em kernel limpo; `--offline` não chama Ollama nem OpenAI |
-| `rodar_scripts.sh` | Roda apenas a lista explícita de comandos híbridos, com log |
+| `rodar_scripts.sh` | Roda `02_indexar_hibrido.py` e `calibrar_retrieval_hibrido.py`; grava logs locais ignorados em `logs/rodar_scripts/` |
 | `python -m unittest tests.test_app` | Testa o Streamlit com `AppTest` (dono único em `tests/test_app.py`) |
 | `medir.py` | Mede os tempos desta máquina |
 | `gerar_plano_v11.py` | Gera o plano de aula v1.1 em `docs/` |
