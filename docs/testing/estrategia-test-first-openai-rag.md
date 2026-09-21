@@ -28,7 +28,7 @@
 ## Casos obrigatórios
 
 - Corpus Oficial e Índice de Sessão usam `bge-m3` via Ollama.
-- Geração e streaming usam Gemini, NVIDIA e OpenAI, na ordem padrão da
+- Geração e streaming usam NVIDIA, Gemini e OpenAI, na ordem padrão da
   ADR-004, configurável por `GENERATION_PROVIDERS_ORDER`; cada provider tem teste de contrato na sua fronteira externa.
 - Falha antes do primeiro token avança pela ordem configurada; não
   aciona geração local automaticamente.

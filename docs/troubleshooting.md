@@ -53,7 +53,7 @@ no stderr do processo, então rode o Streamlit num terminal visível durante a
 demonstração.
 
 Se a NVIDIA falhar com frequência, confira `NVIDIA_MODEL`: prefira um modelo de
-instrução, como o padrão `meta/llama-3.1-8b-instruct`, a um modelo de
+instrução, como o padrão `meta/llama-3.2-11b-vision-instruct`, a um modelo de
 *reasoning*, que demora a emitir o primeiro token.
 
 O Gemini roda com chamada automática de funções desligada, pois o pipeline não

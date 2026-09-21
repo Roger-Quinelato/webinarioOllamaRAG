@@ -14,7 +14,7 @@ Preserve tag `legacy-pre-openai` para rollback. Não apague coleção Chroma leg
 ## Fontes canônicas
 
 - [ADR-004](docs/adr/004-ordem-configuravel-de-providers.md): ordem padrão
-  Gemini, NVIDIA e OpenAI, configurável; supera só a ordem da ADR-003.
+  NVIDIA, Gemini e OpenAI, configurável; supera só a ordem da ADR-003.
 - [ADR-003](docs/adr/003-fallback-remoto-de-geracao.md): fallback remoto de
   geração; supera a consequência de indisponibilidade da ADR-002.
 - [ADR-002](docs/adr/002-bge-m3-local-e-geracao-openai.md): decisão vigente de

@@ -33,7 +33,7 @@ PROVIDERS_GERACAO = {
     "nvidia": ("ProviderNVIDIA", ChaveNVIDIAAusente, "NVIDIA_API_KEY"),
     "openai": ("ProviderOpenAI", ChaveOpenAIAusente, "OPENAI_API_KEY"),
 }
-ORDEM_PADRAO = "gemini,nvidia,openai"
+ORDEM_PADRAO = "nvidia,gemini,openai"
 
 
 def ordem_providers(*, secrets, environ):

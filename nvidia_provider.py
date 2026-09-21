@@ -10,7 +10,7 @@ from generation_router import ErroProviderGeracao
 
 LOGGER = logging.getLogger("rag.geracao")
 TIMEOUT_PADRAO = 30.0
-MODELO_NVIDIA = os.getenv("NVIDIA_MODEL", "meta/llama-3.1-8b-instruct")
+MODELO_NVIDIA = os.getenv("NVIDIA_MODEL", "meta/llama-3.2-11b-vision-instruct")
 NVIDIA_BASE_URL = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
 
 

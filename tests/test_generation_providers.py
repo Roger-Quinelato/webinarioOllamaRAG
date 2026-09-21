@@ -41,13 +41,13 @@ class GenerationProvidersTest(unittest.TestCase):
     @patch("generation_providers.ProviderGemini")
     @patch("generation_providers.ProviderNVIDIA")
     @patch("generation_providers.ProviderOpenAI")
-    def test_ordem_padrao_e_gemini_nvidia_openai(self, openai, nvidia, gemini):
-        """Verifica a ordem padrão Gemini, NVIDIA e OpenAI (FIN-03)."""
+    def test_ordem_padrao_e_nvidia_gemini_openai(self, openai, nvidia, gemini):
+        """Verifica a ordem padrão NVIDIA, Gemini e OpenAI (FIN-03)."""
         self._todos_configurados(openai, nvidia, gemini)
 
         router = criar_generation_router(secrets={}, environ={})
 
-        self.assertEqual([p.nome for p in router._providers], ["Gemini", "NVIDIA", "OpenAI"])
+        self.assertEqual([p.nome for p in router._providers], ["NVIDIA", "Gemini", "OpenAI"])
 
     @patch("generation_providers.ProviderGemini")
     @patch("generation_providers.ProviderNVIDIA")
@@ -57,10 +57,10 @@ class GenerationProvidersTest(unittest.TestCase):
         self._todos_configurados(openai, nvidia, gemini)
 
         router = criar_generation_router(
-            secrets={}, environ={"GENERATION_PROVIDERS_ORDER": " NVIDIA , gemini,openai "}
+            secrets={}, environ={"GENERATION_PROVIDERS_ORDER": " OpenAI , gemini,NVIDIA "}
         )
 
-        self.assertEqual([p.nome for p in router._providers], ["NVIDIA", "Gemini", "OpenAI"])
+        self.assertEqual([p.nome for p in router._providers], ["OpenAI", "Gemini", "NVIDIA"])
 
     @patch("generation_providers.ProviderGemini")
     @patch("generation_providers.ProviderNVIDIA")
