@@ -1,3 +1,0 @@
-Testando pacote fake com RECORD apontando para arquivo inexistente...
-Exit code: 1
-SUCESSO: Sonda detectou integridade corrompida!

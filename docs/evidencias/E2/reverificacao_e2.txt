@@ -1,8 +1,0 @@
-﻿2.2 total de chunks: 556
-2.2 chunks sem algum metadado obrigatório: 0 []
-2.2 amostra: {'resumo': 'The abstract discusses the exploration of retrieval-augmented generation (RAG) models, which combine pre-trained parametric and non-parametric memory for language generation. These models use a pre-trained seq2seq model for the parametric memory and a dense vector index of Wikipedia for the non-parametric memory, accessed via a pre-trained neural retriever. The study compares two RAG formulations and demonstrates that these models outperform both parametric seq2seq models and task-specific retrieve-and-extract architectures on knowledge-intensive NLP tasks, generating more specific, diverse, and factual language.', 'pagina': 1, 'tema': 'fundamentos', 'tipo_chunk': 'pagina', 'titulo': 'Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks', 'arquivo': 'lewis2020_rag.pdf', 'idioma': 'en', 'autores': 'Patrick Lewis; Ethan Perez; Aleksandra Piktus; Fabio Petroni; Vladimir Karpukhin; Naman Goyal; Heinrich Küttler; Mike Lewis; Wen-tau Yih; Tim Rocktäschel; Sebastian Riedel; Douwe Kiela', 'chunk_id': 'lewis2020_rag-p001-c00', 'veiculo': 'NeurIPS 2020', 'ano': 2020}
-2.3 por tipo_chunk: {'pagina': 550, 'resumo': 6} | resumos por artigo: {'lewis2020_rag.pdf': 1, 'karpukhin2020_dpr.pdf': 1, 'gao2023_survey.pdf': 1, 'es2023_ragas.pdf': 1, 'asai2023_selfrag.pdf': 1, 'liu2023_lost_middle.pdf': 1}
-2.4 metadata da coleção: {'modelo_embedding': 'bge-m3', 'hnsw:space': 'cosine'}
-2.4 dimensões distintas em 50 vetores: [1024]
-2.6 contagem neste processo novo (reabrindo chroma_db/): 556
-[e2 em 5.3s]

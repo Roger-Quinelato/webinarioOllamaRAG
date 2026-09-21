@@ -31,11 +31,9 @@ def checar(nome, ok, detalhe=""):
     return ok
 
 
-# hazard (achado A6-02, T33): a lista de pacotes era fixa no código e cobria 6 dos 10 nomes de
-# requirements.txt — faltavam matplotlib (shap.plots.text, scripts/05) e ipykernel (kernel do
-# notebook), então o script dizia "Ambiente pronto." num ambiente em que o bloco de SHAP quebra
-# depois de ~40 s de cálculo, ao vivo. Agora a lista vem do próprio arquivo que o projeto declara:
-# dependência nova aparece aqui sem ninguém lembrar de editar duas listas.
+# hazard: uma lista de pacotes fixa no código fica desatualizada em relação ao requirements.txt, e
+# o script diria "Ambiente pronto." num ambiente incompleto. Por isso a lista vem do próprio arquivo
+# que o projeto declara: dependência nova aparece aqui sem ninguém lembrar de editar duas listas.
 _REQUISITO_RE = re.compile(r"^(?P<nome>[A-Za-z0-9._-]+)\s*(?:\[[^\]]*\])?\s*(?:[=<>!~].*)?$")
 
 

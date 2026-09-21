@@ -1,1 +1,0 @@
-{"colecao": "artigos_rag_hibrido_a7e480ac787f", "provedor_embedding": "Ollama", "modelo_embedding": "bge-m3", "dimensao_embedding": 1024, "versao_colecao": "bge-m3-v1", "corpus": "Corpus Oficial", "status": "ready"}
