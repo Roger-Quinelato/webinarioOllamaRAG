@@ -1,5 +1,8 @@
 # MIG-05 — validação real dos providers remotos
 
+> **Registro histórico.** Medido em 2026-09-20 no corpus de 661 chunks, com o modelo NVIDIA de *reasoning* e a ordem OpenAI → NVIDIA → Gemini. Substituído por [`../FIN-05/README.md`](../FIN-05/README.md) e, para o corpus atual, por [`../matriz-pt-br/README.md`](../matriz-pt-br/README.md).
+
+
 **Data da execução:** 2026-09-20
 **Corpus Oficial:** `artigos_rag_hibrido_a280e65e16ee` (`ready`, 661 chunks,
 `bge-m3`, dimensão 1024)

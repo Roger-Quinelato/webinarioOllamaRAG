@@ -1,5 +1,8 @@
 # MIG-07 — fluxo real pela interface Streamlit
 
+> **Registro histórico (corpus anterior).** Medido em 2026-09-21 no corpus de 661 chunks, antes da troca para o corpus só em português. Para o ensaio, vale [`fluxo-real-ui-pt-br-2026-09-21.md`](fluxo-real-ui-pt-br-2026-09-21.md).
+
+
 **Data da execução:** 2026-09-21, das 01:13 às 01:25
 **Branch:** `fix/fin-03-ordem-providers` (PR #114)
 **App:** `streamlit run app.py` via `.claude/launch.json`, porta 8501, navegador
