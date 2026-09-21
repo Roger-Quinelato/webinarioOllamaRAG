@@ -111,6 +111,12 @@ python scripts/02_indexar_hibrido.py
 
 O script gera os chunks, cria os embeddings com o modelo configurado em `MODELO_EMBEDDING` (`granite-embedding:278m` por padrão) e publica a coleção no ChromaDB (`chroma_db/`).
 
+> Trocar `MODELO_EMBEDDING` e reindexar publica uma coleção nova sem apagar a anterior — é assim que a migração entre modelos fica segura, sem quebrar quem ainda depende da coleção antiga. Para listar e remover coleções que não estão mais em uso:
+> ```bash
+> python -c "import chromadb, config; c = chromadb.PersistentClient(path=str(config.PASTA_CHROMA)); [print(col.name, col.metadata.get('modelo_embedding')) for col in c.list_collections()]"
+> python -c "import chromadb, config; chromadb.PersistentClient(path=str(config.PASTA_CHROMA)).delete_collection('NOME_DA_COLECAO')"
+> ```
+
 ### 7. (Opcional) Medir a recuperação
 
 ```bash
