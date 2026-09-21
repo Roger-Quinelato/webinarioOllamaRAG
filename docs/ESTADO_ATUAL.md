@@ -116,7 +116,7 @@ Pontos de comportamento que a auditoria precisa conhecer:
 | `ferramentas/verificar.py` | Checagens automatizadas por critério (ver 3.3) |
 | `ferramentas/construir_notebook.py` | Gera `webinario_rag.ipynb` (40 células, blocos 1–8) |
 | `ferramentas/executar_notebook.py` | Executa o notebook e salva saídas (`--offline` testa o fallback) |
-| `ferramentas/testar_app.py` | AppTest do Streamlit (E8) |
+| `tests/test_app.py` | AppTest do Streamlit (E8); substitui `ferramentas/testar_app.py`, removido na FIN-09 |
 | `ferramentas/capturar_app.py` | Sobe o app e tira captura via Playwright (msedge) |
 | `ferramentas/capturar_evidencias_e8.py` | **não commitado** — cenários 8.2/8.4–8.8 de captura |
 | `ferramentas/medir.py` | Medições de desempenho (E9) |
@@ -237,7 +237,7 @@ bash ferramentas/rodar_scripts.sh
 .venv/Scripts/python ferramentas/construir_notebook.py
 .venv/Scripts/python ferramentas/executar_notebook.py
 .venv/Scripts/python ferramentas/executar_notebook.py --offline
-.venv/Scripts/python ferramentas/testar_app.py
+.venv/Scripts/python -m unittest tests.test_app -v
 .venv/Scripts/python ferramentas/verificar.py e4
 .venv/Scripts/python ferramentas/medir.py nome_do_cenario
 ```
