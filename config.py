@@ -30,6 +30,11 @@ DISTANCIA_MAXIMA_ESTAGIO_1 = 0.60
 # Ponto médio do intervalo real (0.37379246950149536, 0.5800204873085022) no corpus
 # só em português (2026-09-21), com margem igual para perguntas positivas e negativas.
 DISTANCIA_MAXIMA_RETRIEVAL = 0.4769064784049988
+# Calibração real (#120) para granite-embedding:278m, medida lado a lado com a coleção
+# bge-m3 ainda ativa (2026-09-21): ponto médio do intervalo (0.2792980670928955,
+# 0.4242267608642578). NÃO é o limiar ativo; DISTANCIA_MAXIMA_RETRIEVAL acima segue
+# calibrado para bge-m3 até a migração do padrão em #121.
+DISTANCIA_MAXIMA_RETRIEVAL_GRANITE_278M = 0.35176241397857666
 TEMPERATURA = 0.1
 MAX_TOKENS_RESPOSTA = 400
 UPLOADS_STREAMLIT_HABILITADOS = False
