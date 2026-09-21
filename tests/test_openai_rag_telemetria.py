@@ -1,5 +1,8 @@
+import logging
 import unittest
+from unittest.mock import MagicMock, patch
 
+from generation_providers import criar_generation_router
 from generation_router import ErroProviderGeracao, GenerationRouter
 from openai_provider import ErroProviderOpenAI
 from openai_rag import BaseAtiva, OpenAIRAG
@@ -130,6 +133,47 @@ class RegistroMinimoTest(unittest.TestCase):
         with self.assertLogs("rag.geracao", level="INFO") as registro:
             rag_parcial.responder("pergunta", _base())
         self.assertIn("parcial=True", " | ".join(registro.output))
+
+
+CHAVES = {
+    "OPENAI_API_KEY": "sk-teste-OPENAI-nao-registrar",
+    "NVIDIA_API_KEY": "nvapi-teste-NVIDIA-nao-registrar",
+    "GEMINI_API_KEY": "AIza-teste-GEMINI-nao-registrar",
+}
+
+
+def _cliente_que_ecoa_a_chave(**opcoes):
+    """Simula um SDK cujo erro repete a chave recebida, o pior caso para vazamento."""
+    falha = RuntimeError(f"401 chave inválida: {opcoes['api_key']}")
+    cliente = MagicMock()
+    cliente.responses.create.side_effect = falha
+    cliente.chat.completions.create.side_effect = falha
+    cliente.models.generate_content_stream.side_effect = falha
+    cliente.models.generate_content.side_effect = falha
+    return cliente
+
+
+class ChaveForaDoRegistroTest(unittest.TestCase):
+    """FIN-18: nenhuma chave de provider entra no registro nem na mensagem ao usuário."""
+
+    @patch("google.genai.Client", side_effect=_cliente_que_ecoa_a_chave)
+    @patch("openai.OpenAI", side_effect=_cliente_que_ecoa_a_chave)
+    def test_chaves_nao_aparecem_no_log_com_fallback_e_falha_total(self, openai, genai):
+        """Verifica, nos três providers reais, que falha, fallback e erro final não expõem a chave."""
+        roteador = criar_generation_router(secrets=dict(CHAVES), environ={})
+        registro_raiz = logging.getLogger()
+        with self.assertLogs("rag.geracao", level="DEBUG") as registro,                 self.assertLogs(registro_raiz, level="DEBUG") as registro_geral:
+            registro_raiz.debug("marcador")
+            with self.assertRaises(ErroProviderGeracao) as contexto:
+                OpenAIRAG(EmbeddingProviderFake(), roteador).responder("pergunta", _base())
+
+        saida = " | ".join(registro.output + registro_geral.output + [str(contexto.exception)])
+        chaves_usadas = {c.kwargs["api_key"] for c in openai.call_args_list + genai.call_args_list}
+        self.assertEqual(chaves_usadas, set(CHAVES.values()))
+        for nome in ("NVIDIA", "Gemini", "OpenAI"):
+            self.assertIn(f"provider={nome}", saida)
+        for chave in CHAVES.values():
+            self.assertNotIn(chave, saida)
 
 
 if __name__ == "__main__":

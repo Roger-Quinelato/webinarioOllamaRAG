@@ -1,7 +1,8 @@
 # ADR-003: fallback remoto de geração
 
 - **Data**: 2026-09-20
-- **Status**: Aceito
+- **Status**: Aceito; ordem de providers superada pela
+  [ADR-004](004-ordem-configuravel-de-providers.md)
 - **Decisores**: equipe do webinário
 - **Tags**: rag, openai, nvidia, gemini, disponibilidade
 

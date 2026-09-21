@@ -3,7 +3,7 @@
 Material prático do **Webinário CIIA — Encontro 2**. Um assistente que recupera artigos localmente e gera respostas grounded com providers remotos:
 
 - **Ollama** serve somente embeddings `bge-m3` (1024 dimensões).
-- **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: OpenAI, NVIDIA, Gemini.
+- **OpenAI**, **NVIDIA** e **Gemini** geram respostas com streaming. Ordem padrão: NVIDIA, Gemini, OpenAI, configurável por `GENERATION_PROVIDERS_ORDER` ([ADR-004](docs/adr/004-ordem-configuravel-de-providers.md)).
 - **ChromaDB** guarda o **Corpus Oficial** persistente e o **Índice de Sessão** efêmero.
 - **Streamlit** fornece a interface de chat.
 - **SHAP** permanece como material legado; não integra o caminho P0 atual.
@@ -12,7 +12,7 @@ Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxer
 
 ## Arquitetura vigente
 
-`bge-m3` via Ollama cria e consulta vetores. Providers remotos geram texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. O roteador troca entre OpenAI, NVIDIA e Gemini somente antes do primeiro token. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
+`bge-m3` via Ollama cria e consulta vetores. Providers remotos geram texto. Cada pergunta usa uma única **Base Ativa**: **Corpus Oficial** ou **Índice de Sessão**. Contexto insuficiente produz **Recusa**. O roteador troca entre NVIDIA, Gemini e OpenAI somente antes do primeiro token. Não existe fallback automático para geração local; rollback exige a tag `legacy-pre-openai`.
 
 ```
 PDFs → texto por página → chunks → embeddings → ChromaDB
@@ -130,10 +130,12 @@ arquitetura atual.
 
 ### 9. Abrir o chatbot
 
-Configure pelo menos uma chave antes de iniciar. A ordem padrão é OpenAI,
-NVIDIA e Gemini:
+Configure pelo menos uma chave antes de iniciar. A ordem padrão é NVIDIA,
+Gemini e OpenAI. `GENERATION_PROVIDERS_ORDER` muda a ordem; provider omitido fica
+desativado:
 
 ```powershell
+$env:GENERATION_PROVIDERS_ORDER = "nvidia,gemini,openai" # opcional
 $env:OPENAI_API_KEY = "..."
 $env:OPENAI_TIMEOUT = "30" # segundos; opcional
 $env:NVIDIA_API_KEY = "..."

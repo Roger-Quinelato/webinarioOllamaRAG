@@ -45,7 +45,8 @@ Não o execute nem o apresente como fluxo da aula híbrida atual.
 ## Bloco 4 — Geração e fallback
 
 - Use uma pergunta no Streamlit para demonstrar streaming.
-- Mostre ordem OpenAI, NVIDIA e Gemini.
+- Mostre a ordem NVIDIA, Gemini e OpenAI e a variável
+  `GENERATION_PROVIDERS_ORDER`.
 - Explique: troca só ocorre antes do primeiro token; depois, resultado vira
   **Resposta Parcial** se stream falhar.
 

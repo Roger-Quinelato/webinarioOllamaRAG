@@ -4,7 +4,11 @@ import streamlit as st
 from chromadb.errors import ChromaError
 from streamlit.errors import StreamlitSecretNotFoundError
 
-from generation_providers import NenhumProviderGeracaoConfigurado, criar_generation_router
+from generation_providers import (
+    NenhumProviderGeracaoConfigurado,
+    OrdemProvidersInvalida,
+    criar_generation_router,
+)
 from generation_router import ErroProviderGeracao
 from hybrid_index import ColecaoHibridaIncompativel, abrir_colecao_hibrida
 from ollama_embedding_provider import ErroProviderEmbeddingsOllama, ProviderEmbeddingsOllama
@@ -34,7 +38,7 @@ def base_oficial():
 
 try:
     emb_provider, gen_provider = providers()
-except NenhumProviderGeracaoConfigurado as erro:
+except (NenhumProviderGeracaoConfigurado, OrdemProvidersInvalida) as erro:
     st.warning(f"⚠️ {erro}")
     st.stop()
 rag = OpenAIRAG(emb_provider, gen_provider)

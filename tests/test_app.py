@@ -68,6 +68,15 @@ class AppTestIntegracao(unittest.TestCase):
         warnings = [w.value for w in at.warning]
         self.assertTrue(any("NVIDIA_API_KEY" in w for w in warnings))
 
+    @patch("generation_providers.criar_generation_router")
+    def test_app_com_ordem_invalida_mostra_aviso(self, mock_criar_router):
+        """Verifica que GENERATION_PROVIDERS_ORDER inválida vira aviso, sem traceback."""
+        from generation_providers import OrdemProvidersInvalida
+        mock_criar_router.side_effect = OrdemProvidersInvalida("GENERATION_PROVIDERS_ORDER inválida")
+        at = AppTest.from_file("../app.py").run(timeout=30)
+        self.assertFalse(at.exception)
+        self.assertTrue(any("GENERATION_PROVIDERS_ORDER" in w.value for w in at.warning))
+
     @patch("generation_providers.criar_generation_router", return_value=MagicMock())
     @patch("hybrid_index.abrir_colecao_hibrida")
     def test_app_com_provider_inicia_corretamente(self, mock_abrir_colecao, _mock_criar_router):
