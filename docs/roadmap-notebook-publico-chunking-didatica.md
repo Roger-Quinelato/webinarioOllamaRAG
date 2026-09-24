@@ -1,5 +1,10 @@
 # Roadmap — `gerar_notebook_publico.py`: chunking menor + notebook mais didático
 
+> **Nota (2026-09-23):** este roadmap se refere ao notebook anterior, `rag_com_seus_documentos.ipynb`,
+> que continua no repositório. A aula para público amplo, 100% no Colab e sem API, é outro notebook,
+> `aula_rag_colab.ipynb`, com decisões próprias em [`aula-rag-colab/`](aula-rag-colab/README.md)
+> (épico #137).
+
 > Documento gerado a partir de uma sessão de grilling (perguntas/respostas) em 2026-09-21/22.
 > Todas as decisões abaixo já passaram por trade-off e foram confirmadas pelo autor — **não reabrir
 > o debate**, só implementar. Se surgir uma dúvida de escopo durante a implementação que não está
