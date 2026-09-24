@@ -12,15 +12,15 @@ Não usamos LangChain nem LlamaIndex: o código é Python puro, para você enxer
 ## Aula prática de RAG no Google Colab
 
 **Quer aprender RAG na prática, com os seus próprios documentos?** A aula
-[`notebooks/aula_rag_colab.ipynb`](notebooks/aula_rag_colab.ipynb) monta um RAG completo, etapa por etapa,
+[`aula 28-09/aula_rag_colab.ipynb`](aula%2028-09/aula_rag_colab.ipynb) monta um RAG completo, etapa por etapa,
 **inteiramente dentro do Google Colab**: embeddings e modelo de linguagem rodam na GPU gratuita do Colab
 (T4), sem chave de API, sem cadastro e sem instalar nada. É pensada para público amplo — cada etapa é
 explicada antes do código, e cada célula faz uma coisa só.
-[![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/blob/main/notebooks/aula_rag_colab.ipynb)
+[![Abrir no Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/blob/main/aula%2028-09/aula_rag_colab.ipynb)
 
 - **Slides da aula** (teoria que prepara cada seção do notebook): [Aula prática de RAG](https://claude.ai/artifact/XMNHKsuN5v58Di9vzWpUS3).
-- **Decisões, relação slides → notebook e manutenção:** [`docs/aula-rag-colab/`](docs/aula-rag-colab/README.md).
-- Para editar: altere `notebooks/gerar_aula_rag_colab.py`, rode `python notebooks/gerar_aula_rag_colab.py` e depois `python notebooks/checar_aula.py`.
+- **Decisões, relação slides → notebook e manutenção:** [`aula 28-09/`](aula%2028-09/README.md).
+- Para editar: altere `aula 28-09/gerar_aula_rag_colab.py`, rode `python "aula 28-09/gerar_aula_rag_colab.py"` e depois `python "aula 28-09/checar_aula.py"`.
 
 **Versão anterior do notebook.** [`notebooks/rag_com_seus_documentos.ipynb`](notebooks/rag_com_seus_documentos.ipynb)
 continua disponível para quem já programa: usa LangChain, provedores remotos com chave de API e técnicas

@@ -1,15 +1,15 @@
 """Fonte dos slides da aula prática de RAG (issue #136): gera os arquivos do deck no formato do tipo "Slides".
 
-Conteúdo: derivado de notebooks/aula_rag_colab.ipynb (cada slide aponta a seção do notebook).
+Conteúdo: derivado de aula 28-09/aula_rag_colab.ipynb (cada slide aponta a seção do notebook).
 Identidade visual: extraída de docs/slides/parte1-rag-python-puro.pdf — paleta com os hex exatos abaixo,
 Cambria/Calibri/Courier New substituídas pelas equivalentes web de mesma métrica (Caladea/Carlito/Cousine),
 canvas 1920×1080 (o PDF é 960×540 pt → escala 2×).
 
 Uso:
-    python docs/slides/gerar_deck_aula.py      # escreve docs/slides/deck_aula/project/{deck.json,slides/*.html}
+    python "aula 28-09/gerar_deck_aula.py"      # escreve aula 28-09/deck_aula/project/{deck.json,slides/*.html}
 
 O deck publicado vive como Artifact no claude.ai; para atualizá-lo, republique os arquivos de
-docs/slides/deck_aula/project/ no mesmo Artifact (ver docs/aula-rag-colab/README.md).
+aula 28-09/deck_aula/project/ no mesmo Artifact (ver aula 28-09/README.md).
 """
 import json
 import datetime
@@ -815,7 +815,7 @@ passos = "".join(card(linha(circulo(i + 1, c, 56, 28) + h3(t, tam=30), gap=18, e
 secao("mao-na-massa", 26, (
     eyebrow("Prática") + titulo("Mão na massa: abrindo o notebook no Colab")
     + f'<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px">{passos}</div>'
-    + faixa("Onde:", "github.com/Roger-Quinelato/webinarioOllamaRAG → notebooks/aula_rag_colab.ipynb · sem chave "
+    + faixa("Onde:", "github.com/Roger-Quinelato/webinarioOllamaRAG → aula 28-09/aula_rag_colab.ipynb · sem chave "
             "de API, sem cadastro, sem instalar nada.")
 ), notebook="§0", notas="Se a GPU não estiver disponível, o notebook avisa e usa um modelo menor na CPU.")
 
