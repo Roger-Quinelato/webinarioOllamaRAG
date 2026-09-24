@@ -28,4 +28,4 @@ logs/
 Thumbs.db
 
 # Saída do gerador de slides (publicada como Artifact)
-docs/slides/deck_aula/
+aula 28-09/deck_aula/

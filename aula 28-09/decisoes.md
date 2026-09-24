@@ -139,7 +139,7 @@ aula, ele serve para mostrar o problema (§2) e a solução (§12). Alternativa 
 | versões fixadas; nada escondido em módulos externos | [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) (como contraexemplo dos helpers) |
 | mesma stack, em português | [ramoneirao/llm-projects — RAG sem LangChain](https://github.com/ramoneirao/llm-projects/blob/main/RAG/RAG_sem_LangChain.ipynb) |
 
-Regras resultantes, verificadas por `notebooks/checar_aula.py`: ciclo conceito → analogia → código →
+Regras resultantes, verificadas por `aula 28-09/checar_aula.py`: ciclo conceito → analogia → código →
 resultado → interpretação; toda célula de código precedida por texto; mediana ≤ 8 e máximo ≤ 15 linhas;
 sem API key, provedor externo, Ollama, bitsandbytes ou bf16; sem blocos de trilha avançada.
 
