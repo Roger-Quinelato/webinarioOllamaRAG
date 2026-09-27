@@ -2,7 +2,7 @@
 
 > **Nota (2026-09-23):** este roadmap se refere ao notebook anterior, `rag_com_seus_documentos.ipynb`,
 > que continua no repositório. A aula para público amplo, 100% no Colab e sem API, é outro notebook,
-> `aula_rag_colab.ipynb`, com decisões próprias em [`aula-rag-colab/`](aula-rag-colab/README.md)
+> `aula_rag_colab.ipynb`, com decisões próprias em [`aula 28-09/`](../aula%2028-09/README.md)
 > (épico #137).
 
 > Documento gerado a partir de uma sessão de grilling (perguntas/respostas) em 2026-09-21/22.

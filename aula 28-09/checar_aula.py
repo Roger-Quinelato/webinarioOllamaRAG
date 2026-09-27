@@ -1,9 +1,9 @@
-"""Checa as regras pedagógicas e de manutenção de notebooks/aula_rag_colab.ipynb (EDU-COLAB-05.1).
+"""Checa as regras pedagógicas e de manutenção de aula 28-09/aula_rag_colab.ipynb (EDU-COLAB-05.1).
 
 Rode depois de alterar o gerador:
 
-    python notebooks/gerar_aula_rag_colab.py
-    python notebooks/checar_aula.py
+    python "aula 28-09/gerar_aula_rag_colab.py"
+    python "aula 28-09/checar_aula.py"
 
 Só usa a biblioteca padrão. Sai com código 1 se alguma regra falhar.
 """
@@ -18,7 +18,8 @@ from pathlib import Path
 
 PASTA = Path(__file__).parent
 NOVO = PASTA / "aula_rag_colab.ipynb"
-ANTIGO = PASTA / "rag_com_seus_documentos.ipynb"
+NOTEBOOKS = PASTA.parent / "notebooks"
+ANTIGO = NOTEBOOKS / "rag_com_seus_documentos.ipynb"
 
 MEDIANA_MAXIMA = 8
 LINHAS_MAXIMAS = 15
@@ -57,9 +58,9 @@ def regenerar(gerador, destino):
 # 1. O .ipynb é artefato gerado
 regra("notebook novo idêntico ao que o gerador produz",
       regenerar(PASTA / "gerar_aula_rag_colab.py", NOVO),
-      "rode `python notebooks/gerar_aula_rag_colab.py` e versione o resultado")
+      'rode `python "aula 28-09/gerar_aula_rag_colab.py"` e versione o resultado')
 regra("notebook antigo intacto (idêntico ao seu gerador)",
-      regenerar(PASTA / "gerar_notebook_publico.py", ANTIGO))
+      regenerar(NOTEBOOKS / "gerar_notebook_publico.py", ANTIGO))
 
 nb = json.loads(NOVO.read_text(encoding="utf-8"))
 celulas = nb["cells"]

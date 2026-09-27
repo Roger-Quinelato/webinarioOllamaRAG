@@ -5,10 +5,10 @@ Google Colab** (GPU T4), sem chave de API. Épico: [#137](https://github.com/Rog
 
 | Peça | Onde | Como manter |
 |---|---|---|
-| Notebook da aula | [`notebooks/aula_rag_colab.ipynb`](../../notebooks/aula_rag_colab.ipynb) · [Abrir no Colab](https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/blob/main/notebooks/aula_rag_colab.ipynb) | editar [`notebooks/gerar_aula_rag_colab.py`](../../notebooks/gerar_aula_rag_colab.py) e rodar `python notebooks/gerar_aula_rag_colab.py`; nunca editar o `.ipynb` à mão |
-| Checagem automática | [`notebooks/checar_aula.py`](../../notebooks/checar_aula.py) | `python notebooks/checar_aula.py` depois de cada mudança (só biblioteca padrão) |
-| Slides (27, teoria) | Artifact "Aula prática de RAG" no claude.ai — [link](https://claude.ai/artifact/XMNHKsuN5v58Di9vzWpUS3) | fonte em [`docs/slides/gerar_deck_aula.py`](../slides/gerar_deck_aula.py) (paleta em hex no topo); gera `docs/slides/deck_aula/project/`, que é republicado no mesmo Artifact |
-| Identidade visual de referência | [`docs/slides/parte1-rag-python-puro.pdf`](../slides/parte1-rag-python-puro.pdf) | não muda |
+| Notebook da aula | [`aula_rag_colab.ipynb`](aula_rag_colab.ipynb) · [Abrir no Colab](https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/blob/main/aula%2028-09/aula_rag_colab.ipynb) | editar [`gerar_aula_rag_colab.py`](gerar_aula_rag_colab.py) e rodar `python "aula 28-09/gerar_aula_rag_colab.py"`; nunca editar o `.ipynb` à mão |
+| Checagem automática | [`checar_aula.py`](checar_aula.py) | `python "aula 28-09/checar_aula.py"` depois de cada mudança (só biblioteca padrão) |
+| Slides (27, teoria) | Artifact "Aula prática de RAG" no claude.ai — [link](https://claude.ai/artifact/XMNHKsuN5v58Di9vzWpUS3) | fonte em [`gerar_deck_aula.py`](gerar_deck_aula.py) (paleta em hex no topo); gera `aula 28-09/deck_aula/project/`, que é republicado no mesmo Artifact |
+| Identidade visual de referência | [`docs/slides/parte1-rag-python-puro.pdf`](../docs/slides/parte1-rag-python-puro.pdf) | não muda |
 | Decisões e benchmarks | [`decisoes.md`](decisoes.md) | atualizar quando trocar modelo, biblioteca ou regra pedagógica |
 | Validação no Colab | [`validacao-colab.md`](validacao-colab.md) | roteiro + tabela de registros datados |
 
@@ -34,7 +34,7 @@ Google Colab** (GPU T4), sem chave de API. Épico: [#137](https://github.com/Rog
 
 ## Diferença para o notebook anterior
 
-[`notebooks/rag_com_seus_documentos.ipynb`](../../notebooks/rag_com_seus_documentos.ipynb) continua no
+[`notebooks/rag_com_seus_documentos.ipynb`](../notebooks/rag_com_seus_documentos.ipynb) continua no
 repositório, inalterado: é a versão para quem já programa, com LangChain, provedores remotos (chave de API)
 e técnicas avançadas (busca híbrida, reranking, HyDE, avaliação). Seu histórico de decisões está em
-[`../roadmap-notebook-publico-chunking-didatica.md`](../roadmap-notebook-publico-chunking-didatica.md).
+[`../roadmap-notebook-publico-chunking-didatica.md`](../docs/roadmap-notebook-publico-chunking-didatica.md).

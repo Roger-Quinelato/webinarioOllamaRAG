@@ -2,14 +2,14 @@
 
 > Issue [#155](https://github.com/Roger-Quinelato/webinarioOllamaRAG/issues/155) (EDU-COLAB-05.2).
 
-O notebook é gerado e checado fora do Colab (`python notebooks/checar_aula.py`), e a lógica das células foi
+O notebook é gerado e checado fora do Colab (`python "aula 28-09/checar_aula.py"`), e a lógica das células foi
 exercitada com modelos simulados. **Tempos, memória e o comportamento real dos modelos só podem ser
 confirmados no Colab.** Faça este roteiro a cada mudança relevante do gerador ou quando o Colab atualizar
 suas bibliotecas.
 
 ## Passos
 
-1. Abra `notebooks/aula_rag_colab.ipynb` pelo badge do README.
+1. Abra `aula 28-09/aula_rag_colab.ipynb` pelo badge do README.
 2. *Ambiente de execução → Alterar o tipo de ambiente → **T4 GPU** → Salvar*.
 3. *Ambiente de execução → **Executar tudo***. Na célula de upload, clique em **Cancelar upload** (usa o artigo de exemplo).
 4. Ao final, copie a saída da célula **"Diagnóstico da execução"** e cole como comentário na issue #155.

@@ -1,12 +1,12 @@
-"""Gera notebooks/aula_rag_colab.ipynb: aula prática de RAG 100% no Google Colab (épico #137).
+"""Gera aula 28-09/aula_rag_colab.ipynb: aula prática de RAG 100% no Google Colab (épico #137).
 
 O notebook é escrito aqui como uma lista de células para facilitar revisão em diff.
 Nunca edite o .ipynb à mão: altere este arquivo e rode
 
-    python notebooks/gerar_aula_rag_colab.py
-    python notebooks/checar_aula.py
+    python "aula 28-09/gerar_aula_rag_colab.py"
+    python "aula 28-09/checar_aula.py"
 
-Regras pedagógicas (ver docs/aula-rag-colab/decisoes.md):
+Regras pedagógicas (ver aula 28-09/decisoes.md):
 - ciclo por etapa: 🧠 conceito → 🧩 analogia → ▶️ código → 👀 resultado → 💡 interpretação;
 - uma célula de código = uma ideia (mediana ≤ 8 linhas, máximo 15);
 - toda célula de código vem depois de uma célula de texto;
@@ -21,7 +21,7 @@ from textwrap import dedent
 DESTINO = Path(__file__).with_name("aula_rag_colab.ipynb")
 URL_COLAB = (
     "https://colab.research.google.com/github/Roger-Quinelato/webinarioOllamaRAG/"
-    "blob/main/notebooks/aula_rag_colab.ipynb"
+    "blob/main/aula%2028-09/aula_rag_colab.ipynb"
 )
 URL_REPO = "https://github.com/Roger-Quinelato/webinarioOllamaRAG"
 
